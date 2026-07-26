@@ -28,7 +28,7 @@ class AdminReviewController extends Controller
         }
 
         $review = Review::find($id);
-        if (!$review) {
+        if (! $review) {
             return response()->json(['success' => false, 'message' => 'Avis non trouvé.'], 404);
         }
 
@@ -44,7 +44,7 @@ class AdminReviewController extends Controller
         }
 
         $review = Review::find($id);
-        if (!$review) {
+        if (! $review) {
             return response()->json(['success' => false, 'message' => 'Avis non trouvé.'], 404);
         }
 
@@ -60,7 +60,7 @@ class AdminReviewController extends Controller
         }
 
         $review = Review::find($id);
-        if (!$review) {
+        if (! $review) {
             return response()->json(['success' => false, 'message' => 'Avis non trouvé.'], 404);
         }
 
@@ -84,7 +84,7 @@ class AdminReviewController extends Controller
         }
 
         $review = Review::find($id);
-        if (!$review) {
+        if (! $review) {
             return response()->json(['success' => false, 'message' => 'Avis non trouvé.'], 404);
         }
 

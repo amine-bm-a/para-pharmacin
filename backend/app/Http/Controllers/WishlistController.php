@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Wishlist;
-use App\Models\Product;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class WishlistController extends Controller
@@ -16,28 +14,28 @@ class WishlistController extends Controller
             ->with('product.brand', 'product.category')
             ->get()
             ->pluck('product');
-            
+
         return response()->json([
             'success' => true,
-            'data' => $wishlistItems
+            'data' => $wishlistItems,
         ]);
     }
 
     public function store($productId)
     {
         $userId = Auth::id();
-        
+
         $exists = Wishlist::where('user_id', $userId)->where('product_id', $productId)->exists();
-        if (!$exists) {
+        if (! $exists) {
             Wishlist::create([
                 'user_id' => $userId,
-                'product_id' => $productId
+                'product_id' => $productId,
             ]);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Produit ajouté aux favoris.'
+            'message' => 'Produit ajouté aux favoris.',
         ]);
     }
 
@@ -48,7 +46,7 @@ class WishlistController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Produit retiré des favoris.'
+            'message' => 'Produit retiré des favoris.',
         ]);
     }
 }

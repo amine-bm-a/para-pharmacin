@@ -5,7 +5,7 @@ import axios from 'axios';
 import {
   LayoutDashboard, ShoppingBag, Pill, FolderOpen, Tag,
   Package, Percent, Image, Users, ShieldCheck, Star, LogOut, HeartPulse,
-  Truck, CreditCard, Settings, ChevronDown, ChevronRight, BarChart3,
+  Truck, CreditCard, Settings, ChevronDown, ChevronRight,
   Bell, ExternalLink, Grid3X3, Store, BookOpen, Handshake
 } from 'lucide-react';
 

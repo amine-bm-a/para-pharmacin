@@ -47,16 +47,6 @@ export default function AccountSecurity() {
     }
   };
 
-  const inputStyle = {
-    width: '100%',
-    padding: '12px 16px',
-    borderRadius: 'var(--radius-md)',
-    border: '1.5px solid var(--border)',
-    fontSize: '0.95rem',
-    background: 'var(--bg-subtle)',
-    transition: 'all 0.2s'
-  };
-
   return (
     <div>
       {/* Header */}

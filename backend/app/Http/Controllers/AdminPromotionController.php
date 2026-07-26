@@ -51,7 +51,7 @@ class AdminPromotionController extends Controller
         }
 
         $promotion = Promotion::find($id);
-        if (!$promotion) {
+        if (! $promotion) {
             return response()->json(['success' => false, 'message' => 'Promotion non trouvée.'], 404);
         }
 
@@ -81,7 +81,7 @@ class AdminPromotionController extends Controller
         }
 
         $promotion = Promotion::find($id);
-        if (!$promotion) {
+        if (! $promotion) {
             return response()->json(['success' => false, 'message' => 'Promotion non trouvée.'], 404);
         }
 

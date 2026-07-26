@@ -3,8 +3,9 @@
 namespace App\Services;
 
 use App\Models\PushSubscription;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Minishlink\WebPush\Subscription;
+use Minishlink\WebPush\WebPush;
 
 /**
  * WebPushService — sends Web Push notifications via the VAPID protocol.
@@ -28,24 +29,24 @@ class WebPushService
     /**
      * Send a push notification to all subscriptions of a given user.
      *
-     * @param int    $userId
-     * @param string $title
-     * @param array  $options  — body, icon, badge, tag, url, data, actions
+     * @param  array  $options  — body, icon, badge, tag, url, data, actions
      */
     public function notifyUser(int $userId, string $title, array $options = []): void
     {
         $subscriptions = PushSubscription::where('user_id', $userId)->get();
 
-        if ($subscriptions->isEmpty()) return;
+        if ($subscriptions->isEmpty()) {
+            return;
+        }
 
         $payload = json_encode([
-            'title'   => $title,
-            'body'    => $options['body']   ?? '',
-            'icon'    => $options['icon']   ?? '/logo-192.png',
-            'badge'   => $options['badge']  ?? '/logo-192.png',
-            'tag'     => $options['tag']    ?? 'general',
-            'url'     => $options['url']    ?? '/',
-            'data'    => $options['data']   ?? [],
+            'title' => $title,
+            'body' => $options['body'] ?? '',
+            'icon' => $options['icon'] ?? '/logo-192.png',
+            'badge' => $options['badge'] ?? '/logo-192.png',
+            'tag' => $options['tag'] ?? 'general',
+            'url' => $options['url'] ?? '/',
+            'data' => $options['data'] ?? [],
             'actions' => $options['actions'] ?? [],
         ]);
 
@@ -61,12 +62,12 @@ class WebPushService
     {
         $subscriptions = PushSubscription::whereNotNull('user_id')->get();
         $payload = json_encode([
-            'title'   => $title,
-            'body'    => $options['body']  ?? '',
-            'icon'    => $options['icon']  ?? '/logo-192.png',
-            'badge'   => $options['badge'] ?? '/logo-192.png',
-            'tag'     => $options['tag']   ?? 'broadcast',
-            'url'     => $options['url']   ?? '/',
+            'title' => $title,
+            'body' => $options['body'] ?? '',
+            'icon' => $options['icon'] ?? '/logo-192.png',
+            'badge' => $options['badge'] ?? '/logo-192.png',
+            'tag' => $options['tag'] ?? 'broadcast',
+            'url' => $options['url'] ?? '/',
         ]);
 
         foreach ($subscriptions as $sub) {
@@ -77,27 +78,28 @@ class WebPushService
     private function sendToSubscription(PushSubscription $sub, string $payload): void
     {
         // Check if the minishlink/web-push package is available
-        if (!class_exists(\Minishlink\WebPush\WebPush::class)) {
+        if (! class_exists(WebPush::class)) {
             Log::warning('[WebPush] Package minishlink/web-push not installed. Run: composer require minishlink/web-push');
+
             return;
         }
 
         try {
             $auth = [
                 'VAPID' => [
-                    'subject'    => config('app.vapid_subject', 'mailto:contact@parabenmoussa.ma'),
-                    'publicKey'  => config('app.vapid_public_key'),
+                    'subject' => config('app.vapid_subject', 'mailto:contact@parabenmoussa.ma'),
+                    'publicKey' => config('app.vapid_public_key'),
                     'privateKey' => config('app.vapid_private_key'),
                 ],
             ];
 
-            $webPush = new \Minishlink\WebPush\WebPush($auth);
+            $webPush = new WebPush($auth);
 
-            $subscription = \Minishlink\WebPush\Subscription::create([
+            $subscription = Subscription::create([
                 'endpoint' => $sub->endpoint,
-                'keys'     => [
+                'keys' => [
                     'p256dh' => $sub->p256dh,
-                    'auth'   => $sub->auth,
+                    'auth' => $sub->auth,
                 ],
             ]);
 
@@ -107,15 +109,15 @@ class WebPushService
                 if ($report->isSubscriptionExpired()) {
                     // Remove stale subscription
                     $sub->delete();
-                    Log::info('[WebPush] Expired subscription removed: ' . $sub->endpoint);
-                } elseif (!$report->isSuccess()) {
-                    Log::warning('[WebPush] Failed to send: ' . $report->getReason());
+                    Log::info('[WebPush] Expired subscription removed: '.$sub->endpoint);
+                } elseif (! $report->isSuccess()) {
+                    Log::warning('[WebPush] Failed to send: '.$report->getReason());
                 } else {
                     $sub->update(['last_used_at' => now()]);
                 }
             }
         } catch (\Throwable $e) {
-            Log::error('[WebPush] Exception: ' . $e->getMessage());
+            Log::error('[WebPush] Exception: '.$e->getMessage());
         }
     }
 }

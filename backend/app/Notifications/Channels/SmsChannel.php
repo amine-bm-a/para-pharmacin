@@ -2,8 +2,8 @@
 
 namespace App\Notifications\Channels;
 
-use Illuminate\Notifications\Notification;
 use App\Services\SmsService;
+use Illuminate\Notifications\Notification;
 
 class SmsChannel
 {
@@ -17,21 +17,21 @@ class SmsChannel
 
         // 2. Resolve recipient phone number (prioritize order shipping phone number, then user profile phone)
         $to = null;
-        if ($order && !empty($order->phone_number)) {
+        if ($order && ! empty($order->phone_number)) {
             $to = $order->phone_number;
-        } elseif (!empty($notifiable->phone)) {
+        } elseif (! empty($notifiable->phone)) {
             $to = $notifiable->phone;
         }
 
-        if (!$to) {
+        if (! $to) {
             return;
         }
 
         // 3. Resolve SMS message content
         if (method_exists($notification, 'toSms')) {
             $message = $notification->toSms($notifiable);
-            
-            if (!empty($message)) {
+
+            if (! empty($message)) {
                 SmsService::sendSms($to, $message);
             }
         }

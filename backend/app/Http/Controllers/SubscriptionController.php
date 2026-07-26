@@ -28,7 +28,7 @@ class SubscriptionController extends Controller
             ->get();
 
         return response()->json([
-            'success'       => true,
+            'success' => true,
             'subscriptions' => $subscriptions,
         ]);
     }
@@ -40,21 +40,21 @@ class SubscriptionController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'frequency'        => 'required|in:weekly,biweekly,monthly',
+            'frequency' => 'required|in:weekly,biweekly,monthly',
             'shipping_address' => 'required|string|max:255',
-            'shipping_city'    => 'required|string|max:100',
-            'postal_code'      => 'required|string|max:20',
-            'phone_number'     => 'required|string|max:20',
-            'payment_method'   => 'required|in:delivery,pickup',
-            'items'            => 'required|array|min:1',
+            'shipping_city' => 'required|string|max:100',
+            'postal_code' => 'required|string|max:20',
+            'phone_number' => 'required|string|max:20',
+            'payment_method' => 'required|in:delivery,pickup',
+            'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity'   => 'required|integer|min:1|max:99',
+            'items.*.quantity' => 'required|integer|min:1|max:99',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors'  => $validator->errors(),
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -76,29 +76,29 @@ class SubscriptionController extends Controller
 
             // Determine first renewal date based on frequency
             $nextRenewal = match ($request->frequency) {
-                'weekly'   => now()->addWeek(),
+                'weekly' => now()->addWeek(),
                 'biweekly' => now()->addWeeks(2),
-                default    => now()->addMonth(),
+                default => now()->addMonth(),
             };
 
             $subscription = Subscription::create([
-                'user_id'          => $request->user()->id,
-                'status'           => 'active',
-                'frequency'        => $request->frequency,
+                'user_id' => $request->user()->id,
+                'status' => 'active',
+                'frequency' => $request->frequency,
                 'shipping_address' => $request->shipping_address,
-                'shipping_city'    => $request->shipping_city,
-                'postal_code'      => $request->postal_code,
-                'phone_number'     => $request->phone_number,
-                'payment_method'   => $request->payment_method,
+                'shipping_city' => $request->shipping_city,
+                'postal_code' => $request->postal_code,
+                'phone_number' => $request->phone_number,
+                'payment_method' => $request->payment_method,
                 'discount_percent' => 5,
-                'next_renewal_at'  => $nextRenewal,
+                'next_renewal_at' => $nextRenewal,
             ]);
 
             foreach ($request->items as $item) {
                 SubscriptionItem::create([
                     'subscription_id' => $subscription->id,
-                    'product_id'      => $item['product_id'],
-                    'quantity'        => $item['quantity'],
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
                 ]);
             }
 
@@ -108,24 +108,25 @@ class SubscriptionController extends Controller
             NotificationService::notifyUser(
                 $request->user()->id,
                 '🔄 Abonnement créé',
-                "Votre abonnement **#{$subscription->id}** est actif. Prochain renouvellement : " .
-                $subscription->next_renewal_at->format('d/m/Y') . '.',
+                "Votre abonnement **#{$subscription->id}** est actif. Prochain renouvellement : ".
+                $subscription->next_renewal_at->format('d/m/Y').'.',
                 'subscription',
                 '/mon-compte/abonnements'
             );
 
             return response()->json([
-                'success'      => true,
-                'message'      => 'Abonnement créé avec succès.',
+                'success' => true,
+                'message' => 'Abonnement créé avec succès.',
                 'subscription' => $subscription->load('items.product'),
             ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Subscription creation failed', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la création de l\'abonnement : ' . $e->getMessage(),
+                'message' => 'Erreur lors de la création de l\'abonnement : '.$e->getMessage(),
             ], 500);
         }
     }
@@ -138,12 +139,12 @@ class SubscriptionController extends Controller
     {
         $subscription = Subscription::where('user_id', $request->user()->id)->find($id);
 
-        if (!$subscription) {
+        if (! $subscription) {
             return response()->json(['success' => false, 'message' => 'Abonnement introuvable.'], 404);
         }
 
         $validator = Validator::make($request->all(), [
-            'status'    => 'sometimes|in:active,paused,cancelled',
+            'status' => 'sometimes|in:active,paused,cancelled',
             'frequency' => 'sometimes|in:weekly,biweekly,monthly',
         ]);
 
@@ -159,8 +160,8 @@ class SubscriptionController extends Controller
         }
 
         return response()->json([
-            'success'      => true,
-            'message'      => 'Abonnement mis à jour.',
+            'success' => true,
+            'message' => 'Abonnement mis à jour.',
             'subscription' => $subscription->fresh('items.product'),
         ]);
     }
@@ -173,7 +174,7 @@ class SubscriptionController extends Controller
     {
         $subscription = Subscription::where('user_id', $request->user()->id)->find($id);
 
-        if (!$subscription) {
+        if (! $subscription) {
             return response()->json(['success' => false, 'message' => 'Abonnement introuvable.'], 404);
         }
 
@@ -192,7 +193,7 @@ class SubscriptionController extends Controller
      */
     public static function renewSubscription(Subscription $subscription): ?Order
     {
-        $user  = $subscription->user;
+        $user = $subscription->user;
         $items = $subscription->items()->with('product')->get();
 
         if ($items->isEmpty()) {
@@ -202,25 +203,26 @@ class SubscriptionController extends Controller
         try {
             return DB::transaction(function () use ($subscription, $user, $items) {
                 $totalAmount = 0;
-                $orderItems  = [];
+                $orderItems = [];
 
                 foreach ($items as $subItem) {
                     $product = $subItem->product;
 
-                    if (!$product || $product->stock < $subItem->quantity) {
+                    if (! $product || $product->stock < $subItem->quantity) {
                         Log::warning("Subscription #{$subscription->id}: stock insuffisant pour {$product?->name}");
+
                         continue;
                     }
 
-                    $unitPrice   = $product->discount_price ?? $product->price;
+                    $unitPrice = $product->discount_price ?? $product->price;
                     // Apply subscription discount
-                    $unitPrice   = $unitPrice * (1 - ($subscription->discount_percent / 100));
+                    $unitPrice = $unitPrice * (1 - ($subscription->discount_percent / 100));
                     $totalAmount += $unitPrice * $subItem->quantity;
 
                     $orderItems[] = [
                         'product_id' => $product->id,
-                        'quantity'   => $subItem->quantity,
-                        'price'      => round($unitPrice, 2),
+                        'quantity' => $subItem->quantity,
+                        'price' => round($unitPrice, 2),
                     ];
 
                     $product->decrement('stock', $subItem->quantity);
@@ -230,19 +232,19 @@ class SubscriptionController extends Controller
                     return null;
                 }
 
-                $orderNumber = 'ABO' . date('Ymd') . strtoupper(bin2hex(random_bytes(3)));
+                $orderNumber = 'ABO'.date('Ymd').strtoupper(bin2hex(random_bytes(3)));
 
                 $order = Order::create([
-                    'user_id'          => $user->id,
-                    'order_number'     => $orderNumber,
-                    'status'           => 'pending',
-                    'total_amount'     => $totalAmount,
+                    'user_id' => $user->id,
+                    'order_number' => $orderNumber,
+                    'status' => 'pending',
+                    'total_amount' => $totalAmount,
                     'shipping_address' => $subscription->shipping_address,
-                    'shipping_city'    => $subscription->shipping_city,
-                    'postal_code'      => $subscription->postal_code,
-                    'phone_number'     => $subscription->phone_number,
-                    'payment_method'   => $subscription->payment_method,
-                    'payment_status'   => 'pending',
+                    'shipping_city' => $subscription->shipping_city,
+                    'postal_code' => $subscription->postal_code,
+                    'phone_number' => $subscription->phone_number,
+                    'payment_method' => $subscription->payment_method,
+                    'payment_status' => 'pending',
                 ]);
 
                 foreach ($orderItems as $item) {
@@ -277,6 +279,7 @@ class SubscriptionController extends Controller
 
         } catch (\Exception $e) {
             Log::error("Subscription #{$subscription->id} renewal failed", ['error' => $e->getMessage()]);
+
             return null;
         }
     }

@@ -37,7 +37,7 @@ class AdminStockController extends Controller
                 'total' => Product::count(),
                 'low_stock' => Product::where('stock', '>', 0)->where('stock', '<=', 10)->count(),
                 'out_of_stock' => Product::where('stock', '=', 0)->count(),
-            ]
+            ],
         ]);
     }
 
@@ -49,7 +49,7 @@ class AdminStockController extends Controller
         }
 
         $product = Product::find($id);
-        if (!$product) {
+        if (! $product) {
             return response()->json(['success' => false, 'message' => 'Produit non trouvé.'], 404);
         }
 

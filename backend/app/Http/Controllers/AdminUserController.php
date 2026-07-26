@@ -18,7 +18,7 @@ class AdminUserController extends Controller
     // List clients (role=client) with order stats
     public function clients(Request $request)
     {
-        if (!$this->ensureAdmin($request)) {
+        if (! $this->ensureAdmin($request)) {
             return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
         }
 
@@ -45,7 +45,7 @@ class AdminUserController extends Controller
     // List staff/admin users
     public function staff(Request $request)
     {
-        if (!$this->ensureAdmin($request)) {
+        if (! $this->ensureAdmin($request)) {
             return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
         }
 
@@ -58,7 +58,7 @@ class AdminUserController extends Controller
 
     public function storeStaff(Request $request)
     {
-        if (!$this->ensureAdmin($request)) {
+        if (! $this->ensureAdmin($request)) {
             return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
         }
 
@@ -85,27 +85,27 @@ class AdminUserController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Administrateur ajouté avec succès.',
-            'user' => $user
+            'user' => $user,
         ], 201);
     }
 
     public function updateStaff(Request $request, $id)
     {
-        if (!$this->ensureAdmin($request)) {
+        if (! $this->ensureAdmin($request)) {
             return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
         }
 
         $user = User::whereIn('role', ['admin', 'pharmacien'])->find($id);
-        if (!$user) {
+        if (! $user) {
             return response()->json(['success' => false, 'message' => 'Utilisateur non trouvé.'], 404);
         }
 
         $validator = Validator::make($request->all(), [
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email,' . $id,
-            'phone'    => 'nullable|string|max:30',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,'.$id,
+            'phone' => 'nullable|string|max:30',
             'password' => 'nullable|string|min:8',
-            'role'     => 'required|string|in:admin,pharmacien',
+            'role' => 'required|string|in:admin,pharmacien',
         ]);
 
         if ($validator->fails()) {
@@ -113,10 +113,10 @@ class AdminUserController extends Controller
         }
 
         $updateData = [
-            'name'  => $request->name,
+            'name' => $request->name,
             'email' => strtolower($request->email),
             'phone' => $request->phone,
-            'role'  => $request->role,
+            'role' => $request->role,
         ];
 
         if ($request->filled('password')) {
@@ -128,13 +128,13 @@ class AdminUserController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Membre du personnel mis à jour avec succès.',
-            'user'    => $user,
+            'user' => $user,
         ]);
     }
 
     public function deleteStaff(Request $request, $id)
     {
-        if (!$this->ensureAdmin($request)) {
+        if (! $this->ensureAdmin($request)) {
             return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
         }
 
@@ -143,7 +143,7 @@ class AdminUserController extends Controller
         }
 
         $user = User::whereIn('role', ['admin', 'pharmacien'])->find($id);
-        if (!$user) {
+        if (! $user) {
             return response()->json(['success' => false, 'message' => 'Utilisateur non trouvé.'], 404);
         }
 

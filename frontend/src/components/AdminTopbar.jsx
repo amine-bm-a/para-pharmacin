@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useUserNotif } from '../context/UserNotifContext';
-import { Bell, ExternalLink, LogOut, Search, Sun, Moon, ChevronDown, X, Check } from 'lucide-react';
+import { Bell, ExternalLink, LogOut, Search, ChevronDown, X, Check } from 'lucide-react';
 
 const PAGE_TITLES = {
   '/admin':              { title: 'Tableau de bord',    sub: "Vue d'ensemble de votre pharmacie" },
@@ -44,7 +44,7 @@ function notifIcon(type) {
   return { order: '📦', payment: '💳', prescription: '💊', promo: '🎁', system: '⚙️' }[type] || '🔔';
 }
 
-export default function AdminTopbar({ pendingOrders = 0 }) {
+export default function AdminTopbar() {
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const { unreadCount, notifications, loading: notifLoading, fetchNotifications, markAsRead, markAllAsRead, deleteNotif } = useUserNotif();

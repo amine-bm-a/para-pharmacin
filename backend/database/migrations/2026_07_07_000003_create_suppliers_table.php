@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Supplier;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -29,7 +30,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->dropForeignIdFor(\App\Models\Supplier::class);
+            $table->dropForeignIdFor(Supplier::class);
             $table->dropColumn('supplier_id');
         });
         Schema::dropIfExists('suppliers');

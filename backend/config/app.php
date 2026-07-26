@@ -63,9 +63,9 @@ return [
     | Generate with: php artisan pwa:generate-vapid
     | Copy the public key to frontend/.env as VITE_VAPID_PUBLIC_KEY
     */
-    'vapid_public_key'  => env('VAPID_PUBLIC_KEY', ''),
+    'vapid_public_key' => env('VAPID_PUBLIC_KEY', ''),
     'vapid_private_key' => env('VAPID_PRIVATE_KEY', ''),
-    'vapid_subject'     => env('VAPID_SUBJECT', 'mailto:contact@parabenmoussa.ma'),
+    'vapid_subject' => env('VAPID_SUBJECT', 'mailto:contact@parabenmoussa.ma'),
 
     /*
     |--------------------------------------------------------------------------

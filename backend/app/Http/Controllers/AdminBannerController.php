@@ -50,7 +50,7 @@ class AdminBannerController extends Controller
         }
 
         $banner = Banner::find($id);
-        if (!$banner) {
+        if (! $banner) {
             return response()->json(['success' => false, 'message' => 'Bannière non trouvée.'], 404);
         }
 
@@ -79,7 +79,7 @@ class AdminBannerController extends Controller
         }
 
         $banner = Banner::find($id);
-        if (!$banner) {
+        if (! $banner) {
             return response()->json(['success' => false, 'message' => 'Bannière non trouvée.'], 404);
         }
 
@@ -91,6 +91,7 @@ class AdminBannerController extends Controller
     public function publicIndex()
     {
         $banners = Banner::where('is_active', true)->orderBy('position')->get();
+
         return response()->json(['success' => true, 'banners' => $banners]);
     }
 }

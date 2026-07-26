@@ -1,34 +1,33 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\BrandController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\AdminDashboardController;
-use App\Http\Controllers\AdminBrandController;
-use App\Http\Controllers\AdminPromotionController;
 use App\Http\Controllers\AdminBannerController;
-use App\Http\Controllers\AdminStockController;
-use App\Http\Controllers\AdminUserController;
-use App\Http\Controllers\AdminReviewController;
-use App\Http\Controllers\AdminSubCategoryController;
+use App\Http\Controllers\AdminBrandController;
 use App\Http\Controllers\AdminCouponController;
-use App\Http\Controllers\AdminSupplierController;
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminDeliveryController;
-use App\Http\Controllers\WishlistController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\PharmacienController;
+use App\Http\Controllers\AdminPromotionController;
+use App\Http\Controllers\AdminReviewController;
+use App\Http\Controllers\AdminStockController;
+use App\Http\Controllers\AdminSubCategoryController;
+use App\Http\Controllers\AdminSupplierController;
+use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BlogController;
-use App\Http\Controllers\PartnerController;
-use App\Http\Controllers\HomepageSettingController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\LoyaltyController;
-use App\Http\Controllers\SubscriptionController;
-use App\Http\Controllers\PushSubscriptionController;
+use App\Http\Controllers\BrandController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\HomepageSettingController;
+use App\Http\Controllers\LoyaltyController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PharmacienController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PushSubscriptionController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\WishlistController;
+use Illuminate\Support\Facades\Route;
 
 // Public Routes
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
@@ -131,7 +130,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/contact-messages', [ContactController::class, 'index']);
         Route::put('/contact-messages/{id}/read', [ContactController::class, 'markAsRead']);
         Route::delete('/contact-messages/{id}', [ContactController::class, 'destroy']);
-        
+
         Route::get('/blog/admin', [BlogController::class, 'adminIndex']);
         Route::post('/blog/articles', [BlogController::class, 'store']);
         Route::put('/blog/articles/{id}', [BlogController::class, 'update']);

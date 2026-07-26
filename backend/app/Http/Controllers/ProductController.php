@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\Review;
 use App\Services\CacheKeyService;
@@ -13,15 +14,15 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $search    = $request->get('search', '');
-        $category  = $request->get('category', '');
-        $brand     = $request->get('brand', '');
-        $minPrice  = $request->get('min_price', '');
-        $maxPrice  = $request->get('max_price', '');
-        $sort      = $request->get('sort', 'popular');
-        $inStock   = $request->boolean('in_stock');
-        $promos    = $request->has('promotions');
-        $featured  = $request->has('featured');
+        $search = $request->get('search', '');
+        $category = $request->get('category', '');
+        $brand = $request->get('brand', '');
+        $minPrice = $request->get('min_price', '');
+        $maxPrice = $request->get('max_price', '');
+        $sort = $request->get('sort', 'popular');
+        $inStock = $request->boolean('in_stock');
+        $promos = $request->has('promotions');
+        $featured = $request->has('featured');
 
         // ── Scout full-text search (database driver in dev, meilisearch in prod) ──
         if ($search !== '') {
@@ -146,9 +147,9 @@ class ProductController extends Controller
         );
 
         return response()->json([
-            'success'  => true,
+            'success' => true,
             'products' => $products,
-            'brands'   => $brands,
+            'brands' => $brands,
         ]);
     }
 
@@ -169,18 +170,18 @@ class ProductController extends Controller
             ->take(8)
             ->get()
             ->map(fn ($p) => [
-                'id'             => $p->id,
-                'name'           => $p->name,
-                'slug'           => $p->slug,
-                'brand'          => $p->brand,
-                'category'       => $p->category?->name,
-                'price'          => (float) $p->price,
+                'id' => $p->id,
+                'name' => $p->name,
+                'slug' => $p->slug,
+                'brand' => $p->brand,
+                'category' => $p->category?->name,
+                'price' => (float) $p->price,
                 'discount_price' => $p->discount_price ? (float) $p->discount_price : null,
-                'image_url'      => $p->image_url,
+                'image_url' => $p->image_url,
             ]);
 
         return response()->json([
-            'success'     => true,
+            'success' => true,
             'suggestions' => $suggestions,
         ]);
     }
@@ -191,13 +192,13 @@ class ProductController extends Controller
             'category',
             'reviews' => function ($query) {
                 $query->where('status', 'approved')->with('user:id,name,email');
-            }
+            },
         ])->where('slug', $slug)->first();
 
-        if (!$product) {
+        if (! $product) {
             return response()->json([
                 'success' => false,
-                'message' => 'Produit non trouvé.'
+                'message' => 'Produit non trouvé.',
             ], 404);
         }
 
@@ -209,57 +210,57 @@ class ProductController extends Controller
             ->get();
 
         return response()->json([
-            'success'          => true,
-            'product'          => $product,
-            'related_products' => $relatedProducts
+            'success' => true,
+            'product' => $product,
+            'related_products' => $relatedProducts,
         ]);
     }
 
     public function storeReview(Request $request, $productId)
     {
         $validator = Validator::make($request->all(), [
-            'rating'  => 'required|integer|min:1|max:5',
+            'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:1000',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors'  => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         $product = Product::find($productId);
-        if (!$product) {
+        if (! $product) {
             return response()->json([
                 'success' => false,
-                'message' => 'Produit non trouvé.'
+                'message' => 'Produit non trouvé.',
             ], 404);
         }
 
-        $hasPurchased = \App\Models\Order::where('user_id', $request->user()->id)
+        $hasPurchased = Order::where('user_id', $request->user()->id)
             ->whereHas('items', fn ($q) => $q->where('product_id', $productId))
             ->exists();
 
-        if (!$hasPurchased) {
+        if (! $hasPurchased) {
             return response()->json([
                 'success' => false,
-                'message' => 'Vous devez avoir acheté ce produit pour pouvoir laisser un avis.'
+                'message' => 'Vous devez avoir acheté ce produit pour pouvoir laisser un avis.',
             ], 403);
         }
 
         $review = Review::create([
             'product_id' => $product->id,
-            'user_id'    => $request->user()->id,
-            'rating'     => $request->rating,
-            'comment'    => $request->comment,
-            'status'     => 'pending',
+            'user_id' => $request->user()->id,
+            'rating' => $request->rating,
+            'comment' => $request->comment,
+            'status' => 'pending',
         ]);
 
         return response()->json([
             'success' => true,
             'message' => "Votre avis a été soumis pour validation par l'administrateur.",
-            'review'  => $review->load('user')
+            'review' => $review->load('user'),
         ], 201);
     }
 
@@ -272,8 +273,8 @@ class ProductController extends Controller
             ->get();
 
         return response()->json([
-            'success'      => true,
-            'testimonials' => $testimonials
+            'success' => true,
+            'testimonials' => $testimonials,
         ]);
     }
 }

@@ -22,17 +22,18 @@ class BlogController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('content', 'like', "%{$search}%");
+                    ->orWhere('content', 'like', "%{$search}%");
             });
         }
 
         if ($request->boolean('paginate')) {
             $perPage = min(50, max(1, (int) $request->get('per_page', 12)));
             $articles = $query->paginate($perPage);
+
             return response()->json(['success' => true, 'articles' => $articles->items(), 'pagination' => [
                 'current_page' => $articles->currentPage(),
-                'last_page'    => $articles->lastPage(),
-                'total'        => $articles->total(),
+                'last_page' => $articles->lastPage(),
+                'total' => $articles->total(),
             ]]);
         }
 
@@ -45,7 +46,7 @@ class BlogController extends Controller
     public function show($slug)
     {
         $article = BlogArticle::where('slug', $slug)->first();
-        if (!$article) {
+        if (! $article) {
             return response()->json(['success' => false, 'message' => 'Article non trouvé.'], 404);
         }
 
@@ -59,6 +60,7 @@ class BlogController extends Controller
         }
 
         $articles = BlogArticle::orderBy('created_at', 'desc')->get();
+
         return response()->json(['success' => true, 'articles' => $articles]);
     }
 
@@ -82,7 +84,7 @@ class BlogController extends Controller
         }
 
         $data = $validator->validated();
-        $data['slug'] = Str::slug($data['title']) . '-' . time();
+        $data['slug'] = Str::slug($data['title']).'-'.time();
         $data['published_at'] = $request->get('is_published', false) ? now() : null;
 
         $article = BlogArticle::create($data);
@@ -97,7 +99,7 @@ class BlogController extends Controller
         }
 
         $article = BlogArticle::find($id);
-        if (!$article) {
+        if (! $article) {
             return response()->json(['success' => false, 'message' => 'Article non trouvé.'], 404);
         }
 
@@ -115,7 +117,7 @@ class BlogController extends Controller
         }
 
         $data = $validator->validated();
-        $data['slug'] = Str::slug($data['title']) . '-' . $article->id;
+        $data['slug'] = Str::slug($data['title']).'-'.$article->id;
 
         if ($request->get('is_published', false)) {
             $data['published_at'] = $article->published_at ?? now();
@@ -135,7 +137,7 @@ class BlogController extends Controller
         }
 
         $article = BlogArticle::find($id);
-        if (!$article) {
+        if (! $article) {
             return response()->json(['success' => false, 'message' => 'Article non trouvé.'], 404);
         }
 

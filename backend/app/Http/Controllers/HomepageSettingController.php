@@ -38,8 +38,8 @@ class HomepageSettingController extends Controller
                 'facebook' => 'https://facebook.com',
                 'instagram' => 'https://instagram.com',
                 'whatsapp' => 'https://whatsapp.com',
-                'free_delivery_min' => '500'
-            ]
+                'free_delivery_min' => '500',
+            ],
         ];
 
         return $defaults[$key] ?? null;
@@ -48,18 +48,18 @@ class HomepageSettingController extends Controller
     public function getSetting($key)
     {
         $setting = HomepageSetting::where('key', $key)->first();
-        if (!$setting) {
+        if (! $setting) {
             return response()->json([
                 'success' => true,
                 'key' => $key,
-                'value' => $this->getDefaults($key)
+                'value' => $this->getDefaults($key),
             ]);
         }
 
         return response()->json([
             'success' => true,
             'key' => $key,
-            'value' => $setting->value
+            'value' => $setting->value,
         ]);
     }
 
@@ -67,7 +67,7 @@ class HomepageSettingController extends Controller
     {
         $keys = ['sections', 'theme', 'contact'];
         $settings = [];
-        
+
         foreach ($keys as $key) {
             $setting = HomepageSetting::where('key', $key)->first();
             $settings[$key] = $setting ? $setting->value : $this->getDefaults($key);
@@ -75,7 +75,7 @@ class HomepageSettingController extends Controller
 
         return response()->json([
             'success' => true,
-            'settings' => $settings
+            'settings' => $settings,
         ]);
     }
 
@@ -101,7 +101,7 @@ class HomepageSettingController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Paramètre mis à jour avec succès.',
-            'setting' => $setting
+            'setting' => $setting,
         ]);
     }
 }

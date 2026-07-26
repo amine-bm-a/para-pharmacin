@@ -2,12 +2,11 @@
 
 namespace App\Notifications;
 
-use App\Models\Order;
 use App\Mail\OrderInvoiceMail;
+use App\Models\Order;
 use App\Notifications\Channels\SmsChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class OrderStatusNotification extends Notification implements ShouldQueue
@@ -32,13 +31,13 @@ class OrderStatusNotification extends Notification implements ShouldQueue
         $channels = [];
 
         // Send mail if email exists
-        if (!empty($notifiable->email)) {
+        if (! empty($notifiable->email)) {
             $channels[] = 'mail';
         }
 
         // Send SMS if phone number exists on order or profile
         $to = $this->order->phone_number ?? $notifiable->phone ?? null;
-        if (!empty($to)) {
+        if (! empty($to)) {
             $channels[] = SmsChannel::class;
         }
 
@@ -69,6 +68,7 @@ class OrderStatusNotification extends Notification implements ShouldQueue
                 if ($this->order->payment_method === 'card' && $this->order->payment_status !== 'paid') {
                     return "Bonjour, votre commande #{$orderNum} d'un montant de {$total} MAD a bien été reçue. Paiement par carte en attente.";
                 }
+
                 return "Bonjour, votre commande #{$orderNum} d'un montant de {$total} MAD a bien été reçue et est en attente de préparation.";
 
             case 'preparing':

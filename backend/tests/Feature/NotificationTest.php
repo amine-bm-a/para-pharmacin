@@ -2,18 +2,19 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
-use App\Models\Order;
-use App\Models\Product;
 use App\Models\Category;
+use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
+use App\Models\User;
+use App\Notifications\Channels\SmsChannel;
 use App\Notifications\OrderStatusNotification;
 use App\Services\SmsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Log;
+use Tests\TestCase;
 
 class NotificationTest extends TestCase
 {
@@ -27,31 +28,31 @@ class NotificationTest extends TestCase
         ]);
 
         $product = Product::create([
-            'name'        => 'Savon Médical',
-            'slug'        => 'savon-medical',
-            'price'       => 20.00,
-            'stock'       => 50,
+            'name' => 'Savon Médical',
+            'slug' => 'savon-medical',
+            'price' => 20.00,
+            'stock' => 50,
             'category_id' => $category->id,
         ]);
 
         $order = Order::create([
-            'user_id'          => $user->id,
-            'order_number'     => 'ORD-TEST-' . rand(1000, 9999),
-            'total_amount'     => 20.00,
-            'status'           => $status,
-            'payment_method'   => $paymentMethod,
-            'payment_status'   => 'pending',
-            'phone_number'     => '+212600000001',
+            'user_id' => $user->id,
+            'order_number' => 'ORD-TEST-'.rand(1000, 9999),
+            'total_amount' => 20.00,
+            'status' => $status,
+            'payment_method' => $paymentMethod,
+            'payment_status' => 'pending',
+            'phone_number' => '+212600000001',
             'shipping_address' => '12 Rue Hassan II',
-            'shipping_city'    => 'Casablanca',
-            'postal_code'      => '20000',
+            'shipping_city' => 'Casablanca',
+            'postal_code' => '20000',
         ]);
 
         OrderItem::create([
-            'order_id'   => $order->id,
+            'order_id' => $order->id,
             'product_id' => $product->id,
-            'quantity'   => 1,
-            'price'      => 20.00,
+            'quantity' => 1,
+            'price' => 20.00,
         ]);
 
         return $order->load('items.product');
@@ -139,7 +140,7 @@ class NotificationTest extends TestCase
         $channels = $notification->via($user);
 
         $this->assertContains('mail', $channels);
-        $this->assertContains(\App\Notifications\Channels\SmsChannel::class, $channels);
+        $this->assertContains(SmsChannel::class, $channels);
     }
 
     /** @test */
@@ -153,6 +154,6 @@ class NotificationTest extends TestCase
         $notification = new OrderStatusNotification($order);
         $channels = $notification->via($user);
 
-        $this->assertNotContains(\App\Notifications\Channels\SmsChannel::class, $channels);
+        $this->assertNotContains(SmsChannel::class, $channels);
     }
 }

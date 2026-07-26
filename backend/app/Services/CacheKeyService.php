@@ -33,7 +33,7 @@ class CacheKeyService
     {
         $version = self::version($resource);
 
-        return "cache:{$resource}:v{$version}" . ($suffix !== '' ? ":{$suffix}" : '');
+        return "cache:{$resource}:v{$version}".($suffix !== '' ? ":{$suffix}" : '');
     }
 
     public static function version(string $resource): int

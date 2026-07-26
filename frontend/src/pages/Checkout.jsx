@@ -9,12 +9,15 @@ export default function Checkout() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Submission State
+  const [orderSuccess, setOrderSuccess] = useState(null);
+
   // Redirect if cart is empty
   useEffect(() => {
     if (cartItems.length === 0 && !orderSuccess) {
       navigate('/cart');
     }
-  }, [cartItems, navigate]);
+  }, [cartItems, navigate, orderSuccess]);
 
   // Form Fields State
   const [name, setName] = useState(user?.name || '');
@@ -54,7 +57,6 @@ export default function Checkout() {
   // Submission State
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [orderSuccess, setOrderSuccess] = useState(null);
 
   // Loyalty points
   const [loyaltyInfo, setLoyaltyInfo]             = useState(null);

@@ -3,14 +3,14 @@
 namespace App\Mail;
 
 use App\Models\Order;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Dompdf\Dompdf;
-use Dompdf\Options;
 
 class OrderInvoiceMail extends Mailable
 {
@@ -32,7 +32,7 @@ class OrderInvoiceMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Confirmation de votre commande — Facture #' . $this->order->order_number,
+            subject: 'Confirmation de votre commande — Facture #'.$this->order->order_number,
         );
     }
 
@@ -54,7 +54,7 @@ class OrderInvoiceMail extends Mailable
     public function attachments(): array
     {
         // 1. Configure Dompdf Options
-        $options = new Options();
+        $options = new Options;
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isRemoteEnabled', false); // No external resource requests for safety and speed
 

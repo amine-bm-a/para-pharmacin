@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Payment;
+use App\Notifications\OrderStatusNotification;
 use App\Services\CmiPaymentService;
 use App\Services\NotificationService;
-use App\Notifications\OrderStatusNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -20,7 +20,7 @@ class PaymentController extends Controller
         Log::info('CMI Webhook Callback received.', $request->all());
 
         // 1. Validate signature using the shared Store Key
-        if (!CmiPaymentService::validateCallbackSignature($request->all())) {
+        if (! CmiPaymentService::validateCallbackSignature($request->all())) {
             return response('INVALID SIGNATURE', 400);
         }
 
@@ -32,14 +32,16 @@ class PaymentController extends Controller
         // 2. Locate the corresponding order
         $order = Order::with('user')->where('order_number', $orderNumber)->first();
 
-        if (!$order) {
-            Log::error("CMI Webhook: Order not found.", ['oid' => $orderNumber]);
+        if (! $order) {
+            Log::error('CMI Webhook: Order not found.', ['oid' => $orderNumber]);
+
             return response('ORDER NOT FOUND', 404);
         }
 
         // 3. Prevent duplicate processing (if already marked paid)
         if ($order->payment_status === 'paid') {
             Log::info("CMI Webhook: Order #{$orderNumber} already marked paid.");
+
             return response('ACTION=POSTAUTH', 200)->header('Content-Type', 'text/plain');
         }
 
@@ -52,12 +54,12 @@ class PaymentController extends Controller
 
             // Insert details into payments table
             Payment::create([
-                'order_id'       => $order->id,
-                'provider'       => 'cmi',
+                'order_id' => $order->id,
+                'provider' => 'cmi',
                 'transaction_id' => $transactionId,
-                'status'         => 'success',
-                'montant'        => $amount,
-                'payload'        => $request->all(),
+                'status' => 'success',
+                'montant' => $amount,
+                'payload' => $request->all(),
             ]);
 
             // Notify user inside dashboard
@@ -86,12 +88,12 @@ class PaymentController extends Controller
             ]);
 
             Payment::create([
-                'order_id'       => $order->id,
-                'provider'       => 'cmi',
+                'order_id' => $order->id,
+                'provider' => 'cmi',
                 'transaction_id' => $transactionId,
-                'status'         => 'failed',
-                'montant'        => $amount,
-                'payload'        => $request->all(),
+                'status' => 'failed',
+                'montant' => $amount,
+                'payload' => $request->all(),
             ]);
 
             NotificationService::notifyUser(

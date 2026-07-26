@@ -30,10 +30,10 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'price'                 => 'decimal:2',
-        'discount_price'        => 'decimal:2',
-        'stock'                 => 'integer',
-        'is_featured'           => 'boolean',
+        'price' => 'decimal:2',
+        'discount_price' => 'decimal:2',
+        'stock' => 'integer',
+        'is_featured' => 'boolean',
         'requires_prescription' => 'boolean',
     ];
 
@@ -52,16 +52,16 @@ class Product extends Model
     public function toSearchableArray(): array
     {
         $array = [
-            'id'             => $this->id,
-            'name'           => $this->name,
-            'slug'           => $this->slug,
-            'brand'          => $this->brand ?? '',
-            'description'    => $this->description ?? '',
-            'price'          => (float) $this->price,
+            'id' => $this->id,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'brand' => $this->brand ?? '',
+            'description' => $this->description ?? '',
+            'price' => (float) $this->price,
             'discount_price' => $this->discount_price ? (float) $this->discount_price : null,
-            'stock'          => $this->stock,
-            'image_url'      => $this->image_url ?? '',
-            'is_featured'    => $this->is_featured,
+            'stock' => $this->stock,
+            'image_url' => $this->image_url ?? '',
+            'is_featured' => $this->is_featured,
         ];
 
         if (config('scout.driver') !== 'database') {

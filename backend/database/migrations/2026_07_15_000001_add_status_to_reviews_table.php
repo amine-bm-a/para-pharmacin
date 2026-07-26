@@ -9,10 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('reviews', function (Blueprint $table) {
-            if (!Schema::hasColumn('reviews', 'status')) {
+            if (! Schema::hasColumn('reviews', 'status')) {
                 $table->string('status')->default('pending')->after('comment');
             }
-            if (!Schema::hasColumn('reviews', 'admin_reply')) {
+            if (! Schema::hasColumn('reviews', 'admin_reply')) {
                 $table->text('admin_reply')->nullable()->after('status');
             }
         });
@@ -28,7 +28,7 @@ return new class extends Migration
             if (Schema::hasColumn('reviews', 'admin_reply')) {
                 $cols[] = 'admin_reply';
             }
-            if (!empty($cols)) {
+            if (! empty($cols)) {
                 $table->dropColumn($cols);
             }
         });

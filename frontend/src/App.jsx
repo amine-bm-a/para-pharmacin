@@ -136,6 +136,7 @@ const LayoutWrapper = ({ children }) => {
       </main>
       {!isDashboardRoute && !isAuthRoute && <Footer />}
       {!isDashboardRoute && !isAuthRoute && <BackToTop />}
+      {!isDashboardRoute && !isAuthRoute && <FloatingButtons />}
       {!isDashboardRoute && !isAuthRoute && <PWAInstallBanner />}
     </>
   );

@@ -30,13 +30,13 @@ class PrescriptionStatusNotification extends Notification implements ShouldQueue
     {
         $channels = [];
 
-        if (!empty($notifiable->email)) {
+        if (! empty($notifiable->email)) {
             $channels[] = 'mail';
         }
 
         $order = $this->prescription->order;
         $to = $order->phone_number ?? $notifiable->phone ?? null;
-        if (!empty($to)) {
+        if (! empty($to)) {
             $channels[] = SmsChannel::class;
         }
 
@@ -57,7 +57,7 @@ class PrescriptionStatusNotification extends Notification implements ShouldQueue
             ->subject("Mise à jour de l'ordonnance — Commande #{$order->order_number}")
             ->greeting("Bonjour {$notifiable->name},")
             ->line("L'ordonnance soumise pour le produit '{$product->name}' (commande #{$order->order_number}) a été examinée par notre pharmacien.")
-            ->line("Statut : " . ($this->prescription->statut === 'approved' ? '✅ Validée' : '❌ Rejetée'));
+            ->line('Statut : '.($this->prescription->statut === 'approved' ? '✅ Validée' : '❌ Rejetée'));
 
         if ($comment) {
             $email->line("Commentaire du pharmacien : \"{$comment}\"");
@@ -66,12 +66,12 @@ class PrescriptionStatusNotification extends Notification implements ShouldQueue
         if ($this->prescription->statut === 'rejected') {
             $email->line("En raison du rejet de cette ordonnance, cette commande a été annulée. N'hésitez pas à passer une nouvelle commande avec une ordonnance conforme.");
         } else {
-            $email->line("Toutes les ordonnances requises ayant été validées, la préparation de votre commande se poursuit.");
+            $email->line('Toutes les ordonnances requises ayant été validées, la préparation de votre commande se poursuit.');
         }
 
         return $email
-            ->action("Voir mes commandes", url('/mes-commandes'))
-            ->line("Merci de votre confiance !");
+            ->action('Voir mes commandes', url('/mes-commandes'))
+            ->line('Merci de votre confiance !');
     }
 
     /**
@@ -85,13 +85,13 @@ class PrescriptionStatusNotification extends Notification implements ShouldQueue
         $comment = $this->prescription->commentaire_pharmacien;
 
         $msg = "Pharmacie Ben Moussa : Votre ordonnance pour '{$product->name}' (cmd #{$order->order_number}) a ete {$statut}.";
-        
+
         if ($comment) {
             $msg .= " Motif : {$comment}";
         }
 
         if ($this->prescription->statut === 'rejected') {
-            $msg .= " La commande a ete annulee.";
+            $msg .= ' La commande a ete annulee.';
         }
 
         return $msg;

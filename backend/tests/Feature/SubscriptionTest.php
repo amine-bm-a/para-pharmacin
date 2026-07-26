@@ -17,8 +17,10 @@ class SubscriptionTest extends TestCase
 {
     use RefreshDatabase;
 
-    private User    $client;
+    private User $client;
+
     private Product $productNormal;
+
     private Product $productPresc;
 
     protected function setUp(): void
@@ -28,27 +30,27 @@ class SubscriptionTest extends TestCase
         $category = Category::create(['name' => 'Médicaments', 'slug' => 'medicaments']);
 
         $this->productNormal = Product::create([
-            'category_id'           => $category->id,
-            'name'                  => 'Doliprane 1g',
-            'slug'                  => 'doliprane-1g',
-            'brand'                 => 'Sanofi',
-            'price'                 => 50.00,
-            'stock'                 => 100,
+            'category_id' => $category->id,
+            'name' => 'Doliprane 1g',
+            'slug' => 'doliprane-1g',
+            'brand' => 'Sanofi',
+            'price' => 50.00,
+            'stock' => 100,
             'requires_prescription' => false,
         ]);
 
         $this->productPresc = Product::create([
-            'category_id'           => $category->id,
-            'name'                  => 'Amoxicilline 500mg',
-            'slug'                  => 'amoxicilline',
-            'brand'                 => 'Generic',
-            'price'                 => 80.00,
-            'stock'                 => 50,
+            'category_id' => $category->id,
+            'name' => 'Amoxicilline 500mg',
+            'slug' => 'amoxicilline',
+            'brand' => 'Generic',
+            'price' => 80.00,
+            'stock' => 50,
             'requires_prescription' => true,
         ]);
 
         $this->client = User::factory()->create([
-            'role'           => 'client',
+            'role' => 'client',
             'loyalty_points' => 0,
         ]);
     }
@@ -61,13 +63,13 @@ class SubscriptionTest extends TestCase
 
         $response = $this->actingAs($this->client)
             ->postJson('/api/subscriptions', [
-                'frequency'        => 'monthly',
+                'frequency' => 'monthly',
                 'shipping_address' => '15 Rue Zerktouni',
-                'shipping_city'    => 'Casablanca',
-                'postal_code'      => '20000',
-                'phone_number'     => '+212600000001',
-                'payment_method'   => 'delivery',
-                'items'            => [
+                'shipping_city' => 'Casablanca',
+                'postal_code' => '20000',
+                'phone_number' => '+212600000001',
+                'payment_method' => 'delivery',
+                'items' => [
                     ['product_id' => $this->productNormal->id, 'quantity' => 2],
                 ],
             ]);
@@ -79,14 +81,14 @@ class SubscriptionTest extends TestCase
             ->assertJsonPath('subscription.discount_percent', 5);
 
         $this->assertDatabaseHas('subscriptions', [
-            'user_id'   => $this->client->id,
+            'user_id' => $this->client->id,
             'frequency' => 'monthly',
-            'status'    => 'active',
+            'status' => 'active',
         ]);
 
         $this->assertDatabaseHas('subscription_items', [
             'product_id' => $this->productNormal->id,
-            'quantity'   => 2,
+            'quantity' => 2,
         ]);
     }
 
@@ -94,13 +96,13 @@ class SubscriptionTest extends TestCase
     {
         $response = $this->actingAs($this->client)
             ->postJson('/api/subscriptions', [
-                'frequency'        => 'monthly',
+                'frequency' => 'monthly',
                 'shipping_address' => '15 Rue Zerktouni',
-                'shipping_city'    => 'Casablanca',
-                'postal_code'      => '20000',
-                'phone_number'     => '+212600000001',
-                'payment_method'   => 'delivery',
-                'items'            => [
+                'shipping_city' => 'Casablanca',
+                'postal_code' => '20000',
+                'phone_number' => '+212600000001',
+                'payment_method' => 'delivery',
+                'items' => [
                     ['product_id' => $this->productPresc->id, 'quantity' => 1],
                 ],
             ]);
@@ -116,22 +118,22 @@ class SubscriptionTest extends TestCase
     public function test_client_can_list_their_subscriptions()
     {
         $subscription = Subscription::create([
-            'user_id'          => $this->client->id,
-            'status'           => 'active',
-            'frequency'        => 'monthly',
+            'user_id' => $this->client->id,
+            'status' => 'active',
+            'frequency' => 'monthly',
             'shipping_address' => '15 Rue',
-            'shipping_city'    => 'Casa',
-            'postal_code'      => '20000',
-            'phone_number'     => '+2126',
-            'payment_method'   => 'delivery',
+            'shipping_city' => 'Casa',
+            'postal_code' => '20000',
+            'phone_number' => '+2126',
+            'payment_method' => 'delivery',
             'discount_percent' => 5,
-            'next_renewal_at'  => now()->addMonth(),
+            'next_renewal_at' => now()->addMonth(),
         ]);
 
         SubscriptionItem::create([
             'subscription_id' => $subscription->id,
-            'product_id'      => $this->productNormal->id,
-            'quantity'        => 1,
+            'product_id' => $this->productNormal->id,
+            'quantity' => 1,
         ]);
 
         $response = $this->actingAs($this->client)->getJson('/api/subscriptions');
@@ -146,16 +148,16 @@ class SubscriptionTest extends TestCase
     public function test_client_can_pause_and_resume_subscription()
     {
         $subscription = Subscription::create([
-            'user_id'          => $this->client->id,
-            'status'           => 'active',
-            'frequency'        => 'monthly',
+            'user_id' => $this->client->id,
+            'status' => 'active',
+            'frequency' => 'monthly',
             'shipping_address' => '15 Rue',
-            'shipping_city'    => 'Casa',
-            'postal_code'      => '20000',
-            'phone_number'     => '+2126',
-            'payment_method'   => 'delivery',
+            'shipping_city' => 'Casa',
+            'postal_code' => '20000',
+            'phone_number' => '+2126',
+            'payment_method' => 'delivery',
             'discount_percent' => 5,
-            'next_renewal_at'  => now()->addMonth(),
+            'next_renewal_at' => now()->addMonth(),
         ]);
 
         // Pause
@@ -176,16 +178,16 @@ class SubscriptionTest extends TestCase
     public function test_client_can_cancel_subscription()
     {
         $subscription = Subscription::create([
-            'user_id'          => $this->client->id,
-            'status'           => 'active',
-            'frequency'        => 'weekly',
+            'user_id' => $this->client->id,
+            'status' => 'active',
+            'frequency' => 'weekly',
             'shipping_address' => '15 Rue',
-            'shipping_city'    => 'Casa',
-            'postal_code'      => '20000',
-            'phone_number'     => '+2126',
-            'payment_method'   => 'delivery',
+            'shipping_city' => 'Casa',
+            'postal_code' => '20000',
+            'phone_number' => '+2126',
+            'payment_method' => 'delivery',
             'discount_percent' => 5,
-            'next_renewal_at'  => now()->addWeek(),
+            'next_renewal_at' => now()->addWeek(),
         ]);
 
         $response = $this->actingAs($this->client)
@@ -204,22 +206,22 @@ class SubscriptionTest extends TestCase
         Notification::fake();
 
         $subscription = Subscription::create([
-            'user_id'          => $this->client->id,
-            'status'           => 'active',
-            'frequency'        => 'monthly',
+            'user_id' => $this->client->id,
+            'status' => 'active',
+            'frequency' => 'monthly',
             'shipping_address' => '15 Rue Zerktouni',
-            'shipping_city'    => 'Casablanca',
-            'postal_code'      => '20000',
-            'phone_number'     => '+212600000001',
-            'payment_method'   => 'delivery',
+            'shipping_city' => 'Casablanca',
+            'postal_code' => '20000',
+            'phone_number' => '+212600000001',
+            'payment_method' => 'delivery',
             'discount_percent' => 5,
-            'next_renewal_at'  => now()->subDay(), // due yesterday
+            'next_renewal_at' => now()->subDay(), // due yesterday
         ]);
 
         SubscriptionItem::create([
             'subscription_id' => $subscription->id,
-            'product_id'      => $this->productNormal->id,
-            'quantity'        => 2,
+            'product_id' => $this->productNormal->id,
+            'quantity' => 2,
         ]);
 
         $order = SubscriptionController::renewSubscription($subscription);
@@ -232,7 +234,7 @@ class SubscriptionTest extends TestCase
 
         // Total should have 5% discount applied
         $expectedTotal = 50.00 * 2 * 0.95;
-        $this->assertEquals(round($expectedTotal, 2), (float)$order->total_amount);
+        $this->assertEquals(round($expectedTotal, 2), (float) $order->total_amount);
 
         // Stock should have been decremented
         $this->productNormal->refresh();
@@ -250,22 +252,22 @@ class SubscriptionTest extends TestCase
         $this->productNormal->update(['stock' => 0]);
 
         $subscription = Subscription::create([
-            'user_id'          => $this->client->id,
-            'status'           => 'active',
-            'frequency'        => 'monthly',
+            'user_id' => $this->client->id,
+            'status' => 'active',
+            'frequency' => 'monthly',
             'shipping_address' => '15 Rue',
-            'shipping_city'    => 'Casa',
-            'postal_code'      => '20000',
-            'phone_number'     => '+2126',
-            'payment_method'   => 'delivery',
+            'shipping_city' => 'Casa',
+            'postal_code' => '20000',
+            'phone_number' => '+2126',
+            'payment_method' => 'delivery',
             'discount_percent' => 5,
-            'next_renewal_at'  => now()->subDay(),
+            'next_renewal_at' => now()->subDay(),
         ]);
 
         SubscriptionItem::create([
             'subscription_id' => $subscription->id,
-            'product_id'      => $this->productNormal->id,
-            'quantity'        => 5,
+            'product_id' => $this->productNormal->id,
+            'quantity' => 5,
         ]);
 
         $order = SubscriptionController::renewSubscription($subscription);

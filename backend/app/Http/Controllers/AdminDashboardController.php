@@ -6,11 +6,14 @@ use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
-use App\Services\NotificationService;
-use App\Services\CacheKeyService;
 use App\Notifications\OrderStatusNotification;
+use App\Notifications\PrescriptionStatusNotification;
+use App\Services\CacheKeyService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -57,10 +60,10 @@ class AdminDashboardController extends Controller
 
         // Sales for the last 7 days
         $salesChart = Order::select(
-                DB::raw('DATE(created_at) as date'),
-                DB::raw('SUM(total_amount) as total'),
-                DB::raw('COUNT(*) as count')
-            )
+            DB::raw('DATE(created_at) as date'),
+            DB::raw('SUM(total_amount) as total'),
+            DB::raw('COUNT(*) as count')
+        )
             ->where('created_at', '>=', now()->subDays(6))
             ->groupBy('date')
             ->orderBy('date', 'asc')
@@ -86,7 +89,7 @@ class AdminDashboardController extends Controller
                 'category_sales' => $categorySales,
                 'low_stock_products' => $lowStockProducts,
                 'pending_prescriptions_count' => $pendingPrescriptionsCount,
-            ]
+            ],
         ]);
     }
 
@@ -102,7 +105,7 @@ class AdminDashboardController extends Controller
 
         return response()->json([
             'success' => true,
-            'orders' => $orders
+            'orders' => $orders,
         ]);
     }
 
@@ -122,12 +125,12 @@ class AdminDashboardController extends Controller
         }
 
         $order = Order::find($id);
-        if (!$order) {
+        if (! $order) {
             return response()->json(['success' => false, 'message' => 'Commande non trouvée.'], 404);
         }
 
         $order->update([
-            'status'         => $request->status,
+            'status' => $request->status,
             'payment_status' => $request->payment_status,
         ]);
 
@@ -135,7 +138,7 @@ class AdminDashboardController extends Controller
         NotificationService::notifyUser(
             $order->user_id,
             '📦 Statut de votre commande mis à jour',
-            "Votre commande **#{$order->order_number}** est maintenant : " . NotificationService::statusLabel($request->status),
+            "Votre commande **#{$order->order_number}** est maintenant : ".NotificationService::statusLabel($request->status),
             'order',
             '/mes-commandes'
         );
@@ -144,14 +147,14 @@ class AdminDashboardController extends Controller
             try {
                 $order->user->notify(new OrderStatusNotification($order->load('items.product')));
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Admin status update: notification dispatch failed.', ['error' => $e->getMessage()]);
+                Log::error('Admin status update: notification dispatch failed.', ['error' => $e->getMessage()]);
             }
         }
 
         return response()->json([
             'success' => true,
             'message' => 'Statut de la commande mis à jour avec succès.',
-            'order'   => $order
+            'order' => $order,
         ]);
     }
 
@@ -171,7 +174,7 @@ class AdminDashboardController extends Controller
         }
 
         $order = Order::with('prescriptions')->find($id);
-        if (!$order || $order->prescriptions->isEmpty()) {
+        if (! $order || $order->prescriptions->isEmpty()) {
             return response()->json(['success' => false, 'message' => "Cette commande n'a pas d'ordonnance à valider."], 404);
         }
 
@@ -187,7 +190,7 @@ class AdminDashboardController extends Controller
 
         $order->update([
             'prescription_status' => $request->prescription_status,
-            'status'              => $request->prescription_status === 'rejected' ? 'cancelled' : $order->status,
+            'status' => $request->prescription_status === 'rejected' ? 'cancelled' : $order->status,
         ]);
 
         // Notify client based on prescription decision
@@ -213,9 +216,9 @@ class AdminDashboardController extends Controller
         if ($order->user) {
             try {
                 $firstPresc = $order->prescriptions->first();
-                $order->user->notify(new \App\Notifications\PrescriptionStatusNotification($firstPresc));
+                $order->user->notify(new PrescriptionStatusNotification($firstPresc));
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Admin prescription status update: notification failed.', ['error' => $e->getMessage()]);
+                Log::error('Admin prescription status update: notification failed.', ['error' => $e->getMessage()]);
             }
         }
 
@@ -224,7 +227,7 @@ class AdminDashboardController extends Controller
             'message' => $request->prescription_status === 'approved'
                 ? 'Ordonnances validées.'
                 : 'Ordonnances rejetées, le client a été notifié.',
-            'order'   => $order->load('prescriptions.product')
+            'order' => $order->load('prescriptions.product'),
         ]);
     }
 
@@ -238,7 +241,7 @@ class AdminDashboardController extends Controller
 
         return response()->json([
             'success' => true,
-            'products' => $products
+            'products' => $products,
         ]);
     }
 
@@ -273,12 +276,12 @@ class AdminDashboardController extends Controller
         $imageUrl = $request->image_url ?? 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&q=80';
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
-            $imageUrl = \Illuminate\Support\Facades\Storage::url($path);
+            $imageUrl = Storage::url($path);
         }
 
         $product = Product::create([
             'name' => $request->name,
-            'slug' => Str::slug($request->name) . '-' . rand(100, 999),
+            'slug' => Str::slug($request->name).'-'.rand(100, 999),
             'category_id' => $request->category_id,
             'brand_id' => $request->brand_id,
             'brand' => $request->brand,
@@ -298,7 +301,7 @@ class AdminDashboardController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Produit ajouté avec succès.',
-            'product' => $product
+            'product' => $product,
         ], 201);
     }
 
@@ -309,7 +312,7 @@ class AdminDashboardController extends Controller
         }
 
         $product = Product::find($id);
-        if (!$product) {
+        if (! $product) {
             return response()->json(['success' => false, 'message' => 'Produit non trouvé.'], 404);
         }
 
@@ -340,17 +343,17 @@ class AdminDashboardController extends Controller
             // Delete old image if it was previously uploaded
             if ($product->image_url && str_contains($product->image_url, '/storage/products/')) {
                 $oldPath = str_replace('/storage/', '', $product->image_url);
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
+                Storage::disk('public')->delete($oldPath);
             }
             $path = $request->file('image')->store('products', 'public');
-            $imageUrl = \Illuminate\Support\Facades\Storage::url($path);
+            $imageUrl = Storage::url($path);
         } elseif ($request->has('image_url') && $request->image_url) {
             $imageUrl = $request->image_url;
         }
 
         $product->update([
             'name' => $request->name,
-            'slug' => Str::slug($request->name) . '-' . $product->id,
+            'slug' => Str::slug($request->name).'-'.$product->id,
             'category_id' => $request->category_id,
             'brand_id' => $request->has('brand_id') ? $request->brand_id : $product->brand_id,
             'brand' => $request->brand,
@@ -370,7 +373,7 @@ class AdminDashboardController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Produit mis à jour avec succès.',
-            'product' => $product
+            'product' => $product,
         ]);
     }
 
@@ -381,7 +384,7 @@ class AdminDashboardController extends Controller
         }
 
         $product = Product::find($id);
-        if (!$product) {
+        if (! $product) {
             return response()->json(['success' => false, 'message' => 'Produit non trouvé.'], 404);
         }
 
@@ -391,7 +394,7 @@ class AdminDashboardController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Produit supprimé avec succès.'
+            'message' => 'Produit supprimé avec succès.',
         ]);
     }
 
@@ -412,7 +415,7 @@ class AdminDashboardController extends Controller
 
         $category = Category::create([
             'name' => $request->name,
-            'slug' => Str::slug($request->name) . '-' . rand(100, 999),
+            'slug' => Str::slug($request->name).'-'.rand(100, 999),
             'description' => $request->description,
         ]);
 
@@ -421,7 +424,7 @@ class AdminDashboardController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Catégorie ajoutée avec succès.',
-            'category' => $category
+            'category' => $category,
         ], 201);
     }
 
@@ -432,12 +435,12 @@ class AdminDashboardController extends Controller
         }
 
         $category = Category::find($id);
-        if (!$category) {
+        if (! $category) {
             return response()->json(['success' => false, 'message' => 'Catégorie non trouvée.'], 404);
         }
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+            'name' => 'required|string|max:255|unique:categories,name,'.$category->id,
             'description' => 'nullable|string',
         ]);
 
@@ -447,7 +450,7 @@ class AdminDashboardController extends Controller
 
         $category->update([
             'name' => $request->name,
-            'slug' => Str::slug($request->name) . '-' . $category->id,
+            'slug' => Str::slug($request->name).'-'.$category->id,
             'description' => $request->description,
         ]);
 
@@ -456,7 +459,7 @@ class AdminDashboardController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Catégorie mise à jour avec succès.',
-            'category' => $category
+            'category' => $category,
         ]);
     }
 
@@ -467,7 +470,7 @@ class AdminDashboardController extends Controller
         }
 
         $category = Category::find($id);
-        if (!$category) {
+        if (! $category) {
             return response()->json(['success' => false, 'message' => 'Catégorie non trouvée.'], 404);
         }
 
@@ -475,7 +478,7 @@ class AdminDashboardController extends Controller
         if ($productsCount > 0) {
             return response()->json([
                 'success' => false,
-                'message' => "Impossible de supprimer : {$productsCount} produit(s) appartiennent encore à cette catégorie."
+                'message' => "Impossible de supprimer : {$productsCount} produit(s) appartiennent encore à cette catégorie.",
             ], 422);
         }
 
@@ -485,7 +488,7 @@ class AdminDashboardController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Catégorie supprimée avec succès.'
+            'message' => 'Catégorie supprimée avec succès.',
         ]);
     }
 }

@@ -16,10 +16,13 @@ class LoyaltyTest extends TestCase
 {
     use RefreshDatabase;
 
-    private User    $client;
-    private User    $referrer;
+    private User $client;
+
+    private User $referrer;
+
     private Product $product;
-    private Order   $order;
+
+    private Order $order;
 
     protected function setUp(): void
     {
@@ -28,49 +31,49 @@ class LoyaltyTest extends TestCase
         $category = Category::create(['name' => 'Médicaments', 'slug' => 'medicaments']);
 
         $this->product = Product::create([
-            'category_id'            => $category->id,
-            'name'                   => 'Doliprane 1g',
-            'slug'                   => 'doliprane-1g',
-            'brand'                  => 'Sanofi',
-            'price'                  => 100.00,
-            'stock'                  => 100,
-            'requires_prescription'  => false,
+            'category_id' => $category->id,
+            'name' => 'Doliprane 1g',
+            'slug' => 'doliprane-1g',
+            'brand' => 'Sanofi',
+            'price' => 100.00,
+            'stock' => 100,
+            'requires_prescription' => false,
         ]);
 
         // Referrer user (parrain)
         $this->referrer = User::factory()->create([
-            'role'           => 'client',
+            'role' => 'client',
             'loyalty_points' => 0,
-            'referral_code'  => 'PARRAIN1',
+            'referral_code' => 'PARRAIN1',
         ]);
 
         // New client (filleul) referred by referrer
         $this->client = User::factory()->create([
-            'role'                   => 'client',
-            'loyalty_points'         => 0,
-            'referral_code'          => 'FILLEUL1',
-            'referred_by'            => $this->referrer->id,
+            'role' => 'client',
+            'loyalty_points' => 0,
+            'referral_code' => 'FILLEUL1',
+            'referred_by' => $this->referrer->id,
             'referral_bonus_granted' => false,
         ]);
 
         // A completed order for testing
         $this->order = Order::create([
-            'user_id'          => $this->client->id,
-            'order_number'     => 'CMD-TEST-001',
-            'status'           => 'delivered',
-            'total_amount'     => 200.00,
+            'user_id' => $this->client->id,
+            'order_number' => 'CMD-TEST-001',
+            'status' => 'delivered',
+            'total_amount' => 200.00,
             'shipping_address' => '123 Rue',
-            'shipping_city'    => 'Casablanca',
-            'postal_code'      => '20000',
-            'phone_number'     => '+212600000001',
-            'payment_method'   => 'delivery',
+            'shipping_city' => 'Casablanca',
+            'postal_code' => '20000',
+            'phone_number' => '+212600000001',
+            'payment_method' => 'delivery',
         ]);
 
         OrderItem::create([
-            'order_id'   => $this->order->id,
+            'order_id' => $this->order->id,
             'product_id' => $this->product->id,
-            'quantity'   => 2,
-            'price'      => 100.00,
+            'quantity' => 2,
+            'price' => 100.00,
         ]);
     }
 
@@ -82,10 +85,10 @@ class LoyaltyTest extends TestCase
 
         // 200 MAD * 1 point/MAD = 200 points
         $this->assertDatabaseHas('loyalty_points', [
-            'user_id'   => $this->client->id,
-            'order_id'  => $this->order->id,
-            'type'      => 'earn',
-            'points'    => 200,
+            'user_id' => $this->client->id,
+            'order_id' => $this->order->id,
+            'type' => 'earn',
+            'points' => 200,
         ]);
 
         $this->client->refresh();
@@ -119,8 +122,8 @@ class LoyaltyTest extends TestCase
 
         $this->assertDatabaseHas('loyalty_points', [
             'user_id' => $this->client->id,
-            'type'    => 'spend',
-            'points'  => -300,
+            'type' => 'spend',
+            'points' => -300,
         ]);
     }
 
@@ -159,10 +162,10 @@ class LoyaltyTest extends TestCase
         // Referee gets 300 pts (= 15 MAD at rate 100pts/5MAD)
         $expectedRefereePts = LoyaltyService::REFEREE_DISCOUNT * (LoyaltyService::REDEEM_RATE / LoyaltyService::REDEEM_MAD);
         $this->client->refresh();
-        $this->assertEquals((int)$expectedRefereePts, $this->client->loyalty_points);
+        $this->assertEquals((int) $expectedRefereePts, $this->client->loyalty_points);
 
         // Referee is now marked as bonus_granted
-        $this->assertTrue((bool)$this->client->referral_bonus_granted);
+        $this->assertTrue((bool) $this->client->referral_bonus_granted);
     }
 
     public function test_referral_bonus_does_not_apply_twice()
@@ -174,7 +177,7 @@ class LoyaltyTest extends TestCase
         // No loyalty_points records should be created
         $this->assertDatabaseMissing('loyalty_points', [
             'user_id' => $this->referrer->id,
-            'type'    => 'referral',
+            'type' => 'referral',
         ]);
     }
 
@@ -224,13 +227,13 @@ class LoyaltyTest extends TestCase
 
         $response = $this->actingAs($this->client)
             ->postJson('/api/orders', [
-                'shipping_address'        => '123 Rue',
-                'shipping_city'           => 'Casablanca',
-                'postal_code'             => '20000',
-                'phone_number'            => '+212600000001',
-                'payment_method'          => 'delivery',
+                'shipping_address' => '123 Rue',
+                'shipping_city' => 'Casablanca',
+                'postal_code' => '20000',
+                'phone_number' => '+212600000001',
+                'payment_method' => 'delivery',
                 'loyalty_points_to_spend' => 200,
-                'items'                   => [
+                'items' => [
                     ['product_id' => $this->product->id, 'quantity' => 2],
                 ],
             ]);
@@ -244,8 +247,8 @@ class LoyaltyTest extends TestCase
         // Verify a spend transaction was recorded
         $this->assertDatabaseHas('loyalty_points', [
             'user_id' => $this->client->id,
-            'type'    => 'spend',
-            'points'  => -200,
+            'type' => 'spend',
+            'points' => -200,
         ]);
     }
 
@@ -254,12 +257,12 @@ class LoyaltyTest extends TestCase
     public function test_registration_with_valid_referral_code_links_user()
     {
         $response = $this->postJson('/api/register', [
-            'name'                  => 'Test User',
-            'email'                 => 'newuser@gmail.com',
-            'phone'                 => '+212600000099',
-            'password'              => 'Password123',
+            'name' => 'Test User',
+            'email' => 'newuser@gmail.com',
+            'phone' => '+212600000099',
+            'password' => 'Password123',
             'password_confirmation' => 'Password123',
-            'referral_code'         => 'PARRAIN1',
+            'referral_code' => 'PARRAIN1',
         ]);
 
         $response->assertStatus(201);
@@ -272,11 +275,11 @@ class LoyaltyTest extends TestCase
     public function test_registration_with_invalid_referral_code_fails_validation()
     {
         $response = $this->postJson('/api/register', [
-            'name'                  => 'Test User',
-            'email'                 => 'newuser2@gmail.com',
-            'password'              => 'Password123',
+            'name' => 'Test User',
+            'email' => 'newuser2@gmail.com',
+            'password' => 'Password123',
             'password_confirmation' => 'Password123',
-            'referral_code'         => 'INVALID1',
+            'referral_code' => 'INVALID1',
         ]);
 
         $response->assertStatus(422)

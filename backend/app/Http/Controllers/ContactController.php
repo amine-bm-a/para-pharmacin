@@ -15,8 +15,8 @@ class ContactController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'    => 'required|string|max:255',
-            'email'   => 'required|email|max:255',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
             'subject' => 'required|string|max:255',
             'message' => 'required|string|max:3000',
         ]);
@@ -24,13 +24,13 @@ class ContactController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors'  => $validator->errors(),
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         $contact = ContactMessage::create([
-            'name'    => strip_tags($request->name),
-            'email'   => strtolower(trim($request->email)),
+            'name' => strip_tags($request->name),
+            'email' => strtolower(trim($request->email)),
             'subject' => strip_tags($request->subject),
             'message' => strip_tags($request->message),
         ]);
@@ -46,7 +46,7 @@ class ContactController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Votre message a été envoyé avec succès. Nous vous répondrons dans les plus brefs délais.',
-            'data'    => $contact,
+            'data' => $contact,
         ], 201);
     }
 
@@ -62,7 +62,7 @@ class ContactController extends Controller
         $messages = ContactMessage::orderBy('created_at', 'desc')->get();
 
         return response()->json([
-            'success'  => true,
+            'success' => true,
             'messages' => $messages,
         ]);
     }

@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -17,14 +18,14 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'          => 'required|string|max:255|regex:/^[\p{L}\s\-]+$/u',
-            'email'         => 'required|string|email:rfc,dns|max:255|unique:users',
-            'phone'         => 'nullable|string|max:20|regex:/^\+?[0-9\s\-]+$/',
-            'password'      => 'required|string|min:8|confirmed|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
+            'name' => 'required|string|max:255|regex:/^[\p{L}\s\-]+$/u',
+            'email' => 'required|string|email:rfc,dns|max:255|unique:users',
+            'phone' => 'nullable|string|max:20|regex:/^\+?[0-9\s\-]+$/',
+            'password' => 'required|string|min:8|confirmed|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
             'referral_code' => 'nullable|string|size:8|exists:users,referral_code',
         ], [
-            'password.regex'      => 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.',
-            'referral_code.exists'=> 'Ce code de parrainage est invalide.',
+            'password.regex' => 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.',
+            'referral_code.exists' => 'Ce code de parrainage est invalide.',
         ]);
 
         if ($validator->fails()) {
@@ -39,18 +40,18 @@ class AuthController extends Controller
         // Resolve referrer if a referral code was provided
         $referredBy = null;
         if ($request->filled('referral_code')) {
-            $referrer   = User::where('referral_code', $request->referral_code)->first();
+            $referrer = User::where('referral_code', $request->referral_code)->first();
             $referredBy = $referrer?->id;
         }
 
         $user = User::create([
-            'name'          => strip_tags($request->name),
-            'email'         => strtolower($request->email),
-            'phone'         => $request->phone,
-            'password'      => Hash::make($request->password),
-            'role'          => 'client',
+            'name' => strip_tags($request->name),
+            'email' => strtolower($request->email),
+            'phone' => $request->phone,
+            'password' => Hash::make($request->password),
+            'role' => 'client',
             'referral_code' => $newReferralCode,
-            'referred_by'   => $referredBy,
+            'referred_by' => $referredBy,
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -64,21 +65,22 @@ class AuthController extends Controller
         );
 
         return response()->json([
-            'success'      => true,
-            'message'      => 'Compte créé avec succès.',
+            'success' => true,
+            'message' => 'Compte créé avec succès.',
             'access_token' => $token,
-            'token_type'   => 'Bearer',
-            'user'         => $this->userResource($user),
+            'token_type' => 'Bearer',
+            'user' => $this->userResource($user),
         ], 201);
     }
 
     public function login(Request $request)
     {
         // Rate limiting by IP + email
-        $key = 'login:' . Str::lower($request->input('email', '')) . '|' . $request->ip();
+        $key = 'login:'.Str::lower($request->input('email', '')).'|'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
+
             return response()->json([
                 'success' => false,
                 'message' => "Trop de tentatives. Réessayez dans {$seconds} secondes.",
@@ -86,7 +88,7 @@ class AuthController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'email'    => 'required|string|email',
+            'email' => 'required|string|email',
             'password' => 'required|string',
         ]);
 
@@ -96,8 +98,9 @@ class AuthController extends Controller
 
         $user = User::where('email', strtolower($request->email))->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             RateLimiter::hit($key, 300); // Block for 5 minutes after 5 failures
+
             return response()->json(['success' => false, 'message' => 'Identifiants incorrects.'], 401);
         }
 
@@ -115,32 +118,32 @@ class AuthController extends Controller
 
         // ── 2FA pour les comptes admin ou clients ayant activé l'option ──────
         if ($user->role === 'admin' || $user->two_factor_enabled) {
-            $code    = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-            $expiry  = config('app.two_factor_expiry_minutes', (int) env('TWO_FACTOR_EXPIRY_MINUTES', 10));
+            $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $expiry = config('app.two_factor_expiry_minutes', (int) env('TWO_FACTOR_EXPIRY_MINUTES', 10));
             $user->update([
-                'two_factor_code'       => $code,
+                'two_factor_code' => $code,
                 'two_factor_expires_at' => now()->addMinutes($expiry),
             ]);
 
             try {
-                \Illuminate\Support\Facades\Mail::raw(
+                Mail::raw(
                     "Bonjour {$user->name},\n\nVotre code de vérification (2FA) est : {$code}\n\nIl expirera dans {$expiry} minutes.\n\n— Para Ben Moussa",
-                    fn($m) => $m->to($user->email)->subject('Code de vérification — Para Ben Moussa')
+                    fn ($m) => $m->to($user->email)->subject('Code de vérification — Para Ben Moussa')
                 );
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::warning('2FA mail failed: ' . $e->getMessage());
+                Log::warning('2FA mail failed: '.$e->getMessage());
             }
 
             $response = [
-                'success'      => true,
+                'success' => true,
                 'requires_2fa' => true,
-                'message'      => 'Un code de vérification a été envoyé à votre adresse email.',
-                'email'        => $user->email,
+                'message' => 'Un code de vérification a été envoyé à votre adresse email.',
+                'email' => $user->email,
             ];
 
             if (config('app.debug')) {
                 $response['dev_2fa_code'] = $code;
-                $response['dev_note']     = 'Code visible uniquement en APP_DEBUG=true.';
+                $response['dev_note'] = 'Code visible uniquement en APP_DEBUG=true.';
             }
 
             return response()->json($response);
@@ -148,17 +151,18 @@ class AuthController extends Controller
 
         // ── Connexion normale (client / pharmacien) ──────────────────────────
         return response()->json([
-            'success'      => true,
-            'message'      => 'Connexion réussie.',
+            'success' => true,
+            'message' => 'Connexion réussie.',
             'access_token' => $token,
-            'token_type'   => 'Bearer',
-            'user'         => $this->userResource($user),
+            'token_type' => 'Bearer',
+            'user' => $this->userResource($user),
         ]);
     }
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
+
         return response()->json(['success' => true, 'message' => 'Déconnexion réussie.']);
     }
 
@@ -169,7 +173,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
-            'code'  => 'required|string|size:6',
+            'code' => 'required|string|size:6',
         ]);
 
         if ($validator->fails()) {
@@ -178,13 +182,13 @@ class AuthController extends Controller
 
         $user = User::where('email', strtolower($request->email))->first();
 
-        if (!$user || ($user->role !== 'admin' && !$user->two_factor_enabled)) {
+        if (! $user || ($user->role !== 'admin' && ! $user->two_factor_enabled)) {
             return response()->json(['success' => false, 'message' => 'Code invalide ou expiré.'], 401);
         }
 
         if (
             $user->two_factor_code !== $request->code ||
-            !$user->two_factor_expires_at ||
+            ! $user->two_factor_expires_at ||
             now()->isAfter($user->two_factor_expires_at)
         ) {
             return response()->json(['success' => false, 'message' => 'Code invalide ou expiré.'], 401);
@@ -192,7 +196,7 @@ class AuthController extends Controller
 
         // Code valide — effacer et émettre le token
         $user->update([
-            'two_factor_code'       => null,
+            'two_factor_code' => null,
             'two_factor_expires_at' => null,
         ]);
 
@@ -200,11 +204,11 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'success'      => true,
-            'message'      => 'Connexion réussie.',
+            'success' => true,
+            'message' => 'Connexion réussie.',
             'access_token' => $token,
-            'token_type'   => 'Bearer',
-            'user'         => $this->userResource($user),
+            'token_type' => 'Bearer',
+            'user' => $this->userResource($user),
         ]);
     }
 
@@ -218,10 +222,10 @@ class AuthController extends Controller
         $user = $request->user();
 
         $validator = Validator::make($request->all(), [
-            'name'               => 'required|string|max:255|regex:/^[\p{L}\s\-]+$/u',
-            'email'              => 'required|string|email:rfc|max:255|unique:users,email,' . $user->id,
-            'phone'              => 'nullable|string|max:20',
-            'health_profile'     => 'nullable|array',
+            'name' => 'required|string|max:255|regex:/^[\p{L}\s\-]+$/u',
+            'email' => 'required|string|email:rfc|max:255|unique:users,email,'.$user->id,
+            'phone' => 'nullable|string|max:20',
+            'health_profile' => 'nullable|array',
             'two_factor_enabled' => 'nullable|boolean',
         ]);
 
@@ -230,11 +234,11 @@ class AuthController extends Controller
         }
 
         $user->update([
-            'name'               => strip_tags($request->name),
-            'email'              => strtolower($request->email),
-            'phone'              => $request->phone,
-            'health_profile'     => $request->health_profile,
-            'two_factor_enabled' => $request->has('two_factor_enabled') ? (bool)$request->two_factor_enabled : $user->two_factor_enabled,
+            'name' => strip_tags($request->name),
+            'email' => strtolower($request->email),
+            'phone' => $request->phone,
+            'health_profile' => $request->health_profile,
+            'two_factor_enabled' => $request->has('two_factor_enabled') ? (bool) $request->two_factor_enabled : $user->two_factor_enabled,
         ]);
 
         return response()->json(['success' => true, 'message' => 'Profil mis à jour.', 'user' => $this->userResource($user)]);
@@ -246,7 +250,7 @@ class AuthController extends Controller
 
         $validator = Validator::make($request->all(), [
             'current_password' => 'required|string',
-            'new_password'     => 'required|string|min:8|confirmed|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
+            'new_password' => 'required|string|min:8|confirmed|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
         ], [
             'new_password.regex' => 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.',
         ]);
@@ -255,7 +259,7 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
         }
 
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
             return response()->json(['success' => false, 'message' => 'Mot de passe actuel incorrect.'], 422);
         }
 
@@ -283,7 +287,7 @@ class AuthController extends Controller
         // Vérifier si l'email existe (sans révéler l'existence pour la sécurité)
         $user = User::where('email', strtolower($request->email))->first();
 
-        if (!$user) {
+        if (! $user) {
             // Réponse générique pour éviter l'énumération d'emails
             return response()->json([
                 'success' => true,
@@ -298,19 +302,19 @@ class AuthController extends Controller
         DB::table('password_reset_tokens')->updateOrInsert(
             ['email' => strtolower($request->email)],
             [
-                'email'      => strtolower($request->email),
-                'token'      => Hash::make($token),
+                'email' => strtolower($request->email),
+                'token' => Hash::make($token),
                 'created_at' => now(),
             ]
         );
 
         // Envoyer le mail (va dans les logs si MAIL_MAILER=log)
         $resetLink = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'))
-            . '/reset-password?token=' . $token
-            . '&email=' . urlencode(strtolower($request->email));
+            .'/reset-password?token='.$token
+            .'&email='.urlencode(strtolower($request->email));
 
         try {
-            \Illuminate\Support\Facades\Mail::raw(
+            Mail::raw(
                 "Bonjour {$user->name},\n\nCliquez sur ce lien pour réinitialiser votre mot de passe :\n{$resetLink}\n\nCe lien expire dans 60 minutes.\n\n— Para Ben Moussa",
                 function ($message) use ($user) {
                     $message->to($user->email)
@@ -318,7 +322,7 @@ class AuthController extends Controller
                 }
             );
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Mail reset failed: ' . $e->getMessage());
+            Log::error('Mail reset failed: '.$e->getMessage());
         }
 
         $response = [
@@ -341,9 +345,9 @@ class AuthController extends Controller
     public function resetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'token'                 => 'required|string',
-            'email'                 => 'required|email',
-            'password'              => 'required|string|min:8|confirmed|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
+            'token' => 'required|string',
+            'email' => 'required|email',
+            'password' => 'required|string|min:8|confirmed|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
         ], [
             'password.regex' => 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.',
         ]);
@@ -357,24 +361,25 @@ class AuthController extends Controller
             ->where('email', strtolower($request->email))
             ->first();
 
-        if (!$resetRecord) {
+        if (! $resetRecord) {
             return response()->json(['success' => false, 'message' => 'Token invalide ou expiré.'], 422);
         }
 
         // Vérifier le token
-        if (!Hash::check($request->token, $resetRecord->token)) {
+        if (! Hash::check($request->token, $resetRecord->token)) {
             return response()->json(['success' => false, 'message' => 'Token invalide ou expiré.'], 422);
         }
 
         // Vérifier l'expiration (60 minutes)
         if (now()->diffInMinutes($resetRecord->created_at) > 60) {
             DB::table('password_reset_tokens')->where('email', strtolower($request->email))->delete();
+
             return response()->json(['success' => false, 'message' => 'Ce lien a expiré. Veuillez en demander un nouveau.'], 422);
         }
 
         // Mettre à jour le mot de passe
         $user = User::where('email', strtolower($request->email))->first();
-        if (!$user) {
+        if (! $user) {
             return response()->json(['success' => false, 'message' => 'Utilisateur introuvable.'], 404);
         }
 
@@ -455,13 +460,13 @@ class AuthController extends Controller
         ];
 
         return response()->json($data)
-            ->header('Content-Disposition', 'attachment; filename="data-export-' . $user->id . '.json"');
+            ->header('Content-Disposition', 'attachment; filename="data-export-'.$user->id.'.json"');
     }
 
     public function deleteAccount(Request $request)
     {
         $user = $request->user();
-        
+
         DB::transaction(function () use ($user) {
             $user->tokens()->delete();
             $user->orders()->delete();
@@ -479,14 +484,14 @@ class AuthController extends Controller
     private function userResource(User $user): array
     {
         return [
-            'id'                 => $user->id,
-            'name'               => $user->name,
-            'email'              => $user->email,
-            'phone'              => $user->phone,
-            'role'               => $user->role,
-            'loyalty_points'     => $user->loyalty_points ?? 0,
-            'health_profile'     => $user->health_profile,
-            'two_factor_enabled' => (bool)$user->two_factor_enabled,
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'role' => $user->role,
+            'loyalty_points' => $user->loyalty_points ?? 0,
+            'health_profile' => $user->health_profile,
+            'two_factor_enabled' => (bool) $user->two_factor_enabled,
         ];
     }
 }

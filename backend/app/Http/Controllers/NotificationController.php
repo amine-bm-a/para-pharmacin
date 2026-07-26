@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\UserNotification;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
@@ -17,7 +16,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => $notifications
+            'data' => $notifications,
         ]);
     }
 
@@ -29,7 +28,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'count'   => $count
+            'count' => $count,
         ]);
     }
 
@@ -41,7 +40,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Notification marquée comme lue.'
+            'message' => 'Notification marquée comme lue.',
         ]);
     }
 
@@ -52,7 +51,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Toutes les notifications ont été marquées comme lues.'
+            'message' => 'Toutes les notifications ont été marquées comme lues.',
         ]);
     }
 
@@ -63,7 +62,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Notification supprimée.'
+            'message' => 'Notification supprimée.',
         ]);
     }
 }

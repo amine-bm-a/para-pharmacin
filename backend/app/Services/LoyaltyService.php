@@ -6,7 +6,6 @@ use App\Models\LoyaltyPoint;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 /**
  * LoyaltyService — Manages all loyalty point transactions.
@@ -19,11 +18,16 @@ use Illuminate\Support\Facades\Log;
  */
 class LoyaltyService
 {
-    const EARN_RATE          = 1;    // points per MAD spent
-    const REDEEM_RATE        = 100;  // points per 5 MAD reduction
-    const REDEEM_MAD         = 5;    // MAD discount per REDEEM_RATE points
-    const REFERRER_BONUS     = 200;  // bonus points to referrer
-    const REFEREE_DISCOUNT   = 15;   // MAD discount for referee (encoded as points equiv)
+    const EARN_RATE = 1;    // points per MAD spent
+
+    const REDEEM_RATE = 100;  // points per 5 MAD reduction
+
+    const REDEEM_MAD = 5;    // MAD discount per REDEEM_RATE points
+
+    const REFERRER_BONUS = 200;  // bonus points to referrer
+
+    const REFEREE_DISCOUNT = 15;   // MAD discount for referee (encoded as points equiv)
+
     const POINTS_EXPIRY_DAYS = 365;  // points expire after 1 year
 
     // ─── Earn ────────────────────────────────────────────────────────────────────
@@ -37,24 +41,24 @@ class LoyaltyService
         $points = (int) floor($order->total_amount * self::EARN_RATE);
 
         if ($points <= 0) {
-            return new LoyaltyPoint(); // no-op
+            return new LoyaltyPoint; // no-op
         }
 
         return DB::transaction(function () use ($user, $order, $points) {
             $balanceBefore = $user->loyalty_points;
-            $balanceAfter  = $balanceBefore + $points;
+            $balanceAfter = $balanceBefore + $points;
 
             $user->update(['loyalty_points' => $balanceAfter]);
 
             return LoyaltyPoint::create([
-                'user_id'        => $user->id,
-                'order_id'       => $order->id,
-                'type'           => 'earn',
-                'points'         => +$points,
+                'user_id' => $user->id,
+                'order_id' => $order->id,
+                'type' => 'earn',
+                'points' => +$points,
                 'balance_before' => $balanceBefore,
-                'balance_after'  => $balanceAfter,
-                'description'    => "Points gagnés pour la commande #{$order->order_number}",
-                'expires_at'     => now()->addDays(self::POINTS_EXPIRY_DAYS),
+                'balance_after' => $balanceAfter,
+                'description' => "Points gagnés pour la commande #{$order->order_number}",
+                'expires_at' => now()->addDays(self::POINTS_EXPIRY_DAYS),
             ]);
         });
     }
@@ -90,19 +94,19 @@ class LoyaltyService
 
         DB::transaction(function () use ($user, $order, $pointsToSpend, $discountMad) {
             $balanceBefore = $user->loyalty_points;
-            $balanceAfter  = $balanceBefore - $pointsToSpend;
+            $balanceAfter = $balanceBefore - $pointsToSpend;
 
             $user->update(['loyalty_points' => $balanceAfter]);
 
             LoyaltyPoint::create([
-                'user_id'        => $user->id,
-                'order_id'       => $order->id,
-                'type'           => 'spend',
-                'points'         => -$pointsToSpend,
+                'user_id' => $user->id,
+                'order_id' => $order->id,
+                'type' => 'spend',
+                'points' => -$pointsToSpend,
                 'balance_before' => $balanceBefore,
-                'balance_after'  => $balanceAfter,
-                'description'    => "Réduction de {$discountMad} MAD utilisée sur la commande #{$order->order_number}",
-                'expires_at'     => null,
+                'balance_after' => $balanceAfter,
+                'description' => "Réduction de {$discountMad} MAD utilisée sur la commande #{$order->order_number}",
+                'expires_at' => null,
             ]);
         });
 
@@ -118,51 +122,51 @@ class LoyaltyService
      */
     public static function applyReferralBonus(User $referee, Order $refereeOrder): void
     {
-        if ($referee->referral_bonus_granted || !$referee->referred_by) {
+        if ($referee->referral_bonus_granted || ! $referee->referred_by) {
             return;
         }
 
         $referrer = User::find($referee->referred_by);
-        if (!$referrer) {
+        if (! $referrer) {
             return;
         }
 
         DB::transaction(function () use ($referee, $referrer, $refereeOrder) {
             // ── Referrer bonus ───────────────────────────────────────────────
             $refBefore = $referrer->loyalty_points;
-            $refAfter  = $refBefore + self::REFERRER_BONUS;
+            $refAfter = $refBefore + self::REFERRER_BONUS;
             $referrer->update(['loyalty_points' => $refAfter]);
 
             LoyaltyPoint::create([
-                'user_id'        => $referrer->id,
-                'order_id'       => $refereeOrder->id,
-                'type'           => 'referral',
-                'points'         => +self::REFERRER_BONUS,
+                'user_id' => $referrer->id,
+                'order_id' => $refereeOrder->id,
+                'type' => 'referral',
+                'points' => +self::REFERRER_BONUS,
                 'balance_before' => $refBefore,
-                'balance_after'  => $refAfter,
-                'description'    => "Bonus parrainage : {$referee->name} a passé sa 1ère commande",
-                'expires_at'     => now()->addDays(self::POINTS_EXPIRY_DAYS),
+                'balance_after' => $refAfter,
+                'description' => "Bonus parrainage : {$referee->name} a passé sa 1ère commande",
+                'expires_at' => now()->addDays(self::POINTS_EXPIRY_DAYS),
             ]);
 
             // ── Referee discount (encoded as earned points = 15 MAD equiv = 300 pts) ──
             // 300 pts at REDEEM_RATE=100 pts/5 MAD = 15 MAD
-            $refereePts   = self::REFEREE_DISCOUNT * (self::REDEEM_RATE / self::REDEEM_MAD);
-            $refeeBefore  = $referee->loyalty_points;
-            $refeeAfter   = $refeeBefore + $refereePts;
+            $refereePts = self::REFEREE_DISCOUNT * (self::REDEEM_RATE / self::REDEEM_MAD);
+            $refeeBefore = $referee->loyalty_points;
+            $refeeAfter = $refeeBefore + $refereePts;
             $referee->update([
-                'loyalty_points'        => $refeeAfter,
+                'loyalty_points' => $refeeAfter,
                 'referral_bonus_granted' => true,
             ]);
 
             LoyaltyPoint::create([
-                'user_id'        => $referee->id,
-                'order_id'       => $refereeOrder->id,
-                'type'           => 'referral',
-                'points'         => +(int)$refereePts,
+                'user_id' => $referee->id,
+                'order_id' => $refereeOrder->id,
+                'type' => 'referral',
+                'points' => +(int) $refereePts,
                 'balance_before' => $refeeBefore,
-                'balance_after'  => $refeeAfter,
-                'description'    => "Bonus bienvenue parrainage : " . (int)$refereePts . " pts offerts (= " . self::REFEREE_DISCOUNT . " MAD)",
-                'expires_at'     => now()->addDays(self::POINTS_EXPIRY_DAYS),
+                'balance_after' => $refeeAfter,
+                'description' => 'Bonus bienvenue parrainage : '.(int) $refereePts.' pts offerts (= '.self::REFEREE_DISCOUNT.' MAD)',
+                'expires_at' => now()->addDays(self::POINTS_EXPIRY_DAYS),
             ]);
         });
     }
@@ -175,6 +179,7 @@ class LoyaltyService
     public static function getDiscountValue(User $user): float
     {
         $redeemable = (int) floor($user->loyalty_points / self::REDEEM_RATE) * self::REDEEM_RATE;
+
         return ($redeemable / self::REDEEM_RATE) * self::REDEEM_MAD;
     }
 
@@ -184,6 +189,7 @@ class LoyaltyService
     public static function getPointsToNextReward(User $user): int
     {
         $remainder = $user->loyalty_points % self::REDEEM_RATE;
+
         return $remainder === 0 ? self::REDEEM_RATE : (self::REDEEM_RATE - $remainder);
     }
 }

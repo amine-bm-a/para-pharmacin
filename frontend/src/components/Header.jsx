@@ -261,7 +261,6 @@ const slugify = (str) =>
 export default function Header() {
   const { user, logout, isAdmin } = useAuth();
   const { getCartCount } = useCart();
-  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
@@ -310,13 +309,6 @@ export default function Header() {
   const handleChildEnter = (idx) => {
     clearClose();
     setActiveChild(idx);
-  };
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
-    }
   };
 
   const navigateAndClose = (path) => {

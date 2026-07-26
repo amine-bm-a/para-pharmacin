@@ -4,18 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Prescription;
 use App\Models\Product;
-use App\Services\NotificationService;
+use App\Notifications\OrderStatusNotification;
+use App\Services\CacheKeyService;
 use App\Services\CmiPaymentService;
 use App\Services\LoyaltyService;
-use App\Services\CacheKeyService;
-use App\Mail\OrderInvoiceMail;
-use App\Notifications\OrderStatusNotification;
+use App\Services\NotificationService;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
 {
@@ -28,7 +30,7 @@ class OrderController extends Controller
 
         return response()->json([
             'success' => true,
-            'orders'  => $orders
+            'orders' => $orders,
         ]);
     }
 
@@ -38,16 +40,16 @@ class OrderController extends Controller
             ->where('user_id', $request->user()->id)
             ->find($id);
 
-        if (!$order) {
+        if (! $order) {
             return response()->json([
                 'success' => false,
-                'message' => 'Commande non trouvée.'
+                'message' => 'Commande non trouvée.',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'order' => $order
+            'order' => $order,
         ]);
     }
 
@@ -71,7 +73,7 @@ class OrderController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -81,10 +83,10 @@ class OrderController extends Controller
             ->where('requires_prescription', true)
             ->exists();
 
-        if ($requiresPrescription && !$request->hasFile('prescription_file')) {
+        if ($requiresPrescription && ! $request->hasFile('prescription_file')) {
             return response()->json([
                 'success' => false,
-                'message' => "Cette commande contient un ou plusieurs médicaments soumis à ordonnance. Merci de joindre une photo ou un scan de votre ordonnance valide."
+                'message' => 'Cette commande contient un ou plusieurs médicaments soumis à ordonnance. Merci de joindre une photo ou un scan de votre ordonnance valide.',
             ], 422);
         }
 
@@ -100,9 +102,10 @@ class OrderController extends Controller
 
                 if ($product->stock < $item['quantity']) {
                     DB::rollBack();
+
                     return response()->json([
                         'success' => false,
-                        'message' => "Le produit '{$product->name}' n'a pas assez de stock. Stock disponible: {$product->stock}."
+                        'message' => "Le produit '{$product->name}' n'a pas assez de stock. Stock disponible: {$product->stock}.",
                     ], 400);
                 }
 
@@ -128,8 +131,8 @@ class OrderController extends Controller
 
             // Apply loyalty points discount if requested
             $loyaltyDiscount = 0.0;
-            $pointsSpent     = 0;
-            $user            = $request->user();
+            $pointsSpent = 0;
+            $user = $request->user();
 
             if ($request->filled('loyalty_points_to_spend') && $request->loyalty_points_to_spend > 0) {
                 $pointsToSpend = (int) $request->loyalty_points_to_spend;
@@ -137,27 +140,27 @@ class OrderController extends Controller
                     // We can't call LoyaltyService::spendPoints yet (no order), store for after
                     $pointsSpent = $pointsToSpend;
                     // Round down to nearest REDEEM_RATE multiple
-                    $pointsSpent     = (int)(floor($pointsSpent / LoyaltyService::REDEEM_RATE) * LoyaltyService::REDEEM_RATE);
+                    $pointsSpent = (int) (floor($pointsSpent / LoyaltyService::REDEEM_RATE) * LoyaltyService::REDEEM_RATE);
                     $loyaltyDiscount = ($pointsSpent / LoyaltyService::REDEEM_RATE) * LoyaltyService::REDEEM_MAD;
-                    $totalAmount     = max(0, $totalAmount - $loyaltyDiscount);
+                    $totalAmount = max(0, $totalAmount - $loyaltyDiscount);
                 }
             }
 
             // Create Order
-            $orderNumber = 'CMD' . date('Ymd') . strtoupper(bin2hex(random_bytes(3)));
+            $orderNumber = 'CMD'.date('Ymd').strtoupper(bin2hex(random_bytes(3)));
 
             $order = Order::create([
-                'user_id'             => $request->user()->id,
-                'order_number'        => $orderNumber,
-                'status'              => 'pending',
-                'total_amount'        => $totalAmount,
-                'shipping_address'    => $request->shipping_address,
-                'shipping_city'       => $request->shipping_city,
-                'postal_code'         => $request->postal_code,
-                'phone_number'        => $request->phone_number,
-                'payment_method'      => $request->payment_method,
-                'payment_status'      => 'pending', // Card starts pending until webhook validates it
-                'prescription_path'   => $prescriptionPath,
+                'user_id' => $request->user()->id,
+                'order_number' => $orderNumber,
+                'status' => 'pending',
+                'total_amount' => $totalAmount,
+                'shipping_address' => $request->shipping_address,
+                'shipping_city' => $request->shipping_city,
+                'postal_code' => $request->postal_code,
+                'phone_number' => $request->phone_number,
+                'payment_method' => $request->payment_method,
+                'payment_status' => 'pending', // Card starts pending until webhook validates it
+                'prescription_path' => $prescriptionPath,
                 'prescription_status' => $requiresPrescription ? 'pending' : null,
             ]);
 
@@ -171,7 +174,7 @@ class OrderController extends Controller
 
                 // Create prescription record in the prescriptions table
                 if ($itemRequiresPrescription && $prescriptionPath) {
-                    \App\Models\Prescription::create([
+                    Prescription::create([
                         'order_id' => $order->id,
                         'product_id' => $itemData['product_id'],
                         'fichier' => $prescriptionPath,
@@ -201,7 +204,7 @@ class OrderController extends Controller
 
             // ── Loyalty: apply referral bonus on first ever order ────────────
             $isFirstOrder = Order::where('user_id', $user->id)->count() === 1;
-            if ($isFirstOrder && $user->referred_by && !$user->referral_bonus_granted) {
+            if ($isFirstOrder && $user->referred_by && ! $user->referral_bonus_granted) {
                 try {
                     LoyaltyService::applyReferralBonus($user, $order);
                 } catch (\Exception $e) {
@@ -213,7 +216,7 @@ class OrderController extends Controller
             $clientName = $request->user()->name ?? 'Client';
             NotificationService::notifyAdminsAndStaff(
                 '🛒 Nouvelle commande reçue',
-                "Commande **#{$order->order_number}** de **{$clientName}** — Montant : " . number_format($totalAmount, 2) . " MAD",
+                "Commande **#{$order->order_number}** de **{$clientName}** — Montant : ".number_format($totalAmount, 2).' MAD',
                 'order',
                 '/admin/orders'
             );
@@ -248,7 +251,7 @@ class OrderController extends Controller
                     $order->total_amount,
                     $request->user()->email
                 );
-                
+
                 if (config('app.debug')) {
                     $paymentParams['dev_note'] = 'Sandbox URL: https://testpayment.cmi.co.ma/fim/est3Dgate';
                 }
@@ -262,19 +265,20 @@ class OrderController extends Controller
             }
 
             return response()->json([
-                'success'           => true,
-                'message'           => 'Commande passée avec succès.',
-                'order'             => $order->load('items.product'),
+                'success' => true,
+                'message' => 'Commande passée avec succès.',
+                'order' => $order->load('items.product'),
                 'requires_redirect' => $requiresRedirect,
-                'payment_params'    => $paymentParams,
-                'cmi_url'           => 'https://testpayment.cmi.co.ma/fim/est3Dgate',
+                'payment_params' => $paymentParams,
+                'cmi_url' => 'https://testpayment.cmi.co.ma/fim/est3Dgate',
             ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors du traitement de la commande : ' . $e->getMessage()
+                'message' => 'Erreur lors du traitement de la commande : '.$e->getMessage(),
             ], 500);
         }
     }
@@ -291,21 +295,21 @@ class OrderController extends Controller
 
         $order = $query->first();
 
-        if (!$order || !$order->prescription_path) {
+        if (! $order || ! $order->prescription_path) {
             return response()->json([
                 'success' => false,
-                'message' => 'Ordonnance non trouvée.'
+                'message' => 'Ordonnance non trouvée.',
             ], 404);
         }
 
-        if (!\Illuminate\Support\Facades\Storage::disk('local')->exists($order->prescription_path)) {
+        if (! Storage::disk('local')->exists($order->prescription_path)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Fichier introuvable.'
+                'message' => 'Fichier introuvable.',
             ], 404);
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('local')->download($order->prescription_path);
+        return Storage::disk('local')->download($order->prescription_path);
     }
 
     public function downloadInvoice(Request $request, $id)
@@ -314,11 +318,11 @@ class OrderController extends Controller
             ->where('user_id', $request->user()->id)
             ->findOrFail($id);
 
-        $options = new \Dompdf\Options();
+        $options = new Options;
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isRemoteEnabled', false);
 
-        $dompdf = new \Dompdf\Dompdf($options);
+        $dompdf = new Dompdf($options);
         $html = view('emails.invoice', ['order' => $order])->render();
 
         $dompdf->loadHtml($html);
@@ -327,6 +331,6 @@ class OrderController extends Controller
 
         return response($dompdf->output(), 200)
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'attachment; filename="Facture-' . $order->order_number . '.pdf"');
+            ->header('Content-Disposition', 'attachment; filename="Facture-'.$order->order_number.'.pdf"');
     }
 }

@@ -39,7 +39,7 @@ class AdminBrandController extends Controller
 
         $brand = Brand::create([
             'name' => $request->name,
-            'slug' => Str::slug($request->name) . '-' . rand(100, 999),
+            'slug' => Str::slug($request->name).'-'.rand(100, 999),
             'logo_url' => $request->logo_url,
             'description' => $request->description,
         ]);
@@ -54,12 +54,12 @@ class AdminBrandController extends Controller
         }
 
         $brand = Brand::find($id);
-        if (!$brand) {
+        if (! $brand) {
             return response()->json(['success' => false, 'message' => 'Marque non trouvée.'], 404);
         }
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:brands,name,' . $brand->id,
+            'name' => 'required|string|max:255|unique:brands,name,'.$brand->id,
             'logo_url' => 'nullable|string',
             'description' => 'nullable|string',
         ]);
@@ -70,7 +70,7 @@ class AdminBrandController extends Controller
 
         $brand->update([
             'name' => $request->name,
-            'slug' => Str::slug($request->name) . '-' . $brand->id,
+            'slug' => Str::slug($request->name).'-'.$brand->id,
             'logo_url' => $request->logo_url,
             'description' => $request->description,
         ]);
@@ -85,7 +85,7 @@ class AdminBrandController extends Controller
         }
 
         $brand = Brand::find($id);
-        if (!$brand) {
+        if (! $brand) {
             return response()->json(['success' => false, 'message' => 'Marque non trouvée.'], 404);
         }
 
@@ -93,7 +93,7 @@ class AdminBrandController extends Controller
         if ($productsCount > 0) {
             return response()->json([
                 'success' => false,
-                'message' => "Impossible de supprimer : {$productsCount} produit(s) appartiennent encore à cette marque."
+                'message' => "Impossible de supprimer : {$productsCount} produit(s) appartiennent encore à cette marque.",
             ], 422);
         }
 

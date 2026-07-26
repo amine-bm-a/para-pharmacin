@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
 
 class LoyaltyPoint extends Model
 {
@@ -26,7 +26,7 @@ class LoyaltyPoint extends Model
 
     protected $casts = [
         'expires_at' => 'datetime',
-        'points'     => 'integer',
+        'points' => 'integer',
     ];
 
     // ─── Relations ──────────────────────────────────────────────────────────────
@@ -50,14 +50,14 @@ class LoyaltyPoint extends Model
     {
         return $query->where(function ($q) {
             $q->whereNull('expires_at')
-              ->orWhere('expires_at', '>', now());
+                ->orWhere('expires_at', '>', now());
         });
     }
 
     public function scopeExpired(Builder $query): Builder
     {
         return $query->whereNotNull('expires_at')
-                     ->where('expires_at', '<=', now());
+            ->where('expires_at', '<=', now());
     }
 
     public function scopeForUser(Builder $query, int $userId): Builder
@@ -72,6 +72,6 @@ class LoyaltyPoint extends Model
      */
     public function getFormattedPointsAttribute(): string
     {
-        return ($this->points >= 0 ? '+' : '') . $this->points . ' pts';
+        return ($this->points >= 0 ? '+' : '').$this->points.' pts';
     }
 }

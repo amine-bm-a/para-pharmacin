@@ -4,15 +4,14 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Order;
-use App\Models\OrderItem;
+use App\Models\Prescription;
 use App\Models\Product;
 use App\Models\User;
-use App\Models\Prescription;
 use App\Notifications\PrescriptionStatusNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class PrescriptionTest extends TestCase
@@ -20,8 +19,11 @@ class PrescriptionTest extends TestCase
     use RefreshDatabase;
 
     private $client;
+
     private $pharmacist;
+
     private $productWithPresc;
+
     private $productNormal;
 
     protected function setUp(): void
@@ -32,18 +34,18 @@ class PrescriptionTest extends TestCase
         $this->client = User::factory()->create([
             'role' => 'client',
             'email' => 'client@gmail.com',
-            'phone' => '+212600000001'
+            'phone' => '+212600000001',
         ]);
 
         // Create pharmacist user
         $this->pharmacist = User::factory()->create([
             'role' => 'pharmacien',
-            'email' => 'ph@gmail.com'
+            'email' => 'ph@gmail.com',
         ]);
 
         $category = Category::create([
             'name' => 'Médicaments',
-            'slug' => 'medicaments'
+            'slug' => 'medicaments',
         ]);
 
         // Product requiring prescription
@@ -54,7 +56,7 @@ class PrescriptionTest extends TestCase
             'brand' => 'MarocPharm',
             'price' => 45.00,
             'stock' => 50,
-            'requires_prescription' => true
+            'requires_prescription' => true,
         ]);
 
         // Normal product
@@ -65,7 +67,7 @@ class PrescriptionTest extends TestCase
             'brand' => 'Doliprane',
             'price' => 15.00,
             'stock' => 100,
-            'requires_prescription' => false
+            'requires_prescription' => false,
         ]);
     }
 
@@ -81,14 +83,14 @@ class PrescriptionTest extends TestCase
                 'items' => [
                     [
                         'product_id' => $this->productWithPresc->id,
-                        'quantity' => 2
-                    ]
-                ]
+                        'quantity' => 2,
+                    ],
+                ],
             ]);
 
         $response->assertStatus(422)
             ->assertJsonFragment([
-                'message' => 'Cette commande contient un ou plusieurs médicaments soumis à ordonnance. Merci de joindre une photo ou un scan de votre ordonnance valide.'
+                'message' => 'Cette commande contient un ou plusieurs médicaments soumis à ordonnance. Merci de joindre une photo ou un scan de votre ordonnance valide.',
             ]);
     }
 
@@ -110,13 +112,13 @@ class PrescriptionTest extends TestCase
                 'items' => [
                     [
                         'product_id' => $this->productWithPresc->id,
-                        'quantity' => 2
+                        'quantity' => 2,
                     ],
                     [
                         'product_id' => $this->productNormal->id,
-                        'quantity' => 1
-                    ]
-                ]
+                        'quantity' => 1,
+                    ],
+                ],
             ]);
 
         $response->assertStatus(201);
@@ -130,12 +132,12 @@ class PrescriptionTest extends TestCase
         $this->assertDatabaseHas('prescriptions', [
             'order_id' => $order->id,
             'product_id' => $this->productWithPresc->id,
-            'statut' => 'pending'
+            'statut' => 'pending',
         ]);
 
         $this->assertDatabaseMissing('prescriptions', [
             'order_id' => $order->id,
-            'product_id' => $this->productNormal->id
+            'product_id' => $this->productNormal->id,
         ]);
     }
 
@@ -152,14 +154,14 @@ class PrescriptionTest extends TestCase
             'phone_number' => '+2126',
             'payment_method' => 'delivery',
             'prescription_path' => 'prescriptions/file.jpg',
-            'prescription_status' => 'pending'
+            'prescription_status' => 'pending',
         ]);
 
         Prescription::create([
             'order_id' => $order->id,
             'product_id' => $this->productWithPresc->id,
             'fichier' => 'prescriptions/file.jpg',
-            'statut' => 'pending'
+            'statut' => 'pending',
         ]);
 
         $response = $this->actingAs($this->pharmacist)
@@ -185,20 +187,20 @@ class PrescriptionTest extends TestCase
             'phone_number' => '+2126',
             'payment_method' => 'delivery',
             'prescription_path' => 'prescriptions/file.jpg',
-            'prescription_status' => 'pending'
+            'prescription_status' => 'pending',
         ]);
 
         $prescription = Prescription::create([
             'order_id' => $order->id,
             'product_id' => $this->productWithPresc->id,
             'fichier' => 'prescriptions/file.jpg',
-            'statut' => 'pending'
+            'statut' => 'pending',
         ]);
 
         $response = $this->actingAs($this->pharmacist)
             ->putJson("/api/pharmacien/prescriptions/{$prescription->id}/validate", [
                 'statut' => 'approved',
-                'commentaire_pharmacien' => 'Ordonnance lisible et valide.'
+                'commentaire_pharmacien' => 'Ordonnance lisible et valide.',
             ]);
 
         $response->assertStatus(200);
@@ -233,20 +235,20 @@ class PrescriptionTest extends TestCase
             'phone_number' => '+2126',
             'payment_method' => 'delivery',
             'prescription_path' => 'prescriptions/file.jpg',
-            'prescription_status' => 'pending'
+            'prescription_status' => 'pending',
         ]);
 
         $prescription = Prescription::create([
             'order_id' => $order->id,
             'product_id' => $this->productWithPresc->id,
             'fichier' => 'prescriptions/file.jpg',
-            'statut' => 'pending'
+            'statut' => 'pending',
         ]);
 
         $response = $this->actingAs($this->pharmacist)
             ->putJson("/api/pharmacien/prescriptions/{$prescription->id}/validate", [
                 'statut' => 'rejected',
-                'commentaire_pharmacien' => 'Ordonnance expiree.'
+                'commentaire_pharmacien' => 'Ordonnance expiree.',
             ]);
 
         $response->assertStatus(200);

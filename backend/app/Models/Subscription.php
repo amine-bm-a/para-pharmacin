@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Carbon\Carbon;
 
 class Subscription extends Model
 {
@@ -27,8 +27,8 @@ class Subscription extends Model
     ];
 
     protected $casts = [
-        'next_renewal_at'  => 'datetime',
-        'last_renewed_at'  => 'datetime',
+        'next_renewal_at' => 'datetime',
+        'last_renewed_at' => 'datetime',
         'discount_percent' => 'integer',
     ];
 
@@ -54,9 +54,9 @@ class Subscription extends Model
         $base = $this->last_renewed_at ?? now();
 
         return match ($this->frequency) {
-            'weekly'    => $base->copy()->addWeeks(1),
-            'biweekly'  => $base->copy()->addWeeks(2),
-            default     => $base->copy()->addMonth(), // monthly
+            'weekly' => $base->copy()->addWeeks(1),
+            'biweekly' => $base->copy()->addWeeks(2),
+            default => $base->copy()->addMonth(), // monthly
         };
     }
 
@@ -66,9 +66,9 @@ class Subscription extends Model
     public function getFrequencyLabelAttribute(): string
     {
         return match ($this->frequency) {
-            'weekly'   => 'Toutes les semaines',
+            'weekly' => 'Toutes les semaines',
             'biweekly' => 'Toutes les 2 semaines',
-            default    => 'Chaque mois',
+            default => 'Chaque mois',
         };
     }
 
@@ -78,10 +78,10 @@ class Subscription extends Model
     public function getStatusLabelAttribute(): string
     {
         return match ($this->status) {
-            'active'    => 'Actif',
-            'paused'    => 'En pause',
+            'active' => 'Actif',
+            'paused' => 'En pause',
             'cancelled' => 'Annulé',
-            default     => $this->status,
+            default => $this->status,
         };
     }
 

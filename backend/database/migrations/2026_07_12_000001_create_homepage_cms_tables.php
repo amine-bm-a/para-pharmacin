@@ -11,10 +11,10 @@ return new class extends Migration
         // 1. Modify reviews table to support moderation and admin replies
         if (Schema::hasTable('reviews')) {
             Schema::table('reviews', function (Blueprint $table) {
-                if (!Schema::hasColumn('reviews', 'status')) {
+                if (! Schema::hasColumn('reviews', 'status')) {
                     $table->string('status')->default('approved'); // default approved so existing reviews show up
                 }
-                if (!Schema::hasColumn('reviews', 'admin_reply')) {
+                if (! Schema::hasColumn('reviews', 'admin_reply')) {
                     $table->text('admin_reply')->nullable();
                 }
             });

@@ -20,11 +20,11 @@ class PushSubscriptionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'subscription'           => 'required|array',
-            'subscription.endpoint'  => 'required|string|url',
-            'subscription.keys'      => 'required|array',
+            'subscription' => 'required|array',
+            'subscription.endpoint' => 'required|string|url',
+            'subscription.keys' => 'required|array',
             'subscription.keys.p256dh' => 'required|string',
-            'subscription.keys.auth'   => 'required|string',
+            'subscription.keys.auth' => 'required|string',
         ]);
 
         $sub = $request->input('subscription');
@@ -32,9 +32,9 @@ class PushSubscriptionController extends Controller
         PushSubscription::updateOrCreate(
             ['endpoint' => $sub['endpoint']],
             [
-                'user_id'    => Auth::id(),
-                'p256dh'     => $sub['keys']['p256dh'],
-                'auth'       => $sub['keys']['auth'],
+                'user_id' => Auth::id(),
+                'p256dh' => $sub['keys']['p256dh'],
+                'auth' => $sub['keys']['auth'],
                 'user_agent' => $request->header('User-Agent'),
             ]
         );
@@ -55,17 +55,17 @@ class PushSubscriptionController extends Controller
             ->map(function ($sub) {
                 // Truncate endpoint for display
                 return [
-                    'id'          => $sub->id,
-                    'endpoint'    => substr($sub->endpoint, 0, 60) . '…',
-                    'user_agent'  => $this->parseUserAgent($sub->user_agent),
-                    'last_used'   => $sub->last_used_at?->diffForHumans(),
-                    'created_at'  => $sub->created_at->format('d/m/Y'),
+                    'id' => $sub->id,
+                    'endpoint' => substr($sub->endpoint, 0, 60).'…',
+                    'user_agent' => $this->parseUserAgent($sub->user_agent),
+                    'last_used' => $sub->last_used_at?->diffForHumans(),
+                    'created_at' => $sub->created_at->format('d/m/Y'),
                 ];
             });
 
         return response()->json([
             'success' => true,
-            'data'    => $subscriptions,
+            'data' => $subscriptions,
         ]);
     }
 
@@ -73,7 +73,7 @@ class PushSubscriptionController extends Controller
     public function destroy(Request $request)
     {
         $request->validate([
-            'subscription'          => 'required|array',
+            'subscription' => 'required|array',
             'subscription.endpoint' => 'required|string',
         ]);
 
@@ -100,13 +100,28 @@ class PushSubscriptionController extends Controller
 
     private function parseUserAgent(?string $ua): string
     {
-        if (!$ua) return 'Navigateur inconnu';
-        if (str_contains($ua, 'iPhone') || str_contains($ua, 'iPad')) return '📱 Safari iOS';
-        if (str_contains($ua, 'Android')) return '📱 Android';
-        if (str_contains($ua, 'Chrome')) return '🖥️ Chrome';
-        if (str_contains($ua, 'Firefox')) return '🖥️ Firefox';
-        if (str_contains($ua, 'Safari')) return '🖥️ Safari';
-        if (str_contains($ua, 'Edge')) return '🖥️ Edge';
+        if (! $ua) {
+            return 'Navigateur inconnu';
+        }
+        if (str_contains($ua, 'iPhone') || str_contains($ua, 'iPad')) {
+            return '📱 Safari iOS';
+        }
+        if (str_contains($ua, 'Android')) {
+            return '📱 Android';
+        }
+        if (str_contains($ua, 'Chrome')) {
+            return '🖥️ Chrome';
+        }
+        if (str_contains($ua, 'Firefox')) {
+            return '🖥️ Firefox';
+        }
+        if (str_contains($ua, 'Safari')) {
+            return '🖥️ Safari';
+        }
+        if (str_contains($ua, 'Edge')) {
+            return '🖥️ Edge';
+        }
+
         return '🖥️ Navigateur';
     }
 }

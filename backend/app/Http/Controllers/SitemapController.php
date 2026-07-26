@@ -40,7 +40,7 @@ class SitemapController extends Controller
 
         // Static pages
         foreach (['/', '/products', '/categories', '/brands', '/blog', '/contact'] as $path) {
-            $urls[] = ['loc' => $baseUrl . $path, 'changefreq' => 'daily', 'priority' => '0.8'];
+            $urls[] = ['loc' => $baseUrl.$path, 'changefreq' => 'daily', 'priority' => '0.8'];
         }
 
         // Categories
@@ -75,17 +75,17 @@ class SitemapController extends Controller
             });
         }
 
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
 
         foreach ($urls as $url) {
             $xml .= "  <url>\n";
-            $xml .= '    <loc>' . htmlspecialchars($url['loc'], ENT_XML1) . "</loc>\n";
-            if (!empty($url['lastmod'])) {
-                $xml .= '    <lastmod>' . $url['lastmod'] . "</lastmod>\n";
+            $xml .= '    <loc>'.htmlspecialchars($url['loc'], ENT_XML1)."</loc>\n";
+            if (! empty($url['lastmod'])) {
+                $xml .= '    <lastmod>'.$url['lastmod']."</lastmod>\n";
             }
-            $xml .= '    <changefreq>' . $url['changefreq'] . "</changefreq>\n";
-            $xml .= '    <priority>' . $url['priority'] . "</priority>\n";
+            $xml .= '    <changefreq>'.$url['changefreq']."</changefreq>\n";
+            $xml .= '    <priority>'.$url['priority']."</priority>\n";
             $xml .= "  </url>\n";
         }
 

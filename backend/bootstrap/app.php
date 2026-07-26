@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\IsAdmin;
+use App\Http\Middleware\IsPharmacien;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,12 +21,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // ]);
 
         $middleware->alias([
-            'admin' => \App\Http\Middleware\IsAdmin::class,
-            'pharmacien' => \App\Http\Middleware\IsPharmacien::class,
+            'admin' => IsAdmin::class,
+            'pharmacien' => IsPharmacien::class,
         ]);
 
         // Add security headers to all responses
-        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+        $middleware->append(SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

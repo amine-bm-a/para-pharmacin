@@ -22,13 +22,13 @@ class LoyaltyController extends Controller
             ->paginate(20);
 
         return response()->json([
-            'success'           => true,
-            'balance'           => $user->loyalty_points,
-            'discount_value_mad'=> LoyaltyService::getDiscountValue($user),
-            'points_to_next'    => LoyaltyService::getPointsToNextReward($user),
-            'redeem_rate'       => LoyaltyService::REDEEM_RATE,
-            'redeem_mad'        => LoyaltyService::REDEEM_MAD,
-            'transactions'      => $transactions,
+            'success' => true,
+            'balance' => $user->loyalty_points,
+            'discount_value_mad' => LoyaltyService::getDiscountValue($user),
+            'points_to_next' => LoyaltyService::getPointsToNextReward($user),
+            'redeem_rate' => LoyaltyService::REDEEM_RATE,
+            'redeem_mad' => LoyaltyService::REDEEM_MAD,
+            'transactions' => $transactions,
         ]);
     }
 
@@ -41,12 +41,12 @@ class LoyaltyController extends Controller
         $user = $request->user();
 
         return response()->json([
-            'success'           => true,
-            'balance'           => $user->loyalty_points,
-            'discount_value_mad'=> LoyaltyService::getDiscountValue($user),
-            'points_to_next'    => LoyaltyService::getPointsToNextReward($user),
-            'redeem_rate'       => LoyaltyService::REDEEM_RATE,
-            'redeem_mad'        => LoyaltyService::REDEEM_MAD,
+            'success' => true,
+            'balance' => $user->loyalty_points,
+            'discount_value_mad' => LoyaltyService::getDiscountValue($user),
+            'points_to_next' => LoyaltyService::getPointsToNextReward($user),
+            'redeem_rate' => LoyaltyService::REDEEM_RATE,
+            'redeem_mad' => LoyaltyService::REDEEM_MAD,
         ]);
     }
 
@@ -64,11 +64,11 @@ class LoyaltyController extends Controller
             ->sum('points');
 
         return response()->json([
-            'success'          => true,
-            'referral_code'    => $user->referral_code,
-            'referral_link'    => config('app.frontend_url') . '/register?ref=' . $user->referral_code,
-            'referrals_count'  => $user->referrals->count(),
-            'referrals'        => $user->referrals,
+            'success' => true,
+            'referral_code' => $user->referral_code,
+            'referral_link' => config('app.frontend_url').'/register?ref='.$user->referral_code,
+            'referrals_count' => $user->referrals->count(),
+            'referrals' => $user->referrals,
             'total_earned_pts' => (int) $referralEarnings,
         ]);
     }

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\UserNotification;
+use Illuminate\Support\Facades\Log;
 
 /**
  * NotificationService — creates in-app DB notifications AND dispatches
@@ -16,21 +17,21 @@ class NotificationService
 {
     // ─── Type → push payload map ────────────────────────────────────────────
     private static array $typeEmoji = [
-        'order'        => '🛒',
+        'order' => '🛒',
         'prescription' => '💊',
-        'stock'        => '📦',
-        'promo'        => '🎁',
-        'loyalty'      => '🌟',
-        'info'         => 'ℹ️',
-        'warning'      => '⚠️',
-        'error'        => '❌',
+        'stock' => '📦',
+        'promo' => '🎁',
+        'loyalty' => '🌟',
+        'info' => 'ℹ️',
+        'warning' => '⚠️',
+        'error' => '❌',
     ];
 
     /**
      * Notify a single user (DB + browser push).
      */
     public static function notifyUser(
-        int    $userId,
+        int $userId,
         string $title,
         string $message,
         string $type = 'info',
@@ -39,25 +40,25 @@ class NotificationService
         // 1. In-app (database) notification
         UserNotification::create([
             'user_id' => $userId,
-            'title'   => $title,
+            'title' => $title,
             'message' => $message,
-            'type'    => $type,
-            'link'    => $link,
+            'type' => $type,
+            'link' => $link,
             'is_read' => false,
         ]);
 
         // 2. Browser push notification (best-effort, never throws)
         try {
             $emoji = self::$typeEmoji[$type] ?? 'ℹ️';
-            app(WebPushService::class)->notifyUser($userId, $emoji . ' ' . $title, [
+            app(WebPushService::class)->notifyUser($userId, $emoji.' '.$title, [
                 'body' => $message,
-                'tag'  => $type . '-' . $userId . '-' . time(),
-                'url'  => $link,
+                'tag' => $type.'-'.$userId.'-'.time(),
+                'url' => $link,
                 'icon' => '/logo-192.png',
             ]);
         } catch (\Throwable $e) {
             // Log and continue — push failure must NEVER break the main flow
-            \Illuminate\Support\Facades\Log::warning('[Push] notifyUser failed: ' . $e->getMessage());
+            Log::warning('[Push] notifyUser failed: '.$e->getMessage());
         }
     }
 
@@ -75,10 +76,10 @@ class NotificationService
         foreach ($staff as $member) {
             UserNotification::create([
                 'user_id' => $member->id,
-                'title'   => $title,
+                'title' => $title,
                 'message' => $message,
-                'type'    => $type,
-                'link'    => $member->role === 'admin'
+                'type' => $type,
+                'link' => $member->role === 'admin'
                     ? $link
                     : str_replace('/admin', '/pharmacien', $link),
                 'is_read' => false,
@@ -100,10 +101,10 @@ class NotificationService
         foreach ($admins as $admin) {
             UserNotification::create([
                 'user_id' => $admin->id,
-                'title'   => $title,
+                'title' => $title,
                 'message' => $message,
-                'type'    => $type,
-                'link'    => $link,
+                'type' => $type,
+                'link' => $link,
                 'is_read' => false,
             ]);
         }
@@ -115,12 +116,12 @@ class NotificationService
     public static function statusLabel(string $status): string
     {
         $labels = [
-            'pending'    => '⏳ En attente de traitement',
-            'preparing'  => '💊 En cours de préparation',
-            'shipped'    => '🚚 Expédiée — en route vers vous',
-            'delivered'  => '✅ Livrée avec succès',
-            'completed'  => '✅ Complétée',
-            'cancelled'  => '❌ Annulée',
+            'pending' => '⏳ En attente de traitement',
+            'preparing' => '💊 En cours de préparation',
+            'shipped' => '🚚 Expédiée — en route vers vous',
+            'delivered' => '✅ Livrée avec succès',
+            'completed' => '✅ Complétée',
+            'cancelled' => '❌ Annulée',
         ];
 
         return $labels[$status] ?? ucfirst($status);

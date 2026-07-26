@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
-use App\Models\Product;
 use App\Models\Delivery;
-use App\Services\NotificationService;
+use App\Models\Order;
+use App\Models\Prescription;
+use App\Models\Product;
 use App\Notifications\OrderStatusNotification;
+use App\Notifications\PrescriptionStatusNotification;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PharmacienController extends Controller
@@ -19,8 +20,8 @@ class PharmacienController extends Controller
         $pendingPreparation = Order::where('status', 'pending')->count();
         $preparing = Order::where('status', 'preparing')->count();
         $lowStock = Product::where('stock', '<=', 5)->count();
-        $pendingPrescriptions = \App\Models\Prescription::where('statut', 'pending')->count();
-        
+        $pendingPrescriptions = Prescription::where('statut', 'pending')->count();
+
         $recentOrders = Order::with('user')
             ->orderByDesc('created_at')
             ->limit(5)
@@ -33,8 +34,8 @@ class PharmacienController extends Controller
                 'preparing' => $preparing,
                 'low_stock' => $lowStock,
                 'pending_prescriptions' => $pendingPrescriptions,
-                'recent_orders' => $recentOrders
-            ]
+                'recent_orders' => $recentOrders,
+            ],
         ]);
     }
 
@@ -42,7 +43,7 @@ class PharmacienController extends Controller
     public function scanOrder(Request $request)
     {
         $request->validate([
-            'code' => 'required|string'
+            'code' => 'required|string',
         ]);
 
         $code = $request->code;
@@ -54,23 +55,23 @@ class PharmacienController extends Controller
         }
 
         // Try searching by tracking number in delivery if not found
-        if (!$order) {
+        if (! $order) {
             $delivery = Delivery::where('tracking_number', $code)->first();
             if ($delivery) {
                 $order = Order::with(['user', 'orderItems.product'])->find($delivery->order_id);
             }
         }
 
-        if (!$order) {
+        if (! $order) {
             return response()->json([
                 'success' => false,
-                'message' => 'Commande introuvable avec ce code ou numéro de suivi.'
+                'message' => 'Commande introuvable avec ce code ou numéro de suivi.',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data' => $order
+            'data' => $order,
         ]);
     }
 
@@ -78,9 +79,9 @@ class PharmacienController extends Controller
     public function prepareOrder(Request $request, $id)
     {
         $order = Order::findOrFail($id);
-        
+
         $request->validate([
-            'status' => 'required|in:preparing,shipped,delivered,cancelled'
+            'status' => 'required|in:preparing,shipped,delivered,cancelled',
         ]);
 
         $oldStatus = $order->status;
@@ -104,7 +105,7 @@ class PharmacienController extends Controller
         NotificationService::notifyUser(
             $order->user_id,
             '📦 Statut de votre commande mis à jour',
-            "Votre commande **#{$order->id}** est maintenant : " . NotificationService::statusLabel($request->status),
+            "Votre commande **#{$order->id}** est maintenant : ".NotificationService::statusLabel($request->status),
             'order',
             '/mes-commandes'
         );
@@ -112,7 +113,7 @@ class PharmacienController extends Controller
         // Notify admin for visibility
         NotificationService::notifyAdmins(
             '🔄 Commande mise à jour par l\'employé',
-            "La commande **#{$order->id}** a été mise à jour vers : " . NotificationService::statusLabel($request->status),
+            "La commande **#{$order->id}** a été mise à jour vers : ".NotificationService::statusLabel($request->status),
             'order',
             '/admin/orders'
         );
@@ -129,7 +130,7 @@ class PharmacienController extends Controller
         return response()->json([
             'success' => true,
             'message' => "Statut de la commande mis à jour vers: {$request->status}",
-            'data'    => $order
+            'data' => $order,
         ]);
     }
 
@@ -142,7 +143,7 @@ class PharmacienController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $products
+            'data' => $products,
         ]);
     }
 
@@ -150,7 +151,7 @@ class PharmacienController extends Controller
     {
         $product = Product::findOrFail($id);
         $request->validate([
-            'stock' => 'required|integer|min:0'
+            'stock' => 'required|integer|min:0',
         ]);
 
         $product->stock = $request->stock;
@@ -159,7 +160,7 @@ class PharmacienController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Stock mis à jour avec succès.',
-            'data' => $product
+            'data' => $product,
         ]);
     }
 
@@ -173,7 +174,7 @@ class PharmacienController extends Controller
 
         return response()->json([
             'success' => true,
-            'orders' => $orders
+            'orders' => $orders,
         ]);
     }
 
@@ -182,14 +183,14 @@ class PharmacienController extends Controller
      */
     public function listPendingPrescriptions()
     {
-        $prescriptions = \App\Models\Prescription::with(['order.user', 'product'])
+        $prescriptions = Prescription::with(['order.user', 'product'])
             ->where('statut', 'pending')
             ->orderBy('created_at', 'desc')
             ->get();
 
         return response()->json([
             'success' => true,
-            'prescriptions' => $prescriptions
+            'prescriptions' => $prescriptions,
         ]);
     }
 
@@ -203,7 +204,7 @@ class PharmacienController extends Controller
             'commentaire_pharmacien' => 'nullable|string|max:1000',
         ]);
 
-        $prescription = \App\Models\Prescription::with(['order.user', 'product'])->findOrFail($id);
+        $prescription = Prescription::with(['order.user', 'product'])->findOrFail($id);
 
         $prescription->update([
             'statut' => $request->statut,
@@ -217,7 +218,7 @@ class PharmacienController extends Controller
         // Check overall status of all prescriptions for this order
         $allPrescriptions = $order->prescriptions;
         $hasRejected = $allPrescriptions->contains('statut', 'rejected');
-        $allApproved = $allPrescriptions->every(fn($p) => $p->statut === 'approved');
+        $allApproved = $allPrescriptions->every(fn ($p) => $p->statut === 'approved');
 
         if ($hasRejected) {
             $order->update([
@@ -253,7 +254,7 @@ class PharmacienController extends Controller
         // Notify client via queued Email/SMS
         if ($order->user) {
             try {
-                $order->user->notify(new \App\Notifications\PrescriptionStatusNotification($prescription));
+                $order->user->notify(new PrescriptionStatusNotification($prescription));
             } catch (\Exception $e) {
                 Log::error('Prescription validation notification dispatch failed.', ['error' => $e->getMessage()]);
             }

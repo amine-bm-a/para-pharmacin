@@ -20,16 +20,6 @@ export default function PWANotifications() {
   const [message, setMessage]           = useState(null); // { type: 'success'|'error', text }
   const [isInstalled, setIsInstalled]   = useState(false);
 
-  // ── Init ──────────────────────────────────────────────────────────────────
-  useEffect(() => {
-    setPermission(Notification?.permission ?? 'unsupported');
-    setIsInstalled(
-      window.matchMedia('(display-mode: standalone)').matches ||
-      window.navigator.standalone === true
-    );
-    fetchSubscriptions();
-  }, []);
-
   const fetchSubscriptions = useCallback(async () => {
     if (!isPushSupported()) { setLoading(false); return; }
     try {
@@ -41,6 +31,16 @@ export default function PWANotifications() {
       setLoading(false);
     }
   }, []);
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    setPermission(Notification?.permission ?? 'unsupported');
+    setIsInstalled(
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true
+    );
+    fetchSubscriptions();
+  }, [fetchSubscriptions]);
 
   // ── Enable push ───────────────────────────────────────────────────────────
   const handleEnable = async () => {

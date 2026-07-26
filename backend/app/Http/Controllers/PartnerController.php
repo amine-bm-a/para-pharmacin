@@ -11,6 +11,7 @@ class PartnerController extends Controller
     public function index()
     {
         $partners = Partner::orderBy('position')->get();
+
         return response()->json(['success' => true, 'partners' => $partners]);
     }
 
@@ -21,6 +22,7 @@ class PartnerController extends Controller
         }
 
         $partners = Partner::orderBy('position')->get();
+
         return response()->json(['success' => true, 'partners' => $partners]);
     }
 
@@ -52,7 +54,7 @@ class PartnerController extends Controller
         }
 
         $partner = Partner::find($id);
-        if (!$partner) {
+        if (! $partner) {
             return response()->json(['success' => false, 'message' => 'Partenaire non trouvé.'], 404);
         }
 
@@ -78,7 +80,7 @@ class PartnerController extends Controller
         }
 
         $partner = Partner::find($id);
-        if (!$partner) {
+        if (! $partner) {
             return response()->json(['success' => false, 'message' => 'Partenaire non trouvé.'], 404);
         }
 

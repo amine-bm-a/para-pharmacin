@@ -2,9 +2,18 @@
 
 namespace Database\Seeders;
 
+use App\Models\Banner;
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Product;
+use App\Models\Promotion;
+use App\Models\Review;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -94,16 +103,16 @@ class DatabaseSeeder extends Seeder
 
         $categoryModels = [];
         foreach ($categories as $cat) {
-            $categoryModels[$cat['slug']] = \App\Models\Category::create($cat);
+            $categoryModels[$cat['slug']] = Category::create($cat);
         }
 
         // 2b. Create Brands
         $brandNames = ['Bioderma', 'La Roche-Posay', 'Avène', 'CeraVe', 'Vichy', 'Nuxe', 'A-Derma', 'Vitarock'];
         $brandModels = [];
         foreach ($brandNames as $brandName) {
-            $brandModels[$brandName] = \App\Models\Brand::create([
+            $brandModels[$brandName] = Brand::create([
                 'name' => $brandName,
-                'slug' => \Illuminate\Support\Str::slug($brandName) . '-' . rand(100, 999),
+                'slug' => Str::slug($brandName).'-'.rand(100, 999),
                 'description' => "Produits {$brandName} disponibles à la pharmacie.",
             ]);
         }
@@ -248,17 +257,17 @@ class DatabaseSeeder extends Seeder
 
         foreach ($products as $prod) {
             $prod['brand_id'] = $brandModels[$prod['brand']]->id ?? null;
-            $createdProd = \App\Models\Product::create($prod);
+            $createdProd = Product::create($prod);
 
             // 4. Create some reviews for each product
-            \App\Models\Review::create([
+            Review::create([
                 'product_id' => $createdProd->id,
                 'user_id' => 2, // Ahmed El Amrani
                 'rating' => 5,
                 'comment' => 'Excellent produit, je le recommande vivement ! Très efficace et doux.',
             ]);
 
-            \App\Models\Review::create([
+            Review::create([
                 'product_id' => $createdProd->id,
                 'user_id' => 2,
                 'rating' => 4,
@@ -267,9 +276,9 @@ class DatabaseSeeder extends Seeder
         }
 
         // 5. Create some Orders
-        $order1 = \App\Models\Order::create([
+        $order1 = Order::create([
             'user_id' => 2,
-            'order_number' => 'CMD' . date('Ymd') . '0001',
+            'order_number' => 'CMD'.date('Ymd').'0001',
             'status' => 'completed',
             'total_amount' => 367.00,
             'shipping_address' => '123, Avenue Mohammed V',
@@ -281,30 +290,30 @@ class DatabaseSeeder extends Seeder
             'created_at' => now()->subDays(2),
         ]);
 
-        \App\Models\OrderItem::create([
+        OrderItem::create([
             'order_id' => $order1->id,
             'product_id' => 1, // Bioderma Créaline H2O
             'quantity' => 1,
             'price' => 129.00,
         ]);
 
-        \App\Models\OrderItem::create([
+        OrderItem::create([
             'order_id' => $order1->id,
             'product_id' => 2, // La Roche-Posay Effaclar
             'quantity' => 1,
             'price' => 149.00,
         ]);
 
-        \App\Models\OrderItem::create([
+        OrderItem::create([
             'order_id' => $order1->id,
             'product_id' => 3, // Avène Eau Thermale
             'quantity' => 1,
             'price' => 89.00,
         ]);
 
-        $order2 = \App\Models\Order::create([
+        $order2 = Order::create([
             'user_id' => 2,
-            'order_number' => 'CMD' . date('Ymd') . '0002',
+            'order_number' => 'CMD'.date('Ymd').'0002',
             'status' => 'pending',
             'total_amount' => 298.00,
             'shipping_address' => '456, Boulevard Zerktouni',
@@ -316,7 +325,7 @@ class DatabaseSeeder extends Seeder
             'created_at' => now(),
         ]);
 
-        \App\Models\OrderItem::create([
+        OrderItem::create([
             'order_id' => $order2->id,
             'product_id' => 2, // La Roche-Posay Effaclar
             'quantity' => 2,
@@ -324,7 +333,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 6. Create a demo promotion
-        \App\Models\Promotion::create([
+        Promotion::create([
             'title' => 'Soldes Soins du Visage',
             'description' => 'Profitez de -20% sur toute la catégorie Soins du visage.',
             'category_id' => $categoryModels['soins-du-visage']->id,
@@ -335,7 +344,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 7. Create a demo banner
-        \App\Models\Banner::create([
+        Banner::create([
             'title' => 'Bienvenue chez Pharmacie Ben Moussa Abbes',
             'subtitle' => 'Votre pharmacie en ligne de confiance',
             'image_url' => 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1200&q=80',

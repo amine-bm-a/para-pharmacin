@@ -20,17 +20,17 @@ class ProductTest extends TestCase
 
         Product::create([
             'category_id' => $category->id,
-            'name'        => 'CeraVe Crème Hydratante',
-            'slug'        => 'cerave-creme-hydratante',
-            'brand'       => 'CeraVe',
-            'price'       => 150.00,
-            'stock'       => 10,
+            'name' => 'CeraVe Crème Hydratante',
+            'slug' => 'cerave-creme-hydratante',
+            'brand' => 'CeraVe',
+            'price' => 150.00,
+            'stock' => 10,
         ]);
 
         $response = $this->getJson('/api/products');
 
         $response->assertStatus(200)
-                 ->assertJsonCount(1, 'products');
+            ->assertJsonCount(1, 'products');
     }
 
     public function test_can_filter_products_by_category()
@@ -40,27 +40,27 @@ class ProductTest extends TestCase
 
         Product::create([
             'category_id' => $cat1->id,
-            'name'        => 'Lait Bébé',
-            'slug'        => 'lait-bebe',
-            'brand'       => 'Mustela',
-            'price'       => 120.00,
-            'stock'       => 5,
+            'name' => 'Lait Bébé',
+            'slug' => 'lait-bebe',
+            'brand' => 'Mustela',
+            'price' => 120.00,
+            'stock' => 5,
         ]);
 
         Product::create([
             'category_id' => $cat2->id,
-            'name'        => 'Crème Solaire',
-            'slug'        => 'creme-solaire',
-            'brand'       => 'SVR',
-            'price'       => 180.00,
-            'stock'       => 8,
+            'name' => 'Crème Solaire',
+            'slug' => 'creme-solaire',
+            'brand' => 'SVR',
+            'price' => 180.00,
+            'stock' => 8,
         ]);
 
         $response = $this->getJson('/api/products?category=bebe');
 
         $response->assertStatus(200)
-                 ->assertJsonCount(1, 'products')
-                 ->assertJsonFragment(['slug' => 'lait-bebe']);
+            ->assertJsonCount(1, 'products')
+            ->assertJsonFragment(['slug' => 'lait-bebe']);
     }
 
     public function test_can_search_products()
@@ -69,18 +69,18 @@ class ProductTest extends TestCase
 
         Product::create([
             'category_id' => $category->id,
-            'name'        => 'Bioderma Créaline H2O',
-            'slug'        => 'bioderma-crealine-h2o',
-            'brand'       => 'Bioderma',
-            'price'       => 110.00,
-            'stock'       => 15,
+            'name' => 'Bioderma Créaline H2O',
+            'slug' => 'bioderma-crealine-h2o',
+            'brand' => 'Bioderma',
+            'price' => 110.00,
+            'stock' => 15,
         ]);
 
         $response = $this->getJson('/api/products?search=Créaline');
 
         $response->assertStatus(200)
-                 ->assertJsonCount(1, 'products')
-                 ->assertJsonFragment(['slug' => 'bioderma-crealine-h2o']);
+            ->assertJsonCount(1, 'products')
+            ->assertJsonFragment(['slug' => 'bioderma-crealine-h2o']);
     }
 
     public function test_can_get_product_detail()
@@ -88,18 +88,18 @@ class ProductTest extends TestCase
         $category = Category::create(['name' => 'Soin', 'slug' => 'soin']);
         $product = Product::create([
             'category_id' => $category->id,
-            'name'        => 'Bioderma Créaline H2O',
-            'slug'        => 'bioderma-crealine-h2o',
-            'brand'       => 'Bioderma',
-            'price'       => 110.00,
-            'stock'       => 15,
+            'name' => 'Bioderma Créaline H2O',
+            'slug' => 'bioderma-crealine-h2o',
+            'brand' => 'Bioderma',
+            'price' => 110.00,
+            'stock' => 15,
         ]);
 
         $response = $this->getJson("/api/products/{$product->slug}");
 
         $response->assertStatus(200)
-                 ->assertJsonPath('success', true)
-                 ->assertJsonPath('product.slug', 'bioderma-crealine-h2o');
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('product.slug', 'bioderma-crealine-h2o');
     }
 
     public function test_autocomplete_returns_suggestions()
@@ -107,18 +107,18 @@ class ProductTest extends TestCase
         $category = Category::create(['name' => 'Soin', 'slug' => 'soin']);
         Product::create([
             'category_id' => $category->id,
-            'name'        => 'Bioderma Créaline H2O',
-            'slug'        => 'bioderma-crealine',
-            'brand'       => 'Bioderma',
-            'price'       => 110.00,
-            'stock'       => 5,
+            'name' => 'Bioderma Créaline H2O',
+            'slug' => 'bioderma-crealine',
+            'brand' => 'Bioderma',
+            'price' => 110.00,
+            'stock' => 5,
         ]);
 
         $response = $this->getJson('/api/products/search/autocomplete?q=bioderma');
 
         $response->assertStatus(200)
-                 ->assertJsonPath('success', true)
-                 ->assertJsonStructure(['success', 'suggestions' => [['id', 'name', 'slug', 'price']]]);
+            ->assertJsonPath('success', true)
+            ->assertJsonStructure(['success', 'suggestions' => [['id', 'name', 'slug', 'price']]]);
     }
 
     public function test_autocomplete_returns_empty_for_short_query()
@@ -126,8 +126,8 @@ class ProductTest extends TestCase
         $response = $this->getJson('/api/products/search/autocomplete?q=b');
 
         $response->assertStatus(200)
-                 ->assertJsonPath('success', true)
-                 ->assertJsonCount(0, 'suggestions');
+            ->assertJsonPath('success', true)
+            ->assertJsonCount(0, 'suggestions');
     }
 
     public function test_can_filter_products_by_stock_availability()

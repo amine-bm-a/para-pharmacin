@@ -8,11 +8,11 @@ class Delivery extends Model
 {
     protected $fillable = [
         'order_id', 'carrier', 'tracking_number', 'status',
-        'cost', 'address', 'city', 'zip', 'shipped_at', 'delivered_at', 'notes'
+        'cost', 'address', 'city', 'zip', 'shipped_at', 'delivered_at', 'notes',
     ];
 
     protected $casts = [
-        'shipped_at'   => 'datetime',
+        'shipped_at' => 'datetime',
         'delivered_at' => 'datetime',
     ];
 

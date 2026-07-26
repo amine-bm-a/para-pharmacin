@@ -2,9 +2,9 @@
 
 return [
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
-    
+
     'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    
+
     // In production, replace with your actual frontend domain
     'allowed_origins' => [
         'http://localhost:3000',
@@ -12,14 +12,14 @@ return [
         'http://127.0.0.1:3000',
         'http://127.0.0.1:5173',
     ],
-    
+
     'allowed_origins_patterns' => [],
-    
+
     'allowed_headers' => ['Content-Type', 'X-Requested-With', 'Authorization', 'Accept', 'Origin'],
-    
+
     'exposed_headers' => [],
-    
+
     'max_age' => 0,
-    
+
     'supports_credentials' => true,
 ];

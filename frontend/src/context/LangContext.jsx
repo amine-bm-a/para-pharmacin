@@ -220,11 +220,11 @@ export const LangProvider = ({ children }) => {
     document.documentElement.lang = newLang;
   };
 
-  // Apply RTL on initial mount
+  // Apply RTL on initial mount and when lang changes
   React.useEffect(() => {
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = lang;
-  }, []);
+  }, [lang]);
 
   const t = (key) => translations[lang]?.[key] || translations['fr']?.[key] || key;
 

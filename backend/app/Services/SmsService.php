@@ -19,8 +19,8 @@ class SmsService
         }
 
         // Default 'log' driver: output SMS content directly to local logs
-        Log::info("📨 SMS/WhatsApp SIMULATOR (driver: log)", [
-            'to'      => $to,
+        Log::info('📨 SMS/WhatsApp SIMULATOR (driver: log)', [
+            'to' => $to,
             'message' => $message,
         ]);
 
@@ -36,8 +36,9 @@ class SmsService
         $token = env('TWILIO_AUTH_TOKEN');
         $from = env('TWILIO_FROM');
 
-        if (!$sid || !$token || !$from) {
+        if (! $sid || ! $token || ! $from) {
             Log::error('Twilio SMS: Missing configuration credentials.');
+
             return false;
         }
 
@@ -45,23 +46,26 @@ class SmsService
             $response = Http::asForm()
                 ->withBasicAuth($sid, $token)
                 ->post("https://api.twilio.com/2010-04-01/Accounts/{$sid}/Messages.json", [
-                    'To'   => $to,
+                    'To' => $to,
                     'From' => $from,
                     'Body' => $message,
                 ]);
 
             if ($response->successful()) {
                 Log::info("Twilio SMS sent successfully to {$to}.", ['sid' => $response->json('sid')]);
+
                 return true;
             }
 
             Log::error("Twilio SMS request failed for {$to}.", [
-                'status'   => $response->status(),
-                'response' => $response->body()
+                'status' => $response->status(),
+                'response' => $response->body(),
             ]);
+
             return false;
         } catch (\Exception $e) {
-            Log::error("Twilio SMS sending exception: " . $e->getMessage());
+            Log::error('Twilio SMS sending exception: '.$e->getMessage());
+
             return false;
         }
     }

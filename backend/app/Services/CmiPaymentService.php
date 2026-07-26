@@ -13,25 +13,25 @@ class CmiPaymentService
     {
         $clientId = env('CMI_CLIENT_ID', '600000000'); // Default CMI test client ID
         $storeKey = env('CMI_STORE_KEY', 'TEST_STORE_KEY'); // Default test store key
-        $okUrl = env('FRONTEND_URL', 'http://localhost:3000') . '/mes-commandes?payment=success&oid=' . urlencode($orderNumber);
-        $failUrl = env('FRONTEND_URL', 'http://localhost:3000') . '/checkout?payment=failed&oid=' . urlencode($orderNumber);
-        $callbackUrl = env('APP_URL', 'http://127.0.0.1:8000') . '/api/payment/cmi/callback';
+        $okUrl = env('FRONTEND_URL', 'http://localhost:3000').'/mes-commandes?payment=success&oid='.urlencode($orderNumber);
+        $failUrl = env('FRONTEND_URL', 'http://localhost:3000').'/checkout?payment=failed&oid='.urlencode($orderNumber);
+        $callbackUrl = env('APP_URL', 'http://127.0.0.1:8000').'/api/payment/cmi/callback';
 
         $params = [
-            'clientid'        => $clientId,
-            'amount'          => number_format($amount, 2, '.', ''),
-            'okUrl'           => $okUrl,
-            'failUrl'         => $failUrl,
-            'shopurl'         => env('FRONTEND_URL', 'http://localhost:3000') . '/panier',
+            'clientid' => $clientId,
+            'amount' => number_format($amount, 2, '.', ''),
+            'okUrl' => $okUrl,
+            'failUrl' => $failUrl,
+            'shopurl' => env('FRONTEND_URL', 'http://localhost:3000').'/panier',
             'TransactionType' => 'Sale',
-            'callbackUrl'     => $callbackUrl,
-            'rnd'             => now()->timestamp . rand(1000, 9999),
-            'storetype'       => '3D_PAY_HOSTING',
-            'currency'        => '504', // Code MAD (Dirham Marocain)
-            'oid'             => $orderNumber,
-            'email'           => $email,
-            'lang'            => 'fr',
-            'hashAlgorithm'   => 'ver3'
+            'callbackUrl' => $callbackUrl,
+            'rnd' => now()->timestamp.rand(1000, 9999),
+            'storetype' => '3D_PAY_HOSTING',
+            'currency' => '504', // Code MAD (Dirham Marocain)
+            'oid' => $orderNumber,
+            'email' => $email,
+            'lang' => 'fr',
+            'hashAlgorithm' => 'ver3',
         ];
 
         $params['hash'] = self::generateHash($params, $storeKey);
@@ -44,8 +44,9 @@ class CmiPaymentService
      */
     public static function validateCallbackSignature(array $postData): bool
     {
-        if (!isset($postData['HASH'])) {
+        if (! isset($postData['HASH'])) {
             Log::warning('CMI Webhook: HASH parameter is missing.');
+
             return false;
         }
 
@@ -59,11 +60,12 @@ class CmiPaymentService
 
         $calculatedHash = self::generateHash($paramsToHash, $storeKey);
 
-        if (!hash_equals($calculatedHash, $receivedHash)) {
+        if (! hash_equals($calculatedHash, $receivedHash)) {
             Log::warning('CMI Webhook: Signature mismatch.', [
-                'received'   => $receivedHash,
-                'calculated' => $calculatedHash
+                'received' => $receivedHash,
+                'calculated' => $calculatedHash,
             ]);
+
             return false;
         }
 
