@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Don't index account/admin/checkout areas — no SEO value, and some require auth.
+Disallow: /admin
+Disallow: /account
+Disallow: /checkout
+Disallow: /pharmacien
+
+# The sitemap is generated dynamically by the Laravel API (products,
+# categories, and blog articles change constantly). Update this URL to
+# match your production API domain (same value as VITE_API_URL minus
+# the /api suffix, e.g. https://api.pharmacie-benmoussa.com/sitemap.xml).
+Sitemap: http://127.0.0.1:8000/sitemap.xml

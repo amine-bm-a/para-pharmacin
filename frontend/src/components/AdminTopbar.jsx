@@ -1,0 +1,367 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { useUserNotif } from '../context/UserNotifContext';
+import { Bell, ExternalLink, LogOut, Search, Sun, Moon, ChevronDown, X, Check } from 'lucide-react';
+
+const PAGE_TITLES = {
+  '/admin':              { title: 'Tableau de bord',    sub: "Vue d'ensemble de votre pharmacie" },
+  '/admin/orders':       { title: 'Commandes',          sub: 'Gérer toutes les commandes' },
+  '/admin/products':     { title: 'Produits',           sub: 'Gestion du catalogue produits' },
+  '/admin/categories':   { title: 'Catégories',         sub: 'Organiser vos catégories' },
+  '/admin/subcategories':{ title: 'Sous-Catégories',    sub: 'Gestion des sous-catégories' },
+  '/admin/brands':       { title: 'Marques',            sub: 'Marques et fabricants' },
+  '/admin/clients':      { title: 'Clients',            sub: 'Base de données clients' },
+  '/admin/promotions':   { title: 'Promotions',         sub: 'Offres et réductions actives' },
+  '/admin/coupons':      { title: 'Coupons',            sub: 'Codes de réduction' },
+  '/admin/suppliers':    { title: 'Fournisseurs',       sub: 'Gestion des fournisseurs' },
+  '/admin/deliveries':   { title: 'Livraisons',         sub: 'Suivi des livraisons' },
+  '/admin/stocks':       { title: 'Stock',              sub: 'Gestion des stocks et alertes' },
+  '/admin/banners':      { title: 'Bannières',          sub: 'Visuels et promotions homepage' },
+  '/admin/reviews':      { title: 'Avis',               sub: 'Avis et commentaires clients' },
+  '/admin/staff':        { title: 'Personnel & Rôles',  sub: 'Équipe et permissions' },
+  '/admin/settings':     { title: 'Paramètres',         sub: 'Configuration de la boutique' },
+  '/admin/profile':      { title: 'Mon Profil',         sub: 'Informations personnelles' },
+  '/admin/notifications':{ title: 'Notifications',      sub: 'Toutes vos alertes et messages' },
+};
+
+function timeAgo(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 60000);
+  if (diff < 1) return "À l'instant";
+  if (diff < 60) return `Il y a ${diff} min`;
+  const h = Math.floor(diff / 60);
+  if (h < 24) return `Il y a ${h}h`;
+  const days = Math.floor(h / 24);
+  if (days < 7) return `Il y a ${days}j`;
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+}
+
+function notifIcon(type) {
+  return { order: '📦', payment: '💳', prescription: '💊', promo: '🎁', system: '⚙️' }[type] || '🔔';
+}
+
+export default function AdminTopbar({ pendingOrders = 0 }) {
+  const { user, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
+  const { unreadCount, notifications, loading: notifLoading, fetchNotifications, markAsRead, markAllAsRead, deleteNotif } = useUserNotif();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifPanel, setShowNotifPanel] = useState(false);
+
+  const menuRef = useRef(null);
+  const notifRef = useRef(null);
+
+  const handleLogout = async () => { await logout(); navigate('/'); };
+  const pageInfo = PAGE_TITLES[location.pathname] || { title: 'Admin', sub: 'Panel administrateur' };
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handle = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setShowUserMenu(false);
+      if (notifRef.current && !notifRef.current.contains(e.target)) setShowNotifPanel(false);
+    };
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, []);
+
+  const handleBellClick = () => {
+    console.log('Bell clicked, current showNotifPanel:', showNotifPanel);
+    if (!showNotifPanel) {
+      console.log('Fetching notifications...');
+      fetchNotifications();
+    }
+    setShowNotifPanel(v => {
+      console.log('Setting showNotifPanel to:', !v);
+      return !v;
+    });
+    setShowUserMenu(false);
+  };
+
+  const preview = (notifications || []).slice(0, 8);
+
+  return (
+    <header className="admin-topbar">
+      {/* Left: Page Title */}
+      <div className="admin-topbar-left">
+        <div>
+          <h2 className="topbar-page-title">{pageInfo.title}</h2>
+          <p className="topbar-page-sub">{pageInfo.sub}</p>
+        </div>
+      </div>
+
+      {/* Right: Actions */}
+      <div className="admin-topbar-right">
+
+        {/* Search */}
+        <div className="topbar-search-wrap">
+          <Search size={15} className="topbar-search-icon" />
+          <input type="text" placeholder="Rechercher..." className="topbar-search-input" />
+        </div>
+
+        {/* Visit Store */}
+        <a href="/" className="topbar-action-btn" title="Voir la boutique" target="_blank" rel="noopener noreferrer">
+          <ExternalLink size={17} />
+        </a>
+
+        {/* ─── Notifications Bell + Real Dropdown ─── */}
+        <div style={{ position: 'relative' }} ref={notifRef}>
+          <button
+            className="topbar-action-btn topbar-notif"
+            title="Notifications"
+            onClick={handleBellClick}
+            style={{ position: 'relative' }}
+          >
+            <Bell size={17} />
+            {unreadCount > 0 && (
+              <span style={{
+                position: 'absolute', top: '-4px', right: '-4px',
+                background: '#ef4444', color: 'white',
+                borderRadius: '50%', width: '18px', height: '18px',
+                fontSize: '0.65rem', fontWeight: 800,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: '2px solid var(--bg-card)',
+              }}>
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {showNotifPanel && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 12px)', right: 0,
+              width: '380px', maxHeight: '480px',
+              background: 'var(--admin-card-bg, var(--bg-card))',
+              border: '1px solid var(--border)',
+              borderRadius: '16px',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+              zIndex: 9999,
+              overflow: 'hidden',
+              display: 'flex', flexDirection: 'column',
+            }}>
+              {/* Header */}
+              <div style={{
+                padding: '16px 20px 12px',
+                borderBottom: '1px solid var(--border)',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                flexShrink: 0,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text)' }}>Notifications</span>
+                  {unreadCount > 0 && (
+                    <span style={{
+                      background: '#ef4444', color: 'white',
+                      borderRadius: '20px', padding: '1px 8px',
+                      fontSize: '0.7rem', fontWeight: 800,
+                    }}>
+                      {unreadCount} nouveau{unreadCount > 1 ? 'x' : ''}
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={() => { markAllAsRead(); }}
+                      title="Tout marquer comme lu"
+                      style={{
+                        background: 'var(--primary-light)', border: 'none',
+                        color: 'var(--primary)', borderRadius: '6px',
+                        padding: '4px 8px', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: '4px'
+                      }}
+                    >
+                      <Check size={12} /> Tout lu
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowNotifPanel(false)}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px' }}
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+              </div>
+
+              {/* List */}
+              <div style={{ overflowY: 'auto', flex: 1 }}>
+                {notifLoading ? (
+                  <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    <div style={{
+                      width: '32px', height: '32px', margin: '0 auto 12px',
+                      border: '3px solid var(--border)', borderTopColor: 'var(--primary)',
+                      borderRadius: '50%', animation: 'spin 0.7s linear infinite'
+                    }} />
+                    Chargement…
+                  </div>
+                ) : preview.length === 0 ? (
+                  <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '8px' }}>🔔</div>
+                    <p style={{ margin: 0, fontSize: '0.88rem' }}>Aucune notification</p>
+                  </div>
+                ) : (
+                  preview.map(n => (
+                    <div
+                      key={n.id}
+                      style={{
+                        display: 'flex', alignItems: 'flex-start', gap: '12px',
+                        padding: '12px 18px',
+                        background: n.is_read ? 'transparent' : 'var(--primary-light)',
+                        borderBottom: '1px solid var(--border-light)',
+                        transition: 'background 0.15s',
+                        cursor: 'default',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-subtle)'}
+                      onMouseLeave={e => e.currentTarget.style.background = n.is_read ? 'transparent' : 'var(--primary-light)'}
+                    >
+                      {/* Icon */}
+                      <span style={{
+                        fontSize: '1.1rem', flexShrink: 0,
+                        width: '34px', height: '34px', borderRadius: '10px',
+                        background: 'var(--bg-subtle)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {notifIcon(n.type)}
+                      </span>
+
+                      {/* Content */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          fontSize: '0.83rem', fontWeight: n.is_read ? 600 : 800,
+                          color: 'var(--text)', marginBottom: '2px',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                        }}>
+                          {n.title}
+                        </div>
+                        <div style={{
+                          fontSize: '0.76rem', color: 'var(--text-muted)',
+                          marginBottom: '4px', lineHeight: 1.4,
+                          overflow: 'hidden', display: '-webkit-box',
+                          WebkitLineClamp: 2, WebkitBoxOrient: 'vertical'
+                        }}>
+                          {n.message}
+                        </div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-light)' }}>
+                          {timeAgo(n.created_at)}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flexShrink: 0 }}>
+                        {!n.is_read && (
+                          <button
+                            onClick={() => markAsRead(n.id)}
+                            title="Marquer comme lu"
+                            style={{
+                              background: 'var(--primary)', border: 'none', color: 'white',
+                              borderRadius: '6px', width: '24px', height: '24px',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              cursor: 'pointer', fontSize: '0.7rem', flexShrink: 0
+                            }}
+                          >
+                            <Check size={12} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => deleteNotif(n.id)}
+                          title="Supprimer"
+                          style={{
+                            background: 'var(--danger-light)', border: 'none', color: 'var(--danger)',
+                            borderRadius: '6px', width: '24px', height: '24px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            cursor: 'pointer', flexShrink: 0
+                          }}
+                        >
+                          <X size={11} />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Footer */}
+              <div style={{ padding: '10px 18px', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
+                <button
+                  onClick={() => { setShowNotifPanel(false); navigate('/admin/notifications'); }}
+                  style={{
+                    width: '100%', padding: '9px',
+                    background: 'var(--primary-light)', color: 'var(--primary)',
+                    border: 'none', borderRadius: '10px',
+                    fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer',
+                    transition: 'background 0.2s'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = 'var(--primary)';
+                    e.currentTarget.style.color = 'white';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'var(--primary-light)';
+                    e.currentTarget.style.color = 'var(--primary)';
+                  }}
+                >
+                  Voir toutes les notifications →
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ─── Dark Mode Toggle (1 seul) ─── */}
+        <button
+          className={`theme-toggle-btn${isDark ? ' theme-toggle-btn--dark' : ''}`}
+          onClick={toggleTheme}
+          title={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
+          aria-label="Toggle dark mode"
+        >
+          <span className="theme-toggle-bg" />
+          <span className="theme-toggle-stars"><span /><span /><span /></span>
+          <span className="theme-toggle-face">
+            <span className="theme-toggle-rays">
+              {[...Array(8)].map((_, i) => <span key={i} className="ray" style={{ '--i': i }} />)}
+            </span>
+            <span className="theme-toggle-core" />
+          </span>
+        </button>
+
+        {/* User Dropdown */}
+        <div className="topbar-user-wrap" ref={menuRef}>
+          <button className="topbar-user-btn" onClick={() => { setShowUserMenu(v => !v); setShowNotifPanel(false); }}>
+            <span className="topbar-user-avatar">{user?.name?.charAt(0).toUpperCase()}</span>
+            <div className="topbar-user-info">
+              <span className="topbar-user-name">{user?.name}</span>
+              <span className="topbar-user-role">Administrateur</span>
+            </div>
+            <ChevronDown size={14} style={{ color: 'var(--text-muted)', transition: 'transform 0.2s', transform: showUserMenu ? 'rotate(180deg)' : 'none' }} />
+          </button>
+
+          {showUserMenu && (
+            <div className="topbar-user-dropdown">
+              <div className="topbar-dropdown-header">
+                <div className="topbar-user-avatar" style={{ width: 40, height: 40, fontSize: '1rem' }}>
+                  {user?.name?.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)' }}>{user?.name}</div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{user?.email}</div>
+                </div>
+              </div>
+              <div className="topbar-dropdown-divider" />
+              <button className="topbar-dropdown-item" onClick={() => { navigate('/admin/profile'); setShowUserMenu(false); }}>Mon Profil</button>
+              <button className="topbar-dropdown-item" onClick={() => { navigate('/admin/settings'); setShowUserMenu(false); }}>Paramètres</button>
+              <div className="topbar-dropdown-divider" />
+              <button className="topbar-dropdown-item danger" onClick={handleLogout}>
+                <LogOut size={14} /> Déconnexion
+              </button>
+            </div>
+          )}
+        </div>
+
+      </div>
+    </header>
+  );
+}

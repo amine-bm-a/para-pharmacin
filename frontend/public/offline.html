@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hors ligne — Para Ben Moussa</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', 'Outfit', system-ui, sans-serif;
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #bbf7d0 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 3rem 2.5rem;
+      text-align: center;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+    }
+    .icon-circle {
+      width: 96px; height: 96px;
+      background: linear-gradient(135deg, #16a34a, #059669);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 2rem;
+      font-size: 2.5rem;
+    }
+    h1 {
+      color: #111827;
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: .75rem;
+    }
+    p {
+      color: #6b7280;
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .pill-list {
+      display: flex; flex-direction: column; gap: .5rem;
+      margin-bottom: 2rem;
+    }
+    .pill {
+      display: flex; align-items: center; gap: .5rem;
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: .65rem 1rem;
+      font-size: .9rem;
+      color: #374151;
+    }
+    .pill span.dot { width:8px; height:8px; border-radius:50%; background:#16a34a; flex-shrink:0; }
+    .btn-retry {
+      display: inline-block;
+      background: linear-gradient(135deg, #16a34a, #059669);
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: .875rem 2rem;
+      border-radius: 14px;
+      cursor: pointer;
+      border: none;
+      width: 100%;
+      transition: opacity .2s;
+    }
+    .btn-retry:hover { opacity: .9; }
+    .brand {
+      margin-top: 2rem;
+      color: #9ca3af;
+      font-size: .8rem;
+    }
+    .brand strong { color: #16a34a; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon-circle">📡</div>
+    <h1>Vous êtes hors ligne</h1>
+    <p>Vérifiez votre connexion Internet, puis réessayez. Les produits consultés récemment sont disponibles dans le cache.</p>
+
+    <div class="pill-list">
+      <div class="pill"><span class="dot"></span> Vérifiez votre Wi-Fi ou données mobiles</div>
+      <div class="pill"><span class="dot"></span> Les produits mis en cache restent accessibles</div>
+      <div class="pill"><span class="dot"></span> Votre panier est sauvegardé localement</div>
+    </div>
+
+    <button class="btn-retry" onclick="window.location.reload()">
+      🔄 Réessayer la connexion
+    </button>
+
+    <p class="brand">
+      <strong>Para Ben Moussa</strong> — Parapharmacie en ligne · Beni Mellal
+    </p>
+  </div>
+</body>
+</html>
