@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNotification } from '../../context/NotificationContext';
 import {
-  FileText, Check, X, Eye, Calendar, User, ShoppingBag,
-  ExternalLink, FileWarning, HelpCircle, Loader2
+  FileText, Check, X, Eye, User, ShoppingBag,
+  ExternalLink, FileWarning, Loader2
 } from 'lucide-react';
 
 export default function PharmacienPrescriptions() {
@@ -15,7 +15,7 @@ export default function PharmacienPrescriptions() {
   const [rejectComment, setRejectComment] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
 
-  const fetchPrescriptions = async () => {
+  const fetchPrescriptions = useCallback(async () => {
     setLoading(true);
     try {
       const res = await axios.get('/pharmacien/prescriptions/pending');
@@ -28,11 +28,11 @@ export default function PharmacienPrescriptions() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [notif]);
 
   useEffect(() => {
     fetchPrescriptions();
-  }, []);
+  }, [fetchPrescriptions]);
 
   const handleOpenViewer = async (presc) => {
     setSelectedPrescription(presc);

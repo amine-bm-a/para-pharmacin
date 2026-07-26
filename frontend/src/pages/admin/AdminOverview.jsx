@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { 
   ShoppingBag, DollarSign, Package, Users, AlertCircle, 
-  Plus, ListChecks, Archive, Tag, TrendingUp, Eye, ArrowUpRight, ArrowDownRight
+  Plus, ListChecks, Archive, Tag, ArrowUpRight
 } from 'lucide-react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';

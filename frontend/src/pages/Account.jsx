@@ -9,9 +9,9 @@ import axios from 'axios';
 import {
   User, ShoppingBag, Heart, FileText, Activity, MapPin, Award,
   Bell, Tag, HelpCircle, Settings, LogOut, Search, ShoppingCart,
-  Menu, X, CheckCircle, Clock, Truck, ArrowRight, Upload, Download,
+  Menu, X, Upload,
   ExternalLink, MessageSquare, Phone, ChevronDown, ChevronUp, Copy,
-  Check, Shield, Key, Eye, EyeOff, Sparkles, Plus, Trash, Sun, Moon,
+  Check, Key, Eye, EyeOff, Sparkles, Plus, Trash, Sun, Moon,
   Star, MessageCircle, Send, RefreshCw
 } from 'lucide-react';
 import Loyalty from './account/Loyalty';
@@ -27,9 +27,9 @@ const FALLBACK_PRODUCTS = [
 ];
 
 export default function Account() {
-  const { user, logout, updateProfile, updatePassword } = useAuth();
-  const { cart, addToCart, getCartCount } = useCart();
-  const { wishlist, toggleWishlist, isInWishlist } = useWishlist() || { wishlist: [] };
+  const { user, logout } = useAuth();
+  const { addToCart, getCartCount } = useCart();
+  const { wishlist } = useWishlist() || { wishlist: [] };
   const { unreadCount, notifications, loading: notifLoading, fetchNotifications, markAsRead, markAllAsRead, deleteNotif } = useUserNotif() || {};
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -319,7 +319,6 @@ export default function Account() {
   // Load my reviews when the tab is activated
   React.useEffect(() => {
     if (activeTab === 'reviews') fetchMyReviews();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   // Helper values

@@ -11,7 +11,7 @@ export default function ClientReviews() {
     const fetchTestimonials = async () => {
       const cached = localStorage.getItem('cached_testimonials');
       if (cached) {
-        try { setReviews(JSON.parse(cached)); } catch {}
+        try { setReviews(JSON.parse(cached)); } catch (e) { /* ignore JSON parse error */ }
       }
       try {
         const res = await axios.get('/testimonials');

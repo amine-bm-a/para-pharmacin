@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Package, Save, Edit2, AlertCircle, Search, RefreshCw, CheckCircle, HelpCircle } from 'lucide-react';
+import { Package, Save, Edit2, AlertCircle, Search } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 
 export default function PharmacienStock() {
@@ -11,7 +11,7 @@ export default function PharmacienStock() {
   const [stockVal, setStockVal] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const fetchStock = async () => {
+  const fetchStock = useCallback(async () => {
     setLoading(true);
     try {
       const res = await axios.get('/pharmacien/stock');
@@ -24,11 +24,11 @@ export default function PharmacienStock() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [notif]);
 
   useEffect(() => {
     fetchStock();
-  }, []);
+  }, [fetchStock]);
 
   const handleEditClick = (p) => {
     setEditingId(p.id);

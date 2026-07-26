@@ -1,5 +1,4 @@
-import React from 'react';
-import { Heart, ShoppingCart, Star, TrendingUp } from 'lucide-react';
+import { Heart, ShoppingCart, Star } from 'lucide-react';
 
 const RecommendedProducts = () => {
   const products = [

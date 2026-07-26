@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Truck, ShieldCheck, MessageCircle, Clock } from 'lucide-react';
-import useScrollAnimation from '../../hooks/useScrollAnimation';
 
 /* ── CountUp hook ── */
 function useCountUp(target, duration = 2000, decimals = 0, start = false) {

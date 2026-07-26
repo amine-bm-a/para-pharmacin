@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
-  ClipboardCheck, ArrowRight, Clock, CheckCircle2,
+  ArrowRight, Clock, CheckCircle2,
   User, ChevronDown, ChevronUp, AlertCircle,
-  ShoppingBag, CheckSquare, Square, Package, Search, Printer
+  ShoppingBag, CheckSquare, Square, Search, Printer
 } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 
@@ -88,7 +88,7 @@ export default function PharmacienPrepareOrder() {
   // Local state for checking items during manual prep
   const [checkedItems, setCheckedItems] = useState({});
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       const res = await axios.get('/pharmacien/orders');
       if (res.data.success) {
@@ -100,11 +100,11 @@ export default function PharmacienPrepareOrder() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [notif]);
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [fetchOrders]);
 
   const handleStartPreparing = async (id, e) => {
     if (e) e.stopPropagation();

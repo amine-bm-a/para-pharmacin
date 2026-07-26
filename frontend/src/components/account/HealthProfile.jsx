@@ -5,7 +5,6 @@ import {
   Save, 
   Phone, 
   Mail, 
-  MapPin, 
   AlertTriangle,
   Heart,
   Sparkles,

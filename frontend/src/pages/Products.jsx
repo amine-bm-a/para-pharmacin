@@ -37,7 +37,6 @@ export default function Products() {
 
   useEffect(() => {
     setSelectedBrands(brandParam ? brandParam.split(',') : []);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brandParam]);
 
   useEffect(() => {

@@ -35,7 +35,7 @@ export default function AdminSettings() {
       }
     };
     fetchSettings();
-  }, []);
+  }, [notif]);
 
   const handleSave = async (e) => {
     e.preventDefault();

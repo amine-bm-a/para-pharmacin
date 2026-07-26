@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUserNotif } from '../context/UserNotifContext';
-import { Bell, CheckCheck, Trash2, Package, User, ShoppingBag, Info, ArrowLeft } from 'lucide-react';
+import { Bell, CheckCheck, Trash2, Package, User, Info, ArrowLeft } from 'lucide-react';
 
 const typeConfig = {
   order:  { icon: <Package size={18} />,     color: '#3b82f6', bg: 'rgba(59,130,246,0.1)',   label: 'Commande' },
@@ -31,7 +31,7 @@ export default function Notifications() {
 
   useEffect(() => {
     fetchNotifications();
-  }, []);
+  }, [fetchNotifications]);
 
   const cfg = (type) => typeConfig[type] || typeConfig.default;
 

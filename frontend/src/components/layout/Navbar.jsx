@@ -71,7 +71,7 @@ const Navbar = () => {
       try {
         const res = await axios.get(`/products?search=${encodeURIComponent(searchQuery)}`);
         if (res.data.success) setSearchResults(res.data.products.slice(0, 6));
-      } catch {} finally { setSearchLoading(false); }
+      } catch { /* ignore search errors */ } finally { setSearchLoading(false); }
     }, 300);
     return () => clearTimeout(t);
   }, [searchQuery]);

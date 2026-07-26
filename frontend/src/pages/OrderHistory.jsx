@@ -84,14 +84,6 @@ export default function OrderHistory() {
   };
 
   // Helper translations and colors
-  const getStatusBadgeClass = (status) => {
-    switch (status) {
-      case 'completed': return 'badge-success';
-      case 'pending':
-      case 'processing': return 'badge-warning';
-      default: return 'badge-danger';
-    }
-  };
 
   const getStatusLabel = (status) => {
     switch (status) {
@@ -103,9 +95,6 @@ export default function OrderHistory() {
     }
   };
 
-  const getPaymentStatusBadgeClass = (status) => {
-    return status === 'paid' ? 'badge-success' : 'badge-warning';
-  };
 
   const getPaymentStatusLabel = (status) => {
     return status === 'paid' ? 'Payé' : 'En attente';

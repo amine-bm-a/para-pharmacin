@@ -45,11 +45,7 @@ export default function AdminStocks() {
     }
   };
 
-  const stockBadge = (stock) => {
-    if (stock === 0) return <span className="badge badge-danger">Épuisé</span>;
-    if (stock <= 10) return <span className="badge badge-warning">Faible</span>;
-    return <span className="badge badge-success">OK</span>;
-  };
+
 
   if (loading && !summary) return (
     <div style={{ 

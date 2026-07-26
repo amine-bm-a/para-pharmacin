@@ -157,7 +157,7 @@ export default function PharmacienOrders() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [notif]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 

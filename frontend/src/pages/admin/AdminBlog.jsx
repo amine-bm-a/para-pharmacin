@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useNotification } from '../../context/NotificationContext';
-import { BookOpen, Plus, Trash2, Edit3, Image as ImageIcon, Eye, Clock, Tag, FileText } from 'lucide-react';
+import { BookOpen, Plus, Trash2, Edit3, Image as ImageIcon, Clock } from 'lucide-react';
 
 export default function AdminBlog() {
   const notif = useNotification();
@@ -21,7 +21,7 @@ export default function AdminBlog() {
   const [isPublished, setIsPublished] = useState(false);
   const [formError, setFormError] = useState('');
 
-  const fetchArticles = async () => {
+  const fetchArticles = useCallback(async () => {
     setLoading(true);
     try {
       const res = await axios.get('/admin/blog/admin');
@@ -34,11 +34,11 @@ export default function AdminBlog() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [notif]);
 
   useEffect(() => {
     fetchArticles();
-  }, []);
+  }, [fetchArticles]);
 
   const handleOpenAdd = () => {
     setEditingArticle(null);

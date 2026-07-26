@@ -185,7 +185,7 @@ export default function Login() {
                 </p>
                 {devCode && (
                   <div style={{ marginTop: '12px', padding: '10px 14px', background: 'rgba(199,166,91,0.08)', border: '1px dashed rgba(199,166,91,0.3)', borderRadius: '10px', fontSize: '0.8rem', color: '#c7a65b', textAlign: 'left' }}>
-                    🛠️ <strong>Dev mode</strong> — Code OTP : <code style={{ fontSize: '1.1rem', letterSpacing: '4px', fontWeight: 700 }}>{devCode}</code>
+                    Dev mode - Code OTP: <code style={{ fontSize: '1.1rem', letterSpacing: '4px', fontWeight: 700 }}>{devCode}</code>
                   </div>
                 )}
               </div>

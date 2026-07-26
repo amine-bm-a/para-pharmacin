@@ -8,12 +8,10 @@ import {
   ChevronRight,
   Clock,
   CheckCircle,
-  AlertCircle,
-  ExternalLink
+  AlertCircle
 } from 'lucide-react';
 
 const HelpCenter = () => {
-  const [activeTab, setActiveTab] = useState('chat');
   const [message, setMessage] = useState('');
 
   const faqItems = [

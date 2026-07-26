@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Truck, Edit2, Trash2, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Truck, Edit2, Trash2, CheckCircle, Clock } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 
 export default function AdminDeliveries() {

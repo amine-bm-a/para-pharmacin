@@ -48,7 +48,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => { if (user) navigate(redirectPath); }, [user, redirectPath]);
+  useEffect(() => { if (user) navigate(redirectPath); }, [user, redirectPath, navigate]);
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
 

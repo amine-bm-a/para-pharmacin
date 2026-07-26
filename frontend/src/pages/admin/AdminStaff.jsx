@@ -6,6 +6,7 @@ export default function AdminStaff() {
   const { user: currentUser } = useAuth();
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

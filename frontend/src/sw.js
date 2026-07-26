@@ -1,3 +1,4 @@
+/* eslint-env worker */
 /**
  * Custom Service Worker — Para Ben Moussa PWA
  *
@@ -10,10 +11,9 @@
  */
 
 import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching'
-import { registerRoute, NavigationRoute } from 'workbox-routing'
+import { registerRoute } from 'workbox-routing'
 import { NetworkFirst, CacheFirst, StaleWhileRevalidate } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
-import { createHandlerBoundToURL } from 'workbox-precaching'
 
 // ── 1. Precaching (manifest injected by vite-plugin-pwa) ─────────────────
 cleanupOutdatedCaches()
@@ -21,7 +21,6 @@ precacheAndRoute(self.__WB_MANIFEST)
 
 // ── 2. Offline fallback for navigation requests ───────────────────────────
 const FALLBACK_URL = '/offline.html'
-const allowlist = [/^\/$/]
 const denylist  = [/^\/api/, /^\/admin/, /^\/pharmacien/]
 
 // Serve the offline page when navigation fails
@@ -118,7 +117,7 @@ self.addEventListener('notificationclick', (event) => {
   const fullUrl   = new URL(targetUrl, self.location.origin).href
 
   event.waitUntil(
-    clients
+    self.clients
       .matchAll({ type: 'window', includeUncontrolled: true })
       .then((windowClients) => {
         // Focus existing open tab if possible
@@ -128,8 +127,8 @@ self.addEventListener('notificationclick', (event) => {
           }
         }
         // Otherwise open a new tab
-        if (clients.openWindow) {
-          return clients.openWindow(fullUrl)
+        if (self.clients.openWindow) {
+          return self.clients.openWindow(fullUrl)
         }
       })
   )
@@ -144,5 +143,5 @@ self.addEventListener('message', (event) => {
 })
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(clients.claim())
+  event.waitUntil(self.clients.claim())
 })

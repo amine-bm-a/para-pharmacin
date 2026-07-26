@@ -235,4 +235,5 @@ export const LangProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useLang = () => useContext(LangContext);

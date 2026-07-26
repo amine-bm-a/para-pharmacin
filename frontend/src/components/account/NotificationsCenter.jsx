@@ -7,15 +7,12 @@ import {
   Heart, 
   Check, 
   X, 
-  Filter,
-  ChevronDown,
   Clock,
   Sparkles
 } from 'lucide-react';
 
 const NotificationsCenter = () => {
   const [activeFilter, setActiveFilter] = useState('all');
-  const [expandedNotification, setExpandedNotification] = useState(null);
 
   const notifications = [
     {
@@ -269,7 +266,6 @@ const NotificationsCenter = () => {
         ) : (
           filteredNotifications.map((notification) => {
             const Icon = notification.icon;
-            const isExpanded = expandedNotification === notification.id;
             
             return (
               <div

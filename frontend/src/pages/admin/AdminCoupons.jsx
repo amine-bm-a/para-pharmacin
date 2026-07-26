@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Edit2, Trash2, Tag, Percent, DollarSign, Calendar } from 'lucide-react';
+import { Plus, Edit2, Trash2, Tag, Percent, DollarSign } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 
 export default function AdminCoupons() {

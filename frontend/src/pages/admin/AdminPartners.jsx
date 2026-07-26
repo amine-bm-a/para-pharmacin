@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useNotification } from '../../context/NotificationContext';
 import { Handshake, Plus, Trash2, Edit3, Image as ImageIcon, ArrowUpDown } from 'lucide-react';
@@ -17,7 +17,7 @@ export default function AdminPartners() {
   const [position, setPosition] = useState(0);
   const [formError, setFormError] = useState('');
 
-  const fetchPartners = async () => {
+  const fetchPartners = useCallback(async () => {
     setLoading(true);
     try {
       const res = await axios.get('/admin/partners/admin');
@@ -30,11 +30,11 @@ export default function AdminPartners() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [notif]);
 
   useEffect(() => {
     fetchPartners();
-  }, []);
+  }, [fetchPartners]);
 
   const handleOpenAdd = () => {
     setEditingPartner(null);

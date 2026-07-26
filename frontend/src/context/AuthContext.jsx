@@ -135,7 +135,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    try { await axios.post('/logout'); } catch {}
+    try { await axios.post('/logout'); } catch { /* ignore logout errors */ }
     finally { handleLogout(); }
   };
 
@@ -148,4 +148,5 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

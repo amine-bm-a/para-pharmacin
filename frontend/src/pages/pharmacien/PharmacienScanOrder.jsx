@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { ScanBarcode, AlertCircle, CheckCircle, Package, ArrowRight, ClipboardCheck, User, Search } from 'lucide-react';
+import { ScanBarcode, AlertCircle, CheckCircle, Package, ClipboardCheck, User, Search } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 
 export default function PharmacienScanOrder() {

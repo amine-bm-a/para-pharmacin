@@ -5,9 +5,7 @@ import {
   Trash2, 
   Plus, 
   Star, 
-  Phone, 
-  Building,
-  CheckCircle
+  Phone
 } from 'lucide-react';
 
 const SavedAddresses = () => {

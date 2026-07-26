@@ -4,7 +4,7 @@ import ProductCard from '../components/ProductCard';
 import { useTheme } from '../context/ThemeContext';
 
 export default function PageBebe() {
-  const { isDark } = useTheme();
+  useTheme();
   
   // Products and original filters
   const [products, setProducts] = useState([]);

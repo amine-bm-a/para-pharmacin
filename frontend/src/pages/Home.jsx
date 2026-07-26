@@ -6,7 +6,6 @@ import HeroCarousel from '../components/home/HeroCarousel';
 import ProductSlider from '../components/home/ProductSlider';
 import CircularCategories from '../components/home/CircularCategories';
 import PromoBanners from '../components/home/PromoBanners';
-import ProductCarousel from '../components/home/ProductCarousel';
 import BrandsStrip from '../components/home/BrandsStrip';
 import NewArrivals from '../components/home/NewArrivals';
 import BestSellers from '../components/home/BestSellers';

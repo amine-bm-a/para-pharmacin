@@ -5,7 +5,7 @@ import { useAuth } from './AuthContext';
 const WishlistContext = createContext(null);
 
 export const WishlistProvider = ({ children }) => {
-  const { user, token } = useAuth();
+  const { token } = useAuth();
   const [wishlist, setWishlist] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('wishlist') || '[]');
@@ -55,4 +55,5 @@ export const WishlistProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useWishlist = () => useContext(WishlistContext);

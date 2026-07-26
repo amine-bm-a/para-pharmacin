@@ -10,7 +10,6 @@ import {
   Eye, 
   EyeOff,
   Save,
-  ChevronRight,
   CheckCircle,
   AlertTriangle
 } from 'lucide-react';

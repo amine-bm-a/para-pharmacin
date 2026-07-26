@@ -45,9 +45,7 @@ export default function Loyalty() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const progressPct = data
-    ? Math.round(((REDEEM_RATE - (data.balance % REDEEM_RATE || REDEEM_RATE)) / REDEEM_RATE) * 100)
-    : 0;
+
 
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
