@@ -25,12 +25,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Create Users
+        $adminPassword = env('ADMIN_INITIAL_PASSWORD', 'admin123');
         User::create([
             'name' => 'Admin Pharmacie',
             'email' => 'admin@pharmacie-benmoussaabbes.ma',
             'phone' => '0522123456',
             'role' => 'admin',
-            'password' => bcrypt('admin123'),
+            'password' => bcrypt($adminPassword),
         ]);
 
         User::create([

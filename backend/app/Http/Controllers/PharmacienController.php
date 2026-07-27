@@ -81,12 +81,16 @@ class PharmacienController extends Controller
         $order = Order::findOrFail($id);
 
         $request->validate([
-            'status' => 'required|in:preparing,shipped,delivered,cancelled',
+            'status' => 'required|in:pending,preparing,processing,shipped,delivered,completed,cancelled',
         ]);
 
         $oldStatus = $order->status;
         $order->status = $request->status;
         $order->save();
+
+        if ($request->status === 'cancelled' && $oldStatus !== 'cancelled') {
+            $order->restoreStock();
+        }
 
         // Adjust stock if transitioning to preparing (if not already done at ordering)
         // Usually stock is decremented on checkout. Let's make sure we update delivery state too.
@@ -209,7 +213,7 @@ class PharmacienController extends Controller
         $prescription->update([
             'statut' => $request->statut,
             'commentaire_pharmacien' => $request->commentaire_pharmacien,
-            'validé_par' => $request->user()->id,
+            'validated_by' => $request->user()->id,
             'date' => now(),
         ]);
 
@@ -221,10 +225,15 @@ class PharmacienController extends Controller
         $allApproved = $allPrescriptions->every(fn ($p) => $p->statut === 'approved');
 
         if ($hasRejected) {
+            $oldStatus = $order->status;
             $order->update([
                 'prescription_status' => 'rejected',
                 'status' => 'cancelled', // Cancel the order if any prescription is rejected
             ]);
+
+            if ($oldStatus !== 'cancelled') {
+                $order->restoreStock();
+            }
 
             NotificationService::notifyUser(
                 $order->user_id,

@@ -187,7 +187,8 @@ class AuthController extends Controller
         }
 
         if (
-            $user->two_factor_code !== $request->code ||
+            ! $user->two_factor_code ||
+            ! hash_equals((string) $user->two_factor_code, (string) $request->code) ||
             ! $user->two_factor_expires_at ||
             now()->isAfter($user->two_factor_expires_at)
         ) {

@@ -116,7 +116,7 @@ class AdminDashboardController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'status' => 'required|string|in:pending,processing,completed,cancelled',
+            'status' => 'required|string|in:pending,preparing,processing,shipped,delivered,completed,cancelled',
             'payment_status' => 'required|string|in:pending,paid,failed',
         ]);
 
@@ -129,10 +129,15 @@ class AdminDashboardController extends Controller
             return response()->json(['success' => false, 'message' => 'Commande non trouvée.'], 404);
         }
 
+        $oldStatus = $order->status;
         $order->update([
             'status' => $request->status,
             'payment_status' => $request->payment_status,
         ]);
+
+        if ($request->status === 'cancelled' && $oldStatus !== 'cancelled') {
+            $order->restoreStock();
+        }
 
         // Dispatch queued notification (in-app + Email + SMS)
         NotificationService::notifyUser(
@@ -183,15 +188,22 @@ class AdminDashboardController extends Controller
             $prescription->update([
                 'statut' => $request->prescription_status,
                 'commentaire_pharmacien' => $request->commentaire_pharmacien,
-                'validé_par' => $request->user()->id,
+                'validated_by' => $request->user()->id,
                 'date' => now(),
             ]);
         }
 
+        $oldStatus = $order->status;
+        $newStatus = $request->prescription_status === 'rejected' ? 'cancelled' : $order->status;
+
         $order->update([
             'prescription_status' => $request->prescription_status,
-            'status' => $request->prescription_status === 'rejected' ? 'cancelled' : $order->status,
+            'status' => $newStatus,
         ]);
+
+        if ($newStatus === 'cancelled' && $oldStatus !== 'cancelled') {
+            $order->restoreStock();
+        }
 
         // Notify client based on prescription decision
         if ($request->prescription_status === 'approved') {

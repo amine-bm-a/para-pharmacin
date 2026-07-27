@@ -59,4 +59,18 @@ class Order extends Model
     {
         return $this->hasMany(LoyaltyPoint::class);
     }
+
+    /**
+     * Restore stock for all products in this order.
+     */
+    public function restoreStock(): void
+    {
+        $this->loadMissing('items');
+
+        foreach ($this->items as $item) {
+            if ($item->product_id && $item->quantity > 0) {
+                Product::where('id', $item->product_id)->increment('stock', $item->quantity);
+            }
+        }
+    }
 }

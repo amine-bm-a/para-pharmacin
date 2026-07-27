@@ -209,7 +209,7 @@ class PrescriptionTest extends TestCase
         $prescription->refresh();
         $this->assertEquals('approved', $prescription->statut);
         $this->assertEquals('Ordonnance lisible et valide.', $prescription->commentaire_pharmacien);
-        $this->assertEquals($this->pharmacist->id, $prescription->validé_par);
+        $this->assertEquals($this->pharmacist->id, $prescription->validated_by);
         $this->assertNotNull($prescription->date);
 
         // Assert order global status is updated to approved

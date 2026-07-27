@@ -45,6 +45,17 @@ class PaymentController extends Controller
             return response('ACTION=POSTAUTH', 200)->header('Content-Type', 'text/plain');
         }
 
+        // 3.5 Defense-in-depth: Validate amount matches order total_amount
+        if (abs($amount - (float) $order->total_amount) > 0.05) {
+            Log::error('CMI Webhook: Paid amount does not match order total.', [
+                'order_amount' => $order->total_amount,
+                'paid_amount' => $amount,
+                'order_number' => $orderNumber,
+            ]);
+
+            return response('INVALID AMOUNT', 400);
+        }
+
         // 4. Process payment status
         if ($responseStatus === 'Approved') {
             // Update order status

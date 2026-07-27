@@ -98,9 +98,9 @@ class OrderController extends Controller
 
             // Calculate totals and verify stock
             foreach ($request->items as $item) {
-                $product = Product::find($item['product_id']);
+                $product = Product::where('id', $item['product_id'])->lockForUpdate()->first();
 
-                if ($product->stock < $item['quantity']) {
+                if (! $product || $product->stock < $item['quantity']) {
                     DB::rollBack();
 
                     return response()->json([

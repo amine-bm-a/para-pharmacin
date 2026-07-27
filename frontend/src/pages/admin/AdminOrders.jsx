@@ -364,9 +364,10 @@ export default function AdminOrders() {
                           }}
                         >
                           <option value="pending">⏳ En attente</option>
-                          <option value="processing">🔄 En cours</option>
-                          <option value="completed">✅ Livré</option>
-                          <option value="cancelled">❌ Annulé</option>
+                          <option value="preparing">🔄 En préparation</option>
+                          <option value="shipped">🚚 Expédiée</option>
+                          <option value="delivered">✅ Livrée</option>
+                          <option value="cancelled">❌ Annulée</option>
                         </select>
                         <select 
                           value={orderPaymentStatus} 
@@ -391,16 +392,19 @@ export default function AdminOrders() {
                           borderRadius: 'var(--radius-full)',
                           fontSize: '0.8rem',
                           fontWeight: 700,
-                          background: o.status === 'completed' ? 'var(--success-light)' :
-                                     o.status === 'pending' ? 'hsl(38, 80%, 92%)' :
-                                     o.status === 'processing' ? 'hsl(38, 80%, 92%)' : 'var(--danger-light)',
-                          color: o.status === 'completed' ? 'var(--success)' :
-                                 o.status === 'pending' ? 'hsl(38, 80%, 40%)' :
-                                 o.status === 'processing' ? 'hsl(38, 80%, 40%)' : 'var(--danger)'
+                          background: (o.status === 'completed' || o.status === 'delivered') ? 'var(--success-light)' :
+                                     (o.status === 'shipped') ? 'rgba(59,130,246,0.15)' :
+                                     (o.status === 'preparing' || o.status === 'processing') ? 'hsl(38, 80%, 92%)' :
+                                     (o.status === 'pending') ? 'hsl(38, 80%, 92%)' : 'var(--danger-light)',
+                          color: (o.status === 'completed' || o.status === 'delivered') ? 'var(--success)' :
+                                 (o.status === 'shipped') ? '#2563eb' :
+                                 (o.status === 'preparing' || o.status === 'processing') ? 'hsl(38, 80%, 40%)' :
+                                 (o.status === 'pending') ? 'hsl(38, 80%, 40%)' : 'var(--danger)'
                         }}>
-                          {o.status === 'completed' ? '✅ Livré' :
-                           o.status === 'pending' ? '⏳ En attente' :
-                           o.status === 'processing' ? '🔄 En cours' : '❌ Annulé'}
+                          {(o.status === 'completed' || o.status === 'delivered') ? '✅ Livrée' :
+                           (o.status === 'shipped') ? '🚚 Expédiée' :
+                           (o.status === 'preparing' || o.status === 'processing') ? '🔄 En préparation' :
+                           (o.status === 'pending') ? '⏳ En attente' : '❌ Annulée'}
                         </span>
                         <span style={{
                           padding: '4px 12px',

@@ -16,7 +16,7 @@ class Prescription extends Model
         'fichier',
         'statut',
         'commentaire_pharmacien',
-        'validé_par',
+        'validated_by',
         'date',
     ];
 
@@ -36,6 +36,6 @@ class Prescription extends Model
 
     public function validator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'validé_par');
+        return $this->belongsTo(User::class, 'validated_by');
     }
 }
