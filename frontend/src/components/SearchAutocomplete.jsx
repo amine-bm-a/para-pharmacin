@@ -25,6 +25,15 @@ export default function SearchAutocomplete() {
 
   const debouncedQuery = useDebounce(query, 250);
 
+  // Compute dynamic backend base URL
+  const backendBase = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api').replace(/\/api$/, '');
+
+  const getImageSrc = (imgUrl) => {
+    if (!imgUrl) return '';
+    if (imgUrl.startsWith('http')) return imgUrl;
+    return `${backendBase}/storage/${imgUrl}`;
+  };
+
   // Fetch suggestions when debounced query changes
   useEffect(() => {
     if (debouncedQuery.length < 2) {
@@ -68,7 +77,7 @@ export default function SearchAutocomplete() {
   }, []);
 
   const handleSubmit = useCallback((e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     const val = activeIndex >= 0 ? suggestions[activeIndex]?.name : query;
     if (val?.trim()) {
       navigate(`/products?search=${encodeURIComponent(val.trim())}`);
@@ -109,7 +118,7 @@ export default function SearchAutocomplete() {
           ref={inputRef}
           type="text"
           className="search-input"
-          placeholder="Rechercher un produit, une marque..."
+          placeholder="Rechercher un produit, une marque, une catégorie..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => suggestions.length > 0 && setIsOpen(true)}
@@ -117,10 +126,6 @@ export default function SearchAutocomplete() {
           autoComplete="off"
           aria-autocomplete="list"
           aria-expanded={isOpen}
-          aria-haspopup="listbox"
-          role="combobox"
-          aria-controls="search-suggestions"
-          aria-activedescendant={activeIndex >= 0 ? `suggestion-${activeIndex}` : undefined}
         />
         {loading ? (
           <span className="search-icon" style={{ animation: 'spin 0.8s linear infinite', display: 'inline-block' }}>⟳</span>
@@ -202,7 +207,7 @@ export default function SearchAutocomplete() {
                 }}>
                   {product.image_url ? (
                     <img
-                      src={product.image_url.startsWith('http') ? product.image_url : `http://localhost:8000/storage/${product.image_url}`}
+                      src={getImageSrc(product.image_url)}
                       alt={product.name}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       onError={(e) => { e.target.style.display = 'none'; }}
