@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
         $adminPassword = env('ADMIN_INITIAL_PASSWORD', 'admin123');
         User::create([
             'name' => 'Admin Pharmacie',
-            'email' => 'admin@pharmacie-benmoussaabbes.ma',
+            'email' => 'amine2005benm@gmail.com',
             'phone' => '0522123456',
             'role' => 'admin',
             'password' => bcrypt($adminPassword),

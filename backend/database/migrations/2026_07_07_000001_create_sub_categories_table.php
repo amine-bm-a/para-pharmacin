@@ -28,9 +28,16 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->dropForeignIdFor(SubCategory::class);
+            // Drop the FK constraint by its explicit name first — dropping it
+            // and the column in one call can leave the underlying index still
+            // referenced by the constraint, which MySQL rejects.
+            $table->dropForeign(['sub_category_id']);
+        });
+
+        Schema::table('products', function (Blueprint $table) {
             $table->dropColumn('sub_category_id');
         });
+
         Schema::dropIfExists('sub_categories');
     }
 };
