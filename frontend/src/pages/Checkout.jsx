@@ -530,8 +530,18 @@ export default function Checkout() {
                 style={{ marginTop: '4px', width: '20px', height: '20px', accentColor: 'var(--primary)' }}
               />
               <div>
-                <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text)' }}>🚚 Livraison à domicile (24h/48h)</span>
-                <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Paiement en espèces ou par carte à la réception.</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text)' }}>💵 Paiement à la livraison (Cash à la livraison)</span>
+                  <span style={{ 
+                    fontSize: '0.75rem',
+                    padding: '2px 8px',
+                    borderRadius: 'var(--radius-full)',
+                    background: '#E8F5E9',
+                    color: '#2E7D32',
+                    fontWeight: 700
+                  }}>★ Populaire au Maroc</span>
+                </div>
+                <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Payez en espèces directement au livreur à la réception de votre commande.</p>
               </div>
             </label>
             

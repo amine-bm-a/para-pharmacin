@@ -46,6 +46,8 @@ import FAQ from './pages/FAQ';
 import OrderTracking from './pages/OrderTracking';
 import ProductComparison from './pages/ProductComparison';
 import PageBebe from './pages/PageBebe';
+import PolitiqueConfidentialite from './pages/PolitiqueConfidentialite';
+import CGV from './pages/CGV';
 import NotFound from './pages/NotFound';
 
 // Admin pages
@@ -180,6 +182,8 @@ export default function App() {
                           <Route path="/reset-password" element={<ResetPassword />} />
                           <Route path="/comparaison" element={<ProductComparison />} />
                           <Route path="/espace-bebe" element={<PageBebe />} />
+                          <Route path="/politique-de-confidentialite" element={<PolitiqueConfidentialite />} />
+                          <Route path="/cgv" element={<CGV />} />
 
                           {/* Espace client (protégé) */}
                           <Route path="/mon-compte" element={<PrivateRoute><Account /></PrivateRoute>} />

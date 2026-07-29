@@ -2,95 +2,85 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BlogArticle;
+use App\Models\BlogPost;
 use App\Models\Category;
 use App\Models\Product;
-use App\Services\CacheKeyService;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Cache;
 
 class SitemapController extends Controller
 {
     /**
-     * GET /sitemap.xml
-     *
-     * The React frontend is a client-rendered SPA hosted separately from
-     * this API, so it can't generate its own sitemap at build time. This
-     * endpoint builds one dynamically instead, using FRONTEND_URL as the
-     * public base URL. Point your frontend host's /sitemap.xml route (a
-     * rewrite/redirect rule on Vercel, Netlify, Nginx, etc.) at this
-     * endpoint so search engines find it at the usual location.
+     * Generate dynamic Google-compliant sitemap XML for products, categories, blog, and static pages.
      */
     public function index(): Response
     {
-        $xml = Cache::remember(
-            CacheKeyService::key('sitemap', 'xml'),
-            CacheKeyService::ttl(),
-            fn () => $this->buildXml()
-        );
+        $baseUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'));
 
-        return response($xml, 200)->header('Content-Type', 'application/xml');
-    }
+        $staticPages = [
+            '/',
+            '/boutique',
+            '/nouveautes',
+            '/promotions',
+            '/blog',
+            '/contact',
+            '/faq',
+            '/politique-de-confidentialite',
+            '/cgv',
+        ];
 
-    private function buildXml(): string
-    {
-        $baseUrl = rtrim(config('app.frontend_url'), '/');
+        $products = Product::where('stock', '>', 0)->select('slug', 'updated_at')->get();
+        $categories = Category::select('slug', 'updated_at')->get();
+        $blogPosts = BlogPost::where('is_published', true)->select('slug', 'updated_at')->get();
 
-        $urls = [];
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
+        $xml .= '<urlset xmlns="http://www.sitemap.org/schemas/sitemap/0.9">'."\n";
 
         // Static pages
-        foreach (['/', '/products', '/categories', '/brands', '/blog', '/contact'] as $path) {
-            $urls[] = ['loc' => $baseUrl.$path, 'changefreq' => 'daily', 'priority' => '0.8'];
+        foreach ($staticPages as $page) {
+            $xml .= "  <url>\n";
+            $xml .= "    <loc>{$baseUrl}{$page}</loc>\n";
+            $xml .= "    <changefreq>daily</changefreq>\n";
+            $xml .= "    <priority>0.8</priority>\n";
+            $xml .= "  </url>\n";
         }
 
         // Categories
-        Category::select('slug', 'updated_at')->get()->each(function ($category) use (&$urls, $baseUrl) {
-            $urls[] = [
-                'loc' => "{$baseUrl}/categories/{$category->slug}",
-                'lastmod' => optional($category->updated_at)->toAtomString(),
-                'changefreq' => 'weekly',
-                'priority' => '0.7',
-            ];
-        });
-
-        // Products
-        Product::select('slug', 'updated_at')->get()->each(function ($product) use (&$urls, $baseUrl) {
-            $urls[] = [
-                'loc' => "{$baseUrl}/products/{$product->slug}",
-                'lastmod' => optional($product->updated_at)->toAtomString(),
-                'changefreq' => 'weekly',
-                'priority' => '0.9',
-            ];
-        });
-
-        // Blog articles
-        if (class_exists(BlogArticle::class)) {
-            BlogArticle::select('slug', 'updated_at')->get()->each(function ($article) use (&$urls, $baseUrl) {
-                $urls[] = [
-                    'loc' => "{$baseUrl}/blog/{$article->slug}",
-                    'lastmod' => optional($article->updated_at)->toAtomString(),
-                    'changefreq' => 'monthly',
-                    'priority' => '0.6',
-                ];
-            });
+        foreach ($categories as $cat) {
+            $updated = $cat->updated_at ? $cat->updated_at->toAtomString() : date('Y-m-d');
+            $xml .= "  <url>\n";
+            $xml .= "    <loc>{$baseUrl}/category/{$cat->slug}</loc>\n";
+            $xml .= "    <lastmod>{$updated}</lastmod>\n";
+            $xml .= "    <changefreq>weekly</changefreq>\n";
+            $xml .= "    <priority>0.7</priority>\n";
+            $xml .= "  </url>\n";
         }
 
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
-        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
-
-        foreach ($urls as $url) {
+        // Products
+        foreach ($products as $prod) {
+            $updated = $prod->updated_at ? $prod->updated_at->toAtomString() : date('Y-m-d');
             $xml .= "  <url>\n";
-            $xml .= '    <loc>'.htmlspecialchars($url['loc'], ENT_XML1)."</loc>\n";
-            if (! empty($url['lastmod'])) {
-                $xml .= '    <lastmod>'.$url['lastmod']."</lastmod>\n";
-            }
-            $xml .= '    <changefreq>'.$url['changefreq']."</changefreq>\n";
-            $xml .= '    <priority>'.$url['priority']."</priority>\n";
+            $xml .= "    <loc>{$baseUrl}/products/{$prod->slug}</loc>\n";
+            $xml .= "    <lastmod>{$updated}</lastmod>\n";
+            $xml .= "    <changefreq>daily</changefreq>\n";
+            $xml .= "    <priority>0.9</priority>\n";
+            $xml .= "  </url>\n";
+        }
+
+        // Blog Posts
+        foreach ($blogPosts as $post) {
+            $updated = $post->updated_at ? $post->updated_at->toAtomString() : date('Y-m-d');
+            $xml .= "  <url>\n";
+            $xml .= "    <loc>{$baseUrl}/blog/{$post->slug}</loc>\n";
+            $xml .= "    <lastmod>{$updated}</lastmod>\n";
+            $xml .= "    <changefreq>weekly</changefreq>\n";
+            $xml .= "    <priority>0.6</priority>\n";
             $xml .= "  </url>\n";
         }
 
         $xml .= '</urlset>';
 
-        return $xml;
+        return response($xml, 200, [
+            'Content-Type' => 'application/xml',
+        ]);
     }
 }

@@ -202,8 +202,11 @@ export default function Footer() {
               <Link to="/contact" style={listItemStyle} onMouseEnter={e => e.currentTarget.style.color = green} onMouseLeave={e => e.currentTarget.style.color = textMuted}>
                 <Mail size={18} style={listIconStyle} /> Contact
               </Link>
-              <Link to="/mentions-legales" style={{...listItemStyle, borderBottom: 'none'}} onMouseEnter={e => e.currentTarget.style.color = green} onMouseLeave={e => e.currentTarget.style.color = textMuted}>
-                <ShieldCheckIcon size={18} style={listIconStyle} /> Mentions légales
+              <Link to="/politique-de-confidentialite" style={listItemStyle} onMouseEnter={e => e.currentTarget.style.color = green} onMouseLeave={e => e.currentTarget.style.color = textMuted}>
+                <ShieldCheckIcon size={18} style={listIconStyle} /> Confidentialité (CNDP)
+              </Link>
+              <Link to="/cgv" style={{...listItemStyle, borderBottom: 'none'}} onMouseEnter={e => e.currentTarget.style.color = green} onMouseLeave={e => e.currentTarget.style.color = textMuted}>
+                <BadgeIcon size={18} style={listIconStyle} /> Conditions Générales (CGV)
               </Link>
             </div>
           </div>
