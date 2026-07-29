@@ -14,6 +14,7 @@ export default function ProductDetails() {
   
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [frequentlyBought, setFrequentlyBought] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -36,6 +37,7 @@ export default function ProductDetails() {
         if (res.data.success) {
           setProduct(res.data.product);
           setRelatedProducts(res.data.related_products || []);
+          setFrequentlyBought(res.data.frequently_bought_together || []);
         }
       } catch (err) {
         console.error("Error fetching product details", err);
@@ -805,10 +807,133 @@ export default function ProductDetails() {
         </div>
       </div>
 
+      {/* Frequently Bought Together (Cross-sell Bundle) */}
+      {frequentlyBought.length > 0 && product && (
+        <section style={{
+          marginTop: '50px',
+          padding: '28px',
+          background: 'linear-gradient(135deg, #F4FBF7 0%, #E8F5E9 100%)',
+          border: '1px solid #C8E6C9',
+          borderRadius: 'var(--radius-lg)',
+          boxShadow: '0 4px 16px rgba(46, 125, 50, 0.08)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+            <span style={{ fontSize: '1.6rem' }}>🛍️</span>
+            <h2 style={{
+              margin: 0,
+              fontSize: '1.4rem',
+              fontWeight: 800,
+              color: '#1B5E20'
+            }}>Fréquemment achetés ensemble</h2>
+          </div>
+
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '20px'
+          }}>
+            {/* Bundle items list */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+              {/* Main product */}
+              <div style={{
+                background: 'white',
+                padding: '12px 16px',
+                borderRadius: 'var(--radius-md)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                border: '1px solid #A5D6A7'
+              }}>
+                <img src={product.image_url || '/placeholder.png'} alt={product.name} style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1B5E20' }}>{product.name}</div>
+                  <div style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '0.95rem' }}>
+                    {(product.discount_price ?? product.price)} MAD
+                  </div>
+                </div>
+              </div>
+
+              {frequentlyBought.map((item) => (
+                <React.Fragment key={item.id}>
+                  <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#2E7D32' }}>+</span>
+                  <div style={{
+                    background: 'white',
+                    padding: '12px 16px',
+                    borderRadius: 'var(--radius-md)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    border: '1px solid #A5D6A7'
+                  }}>
+                    <img src={item.image_url || '/placeholder.png'} alt={item.name} style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
+                    <div>
+                      <Link to={`/products/${item.slug}`} style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1B5E20', textDecoration: 'none' }}>{item.name}</Link>
+                      <div style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '0.95rem' }}>
+                        {(item.discount_price ?? item.price)} MAD
+                      </div>
+                    </div>
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
+
+            {/* Bundle total & Buy button */}
+            <div style={{
+              background: 'white',
+              padding: '16px 24px',
+              borderRadius: 'var(--radius-md)',
+              border: '2px solid #2E7D32',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+              alignItems: 'center',
+              minWidth: '220px'
+            }}>
+              <div style={{ textAlign: 'center' }}>
+                <span style={{ fontSize: '0.8rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>Prix du lot ({(1 + frequentlyBought.length)} articles)</span>
+                <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#1B5E20' }}>
+                  {(
+                    (parseFloat(product.discount_price ?? product.price)) +
+                    frequentlyBought.reduce((sum, item) => sum + parseFloat(item.discount_price ?? item.price), 0)
+                  ).toFixed(2)} MAD
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  if (!user) {
+                    navigate('/register', { state: { message: 'Veuillez créer un compte pour commander.', redirectTo: `/products/${slug}` } });
+                    return;
+                  }
+                  addToCart(product, 1);
+                  frequentlyBought.forEach((item) => addToCart(item, 1));
+                }}
+                style={{
+                  width: '100%',
+                  padding: '10px 18px',
+                  background: 'linear-gradient(135deg, var(--primary), #2E7D32)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 'var(--radius-full)',
+                  fontWeight: 800,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(46, 125, 50, 0.25)',
+                  transition: 'transform 0.2s ease'
+                }}
+              >
+                🛒 Ajouter le lot au panier
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Related Products */}
       {relatedProducts.length > 0 && (
         <section style={{ 
-          marginTop: '60px',
+          marginTop: '50px',
           padding: '32px',
           background: 'white',
           border: '1px solid var(--border-light)',

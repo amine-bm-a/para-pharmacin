@@ -209,10 +209,38 @@ class ProductController extends Controller
             ->limit(4)
             ->get();
 
+        // ── Frequently Bought Together (Cross-sell recommendation) ───────────
+        $coBoughtProductIds = OrderItem::whereIn('order_id', function ($query) use ($product) {
+            $query->select('order_id')->from('order_items')->where('product_id', $product->id);
+        })
+            ->where('product_id', '!=', $product->id)
+            ->select('product_id', DB::raw('COUNT(*) as occurrences'))
+            ->groupBy('product_id')
+            ->orderByDesc('occurrences')
+            ->limit(2)
+            ->pluck('product_id');
+
+        $frequentlyBoughtTogether = Product::whereIn('id', $coBoughtProductIds)->get();
+
+        // Fallback if no order history co-purchases exist yet
+        if ($frequentlyBoughtTogether->isEmpty()) {
+            $frequentlyBoughtTogether = Product::where('id', '!=', $product->id)
+                ->where(function ($q) use ($product) {
+                    if ($product->brand) {
+                        $q->where('brand', $product->brand);
+                    }
+                    $q->orWhere('category_id', $product->category_id);
+                })
+                ->where('stock', '>', 0)
+                ->limit(2)
+                ->get();
+        }
+
         return response()->json([
             'success' => true,
             'product' => $product,
             'related_products' => $relatedProducts,
+            'frequently_bought_together' => $frequentlyBoughtTogether,
         ]);
     }
 

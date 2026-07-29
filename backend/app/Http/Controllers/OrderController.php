@@ -231,7 +231,7 @@ class OrderController extends Controller
                 );
             }
 
-            // Confirm to client inside dashboard
+            // Confirm to client inside dashboard and via Mail / SMS / WhatsApp
             NotificationService::notifyUser(
                 $request->user()->id,
                 '✅ Commande confirmée',
@@ -239,6 +239,12 @@ class OrderController extends Controller
                 'order',
                 '/mes-commandes'
             );
+
+            try {
+                $user->notify(new OrderStatusNotification($order->load('items.product')));
+            } catch (\Exception $e) {
+                Log::warning('Order creation: SMS/Email notification dispatch failed.', ['error' => $e->getMessage()]);
+            }
 
             // ── CMI payment generation for Card ──────────────────────────────
             $requiresRedirect = false;
