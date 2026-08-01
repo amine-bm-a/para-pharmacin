@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import Loyalty from './account/Loyalty';
 import Subscriptions from './account/Subscriptions';
+import AccountReferrals from './account/AccountReferrals';
 import PWANotifications from '../components/account/PWANotifications';
 
 // Fallback recommendations if empty
