@@ -1,5 +1,6 @@
 FROM php:8.2-apache
 
+# Installer les extensions PHP
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -14,6 +15,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN a2enmod rewrite
 
+# Point Apache to backend/public
 ENV APACHE_DOCUMENT_ROOT /var/www/html/backend/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/conf-available/*.conf
@@ -24,11 +26,11 @@ WORKDIR /var/www/html
 
 COPY . .
 
-# Change working directory l backend pour composer
+# Installer Composer f backend
 WORKDIR /var/www/html/backend
-
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
+# Set permissions
 RUN chown -R www-data:www-data /var/www/html/backend/storage /var/www/html/backend/bootstrap/cache \
     && chmod -R 775 /var/www/html/backend/storage /var/www/html/backend/bootstrap/cache
 
