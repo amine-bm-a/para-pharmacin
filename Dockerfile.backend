@@ -6,6 +6,7 @@ RUN apt-get update --fix-missing && apt-get install -y --no-install-recommends \
     libpng-dev \
     libjpeg-dev \
     libfreetype-dev \
+    libonig-dev \
     libzip-dev \
     zip \
     unzip \
