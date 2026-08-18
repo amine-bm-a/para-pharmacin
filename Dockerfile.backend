@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update --fix-missing && apt-get install -y --no-install-recommends \
     libpng-dev \
     libjpeg-dev \
-    libfreetype6-dev \
+    libfreetype-dev \
     libzip-dev \
     zip \
     unzip \
