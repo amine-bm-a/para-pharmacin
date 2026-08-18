@@ -12,12 +12,9 @@ export default function AdminOrders() {
     setLoading(true);
     try {
       const res = await axios.get('/admin/orders');
-      console.log('Orders response:', res.data);
       if (res.data.success) {
-        console.log('Orders data:', res.data.orders);
         setOrders(res.data.orders || []);
       } else {
-        console.error('API returned success=false');
         setOrders([]);
       }
     } catch (err) {

@@ -192,4 +192,119 @@ class LoyaltyService
 
         return $remainder === 0 ? self::REDEEM_RATE : (self::REDEEM_RATE - $remainder);
     }
+
+    /**
+     * Calculate loyalty tier levels (Bronze -> Argent -> Or -> Platine -> Diamant)
+     * each with increasing discount percentages based on points AND referral count.
+     */
+    public static function getTierDetails(User $user): array
+    {
+        $points = $user->loyalty_points;
+        $referralCount = $user->referrals()->count();
+
+        $tiers = [
+            'bronze' => [
+                'name' => 'Bronze 🥉',
+                'min_points' => 0,
+                'min_referrals' => 0,
+                'discount_percent' => 0,
+                'color' => '#CD7F32',
+                'bg' => 'linear-gradient(135deg, #a77044, #cd7f32)',
+                'badge' => '🥉 Bronze',
+                'perks' => ['1 point par MAD dépensé'],
+            ],
+            'silver' => [
+                'name' => 'Argent 🥈',
+                'min_points' => 500,
+                'min_referrals' => 2,
+                'discount_percent' => 3,
+                'color' => '#94A3B8',
+                'bg' => 'linear-gradient(135deg, #64748B, #94A3B8)',
+                'badge' => '🥈 Argent',
+                'perks' => ['3% de réduction sur vos achats', 'Offre anniversaire exclusive'],
+            ],
+            'gold' => [
+                'name' => 'Or 🥇',
+                'min_points' => 1500,
+                'min_referrals' => 5,
+                'discount_percent' => 5,
+                'color' => '#EAB308',
+                'bg' => 'linear-gradient(135deg, #CA8A04, #EAB308)',
+                'badge' => '🥇 Or',
+                'perks' => ['5% de réduction sur vos achats', 'Livraison offerte dès 250 MAD', 'Traitement prioritaire'],
+            ],
+            'platinum' => [
+                'name' => 'Platine 💎',
+                'min_points' => 3000,
+                'min_referrals' => 10,
+                'discount_percent' => 8,
+                'color' => '#0EA5E9',
+                'bg' => 'linear-gradient(135deg, #0284C7, #38BDF8)',
+                'badge' => '💎 Platine',
+                'perks' => ['8% de réduction sur vos achats', 'Livraison toujours gratuite', 'Échantillons offerts'],
+            ],
+            'diamond' => [
+                'name' => 'Diamant 👑',
+                'min_points' => 5000,
+                'min_referrals' => 15,
+                'discount_percent' => 12,
+                'color' => '#8B5CF6',
+                'bg' => 'linear-gradient(135deg, #6D28D9, #A855F7)',
+                'badge' => '👑 Diamant VIP',
+                'perks' => ['12% de réduction sur vos achats', 'Conseiller pharmacien VIP 24/7', 'Livraison express offerte'],
+            ],
+        ];
+
+        // Determine current tier (higher condition met by points OR referrals)
+        $currentKey = 'bronze';
+        if ($points >= 5000 || $referralCount >= 15) {
+            $currentKey = 'diamond';
+        } elseif ($points >= 3000 || $referralCount >= 10) {
+            $currentKey = 'platinum';
+        } elseif ($points >= 1500 || $referralCount >= 5) {
+            $currentKey = 'gold';
+        } elseif ($points >= 500 || $referralCount >= 2) {
+            $currentKey = 'silver';
+        }
+
+        $currentTier = $tiers[$currentKey];
+        $currentTier['key'] = $currentKey;
+
+        // Determine next tier
+        $tierKeys = ['bronze', 'silver', 'gold', 'platinum', 'diamond'];
+        $currentIndex = array_search($currentKey, $tierKeys);
+        $nextKey = $currentIndex < count($tierKeys) - 1 ? $tierKeys[$currentIndex + 1] : null;
+        $nextTier = $nextKey ? $tiers[$nextKey] : null;
+
+        $ptsProgress = 100;
+        $refProgress = 100;
+        $overallProgress = 100;
+
+        if ($nextTier) {
+            $ptsNeeded = max(0, $nextTier['min_points'] - $points);
+            $refNeeded = max(0, $nextTier['min_referrals'] - $referralCount);
+
+            $ptsRange = $nextTier['min_points'] - $currentTier['min_points'];
+            $ptsProgress = $ptsRange > 0 ? min(100, max(0, (($points - $currentTier['min_points']) / $ptsRange) * 100)) : 100;
+
+            $refRange = $nextTier['min_referrals'] - $currentTier['min_referrals'];
+            $refProgress = $refRange > 0 ? min(100, max(0, (($referralCount - $currentTier['min_referrals']) / $refRange) * 100)) : 100;
+
+            $overallProgress = max($ptsProgress, $refProgress);
+        } else {
+            $ptsNeeded = 0;
+            $refNeeded = 0;
+        }
+
+        return [
+            'current_tier' => $currentTier,
+            'next_tier' => $nextTier,
+            'points' => $points,
+            'referral_count' => $referralCount,
+            'pts_needed' => $ptsNeeded,
+            'ref_needed' => $refNeeded,
+            'progress_percent' => (int) round($overallProgress),
+            'all_tiers' => $tiers,
+        ];
+    }
 }

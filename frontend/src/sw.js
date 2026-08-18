@@ -37,11 +37,33 @@ self.addEventListener('fetch', (event) => {
 
 // ── 3. Runtime caching strategies ────────────────────────────────────────
 
-// API — NetworkFirst (always try fresh, fallback to cache)
+// API — NetworkFirst ONLY for public, non-authenticated endpoints (products, categories, etc.)
+const privateApiRoutes = [
+  /^\/api\/profile/,
+  /^\/api\/orders/,
+  /^\/api\/prescriptions/,
+  /^\/api\/loyalty/,
+  /^\/api\/referral/,
+  /^\/api\/wishlist/,
+  /^\/api\/cart/,
+  /^\/api\/notifications/,
+  /^\/api\/my-reviews/,
+  /^\/api\/admin/,
+  /^\/api\/pharmacien/,
+  /^\/api\/user/,
+]
+
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/'),
+  ({ url, request }) => {
+    if (!url.pathname.startsWith('/api/')) return false
+    // Do not cache private API endpoints or requests carrying an Authorization header
+    if (request.headers.get('Authorization') || privateApiRoutes.some((pattern) => pattern.test(url.pathname))) {
+      return false
+    }
+    return true
+  },
   new NetworkFirst({
-    cacheName: 'api-cache',
+    cacheName: 'public-api-cache',
     networkTimeoutSeconds: 10,
     plugins: [new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 86400 })],
   })

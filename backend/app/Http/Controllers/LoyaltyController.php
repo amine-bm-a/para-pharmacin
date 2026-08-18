@@ -21,6 +21,8 @@ class LoyaltyController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
+        $tierInfo = LoyaltyService::getTierDetails($user);
+
         return response()->json([
             'success' => true,
             'balance' => $user->loyalty_points,
@@ -28,6 +30,7 @@ class LoyaltyController extends Controller
             'points_to_next' => LoyaltyService::getPointsToNextReward($user),
             'redeem_rate' => LoyaltyService::REDEEM_RATE,
             'redeem_mad' => LoyaltyService::REDEEM_MAD,
+            'tier_info' => $tierInfo,
             'transactions' => $transactions,
         ]);
     }
@@ -39,6 +42,7 @@ class LoyaltyController extends Controller
     public function info(Request $request)
     {
         $user = $request->user();
+        $tierInfo = LoyaltyService::getTierDetails($user);
 
         return response()->json([
             'success' => true,
@@ -47,16 +51,18 @@ class LoyaltyController extends Controller
             'points_to_next' => LoyaltyService::getPointsToNextReward($user),
             'redeem_rate' => LoyaltyService::REDEEM_RATE,
             'redeem_mad' => LoyaltyService::REDEEM_MAD,
+            'tier_info' => $tierInfo,
         ]);
     }
 
     /**
      * GET /referral
-     * Returns the user's referral code + list of referred users + total referral earnings.
+     * Returns the user's referral code + list of referred users + total referral earnings + tier info.
      */
     public function referral(Request $request)
     {
         $user = $request->user()->load('referrals:id,name,referred_by,created_at');
+        $tierInfo = LoyaltyService::getTierDetails($user);
 
         $referralEarnings = LoyaltyPoint::forUser($user->id)
             ->where('type', 'referral')
@@ -70,6 +76,7 @@ class LoyaltyController extends Controller
             'referrals_count' => $user->referrals->count(),
             'referrals' => $user->referrals,
             'total_earned_pts' => (int) $referralEarnings,
+            'tier_info' => $tierInfo,
         ]);
     }
 }

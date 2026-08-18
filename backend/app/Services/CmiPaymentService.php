@@ -11,18 +11,19 @@ class CmiPaymentService
      */
     public static function getPaymentParameters(string $orderNumber, float $amount, string $email): array
     {
-        $clientId = env('CMI_CLIENT_ID', '600000000'); // Default CMI test client ID
-        $storeKey = env('CMI_STORE_KEY', 'TEST_STORE_KEY'); // Default test store key
-        $okUrl = env('FRONTEND_URL', 'http://localhost:3000').'/mes-commandes?payment=success&oid='.urlencode($orderNumber);
-        $failUrl = env('FRONTEND_URL', 'http://localhost:3000').'/checkout?payment=failed&oid='.urlencode($orderNumber);
-        $callbackUrl = env('APP_URL', 'http://127.0.0.1:8000').'/api/payment/cmi/callback';
+        $clientId = config('services.cmi.client_id');
+        $storeKey = config('services.cmi.store_key');
+        $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+        $okUrl = $frontendUrl.'/mes-commandes?payment=success&oid='.urlencode($orderNumber);
+        $failUrl = $frontendUrl.'/checkout?payment=failed&oid='.urlencode($orderNumber);
+        $callbackUrl = config('app.url').'/api/payment/cmi/callback';
 
         $params = [
             'clientid' => $clientId,
             'amount' => number_format($amount, 2, '.', ''),
             'okUrl' => $okUrl,
             'failUrl' => $failUrl,
-            'shopurl' => env('FRONTEND_URL', 'http://localhost:3000').'/panier',
+            'shopurl' => config('app.frontend_url', 'http://localhost:3000').'/panier',
             'TransactionType' => 'Sale',
             'callbackUrl' => $callbackUrl,
             'rnd' => now()->timestamp.rand(1000, 9999),
@@ -50,7 +51,7 @@ class CmiPaymentService
             return false;
         }
 
-        $storeKey = env('CMI_STORE_KEY', 'TEST_STORE_KEY');
+        $storeKey = config('services.cmi.store_key');
         $receivedHash = $postData['HASH'];
 
         // Remove HASH and HASHPARAMS from parameters list to rebuild signature

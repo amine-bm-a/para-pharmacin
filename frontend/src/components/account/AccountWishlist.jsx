@@ -1,30 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useWishlist } from '../../context/WishlistContext';
 import ProductCard from '../ProductCard';
 
 export default function AccountWishlist() {
-  const { user } = useAuth();
-  const [wishlistItems, setWishlistItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (user?.id) {
-      try {
-        const saved = localStorage.getItem(`wishlist_${user.id}`);
-        if (saved) {
-          setWishlistItems(JSON.parse(saved));
-        }
-      } catch (err) {
-        console.error("Error reading wishlist", err);
-      }
-    }
-    setLoading(false);
-  }, [user?.id]);
+  const { wishlist: wishlistItems, loading, removeFromWishlist } = useWishlist();
 
   const handleRemoveFromWishlist = (product) => {
-    // When the heart is toggled to unliked in the wishlist tab, immediately remove it from state
-    setWishlistItems((prev) => prev.filter((item) => item.id !== product.id));
+    removeFromWishlist(product.id);
   };
 
   if (loading) {

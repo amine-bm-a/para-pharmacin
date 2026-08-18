@@ -44,8 +44,7 @@ export default function Footer() {
 
   const listItemStyle = {
     display: 'flex', alignItems: 'center', gap: '16px',
-    padding: '16px 0',
-    borderBottom: `1px solid ${border}`,
+    padding: '8px 0',
     color: textMuted,
     fontSize: '0.9rem',
     textDecoration: 'none',
@@ -256,44 +255,6 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* ── Trust Banner (Light Gray) ── */}
-      <div style={{ background: trustBg, borderTop: `1px solid ${borderDarker}`, borderBottom: `1px solid ${borderDarker}` }}>
-        <div className="container" style={{ padding: '30px 20px' }}>
-          <div className="footer-trust-grid">
-            
-            <div className="trust-item">
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: greenLight, display: 'flex', alignItems: 'center', justifyContent: 'center', color: green, flexShrink: 0 }}>
-                <TruckIcon size={24} />
-              </div>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 700, color: textMain, fontSize: '0.95rem', marginBottom: '2px' }}>Livraison rapide</div>
-                <div style={{ color: textMuted, fontSize: '0.85rem' }}>Partout au Maroc en 24h - 48h</div>
-              </div>
-            </div>
-
-            <div className="trust-item">
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: greenLight, display: 'flex', alignItems: 'center', justifyContent: 'center', color: green, flexShrink: 0 }}>
-                <LockIcon size={24} />
-              </div>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 700, color: textMain, fontSize: '0.95rem', marginBottom: '2px' }}>Paiement sécurisé</div>
-                <div style={{ color: textMuted, fontSize: '0.85rem' }}>100% sécurisé et crypté</div>
-              </div>
-            </div>
-
-            <div className="trust-item">
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: greenLight, display: 'flex', alignItems: 'center', justifyContent: 'center', color: green, flexShrink: 0 }}>
-                <BadgeIcon size={24} />
-              </div>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 700, color: textMain, fontSize: '0.95rem', marginBottom: '2px' }}>Produits authentiques</div>
-                <div style={{ color: textMuted, fontSize: '0.85rem' }}>Sélectionnés avec soin</div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
 
       {/* ── Footer Bottom ── */}
       <div style={{ padding: '24px 0' }}>

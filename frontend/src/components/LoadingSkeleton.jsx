@@ -119,6 +119,67 @@ export const FilterSkeleton = () => (
   </div>
 );
 
+export const ProductDetailsSkeleton = () => (
+  <div className="container fade-in" style={{ padding: '40px 0' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '40px', marginBottom: '40px' }}>
+      {/* Product Image Skeleton */}
+      <div style={{
+        height: '420px',
+        borderRadius: 'var(--radius-lg)',
+        background: 'linear-gradient(90deg, var(--bg-subtle) 25%, var(--border-light) 50%, var(--bg-subtle) 75%)',
+        backgroundSize: '200% 100%',
+        animation: 'shimmer 1.5s infinite'
+      }} />
+
+      {/* Details Skeleton */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ height: '24px', width: '30%', background: 'var(--bg-subtle)', borderRadius: '4px' }} />
+        <div style={{ height: '36px', width: '85%', background: 'linear-gradient(90deg, var(--bg-subtle) 25%, var(--border-light) 50%, var(--bg-subtle) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: '6px' }} />
+        <div style={{ height: '28px', width: '40%', background: 'linear-gradient(90deg, var(--bg-subtle) 25%, var(--border-light) 50%, var(--bg-subtle) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: '6px' }} />
+        <div style={{ height: '80px', width: '100%', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)' }} />
+        <div style={{ height: '50px', width: '100%', background: 'linear-gradient(90deg, var(--bg-subtle) 25%, var(--border-light) 50%, var(--bg-subtle) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 'var(--radius-md)', marginTop: '20px' }} />
+      </div>
+    </div>
+
+    {/* Reviews Skeleton Section */}
+    <div style={{ padding: '32px', background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)' }}>
+      <div style={{ height: '24px', width: '200px', background: 'var(--bg-subtle)', borderRadius: '4px', marginBottom: '20px' }} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {[1, 2].map((i) => (
+          <div key={i} style={{ padding: '16px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)' }}>
+            <div style={{ height: '16px', width: '150px', background: 'var(--border-light)', borderRadius: '4px', marginBottom: '8px' }} />
+            <div style={{ height: '14px', width: '80%', background: 'var(--border-light)', borderRadius: '4px' }} />
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+export const CartSkeleton = () => (
+  <div className="container fade-in" style={{ padding: '40px 0' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '32px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {[1, 2, 3].map((i) => (
+          <div key={i} style={{ height: '100px', background: 'linear-gradient(90deg, var(--bg-subtle) 25%, var(--border-light) 50%, var(--bg-subtle) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 'var(--radius-lg)' }} />
+        ))}
+      </div>
+      <div style={{ height: '320px', background: 'linear-gradient(90deg, var(--bg-subtle) 25%, var(--border-light) 50%, var(--bg-subtle) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 'var(--radius-lg)' }} />
+    </div>
+  </div>
+);
+
+export const CheckoutStepSkeleton = () => (
+  <div style={{ padding: '24px', background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)' }}>
+    <div style={{ height: '28px', width: '220px', background: 'var(--bg-subtle)', borderRadius: '4px', marginBottom: '24px' }} />
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+      <div style={{ height: '48px', background: 'linear-gradient(90deg, var(--bg-subtle) 25%, var(--border-light) 50%, var(--bg-subtle) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 'var(--radius-md)' }} />
+      <div style={{ height: '48px', background: 'linear-gradient(90deg, var(--bg-subtle) 25%, var(--border-light) 50%, var(--bg-subtle) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 'var(--radius-md)' }} />
+    </div>
+    <div style={{ height: '48px', width: '100%', background: 'linear-gradient(90deg, var(--bg-subtle) 25%, var(--border-light) 50%, var(--bg-subtle) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 'var(--radius-md)' }} />
+  </div>
+);
+
 export const HomeLoadingSkeleton = () => (
   <div style={{ padding: '40px 0' }} className="container">
     <div style={{

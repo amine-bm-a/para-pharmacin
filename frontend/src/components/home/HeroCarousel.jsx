@@ -5,21 +5,7 @@ import heroProducts from '../../assets/hero-products.jpg';
 
 const HeroCarousel = () => {
   return (
-    <section style={{
-      margin: '0 0 40px',
-      background: 'linear-gradient(135deg, #F3FAF5 0%, #FFFFFF 100%)',
-      borderRadius: '32px',
-      padding: '40px 60px',
-      position: 'relative',
-      overflow: 'hidden',
-      border: '1px solid #E2EFE7',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: '40px',
-      minHeight: '520px',
-      boxShadow: '0 20px 48px rgba(10,168,79,0.03), 0 4px 12px rgba(0,0,0,0.01)'
-    }}>
+    <section className="hero-section reveal">
       {/* Decorative Blob */}
       <div style={{
         position: 'absolute',
@@ -27,91 +13,120 @@ const HeroCarousel = () => {
         right: '-5%',
         width: '550px',
         height: '550px',
-        background: 'radial-gradient(circle, rgba(10,168,79,0.07) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)',
         borderRadius: '50%',
         pointerEvents: 'none',
-        zIndex: 1
+        zIndex: 1,
       }} />
 
       {/* Left Column: Text & CTAs */}
-      <div style={{ flex: '1', position: 'relative', zIndex: 2, maxWidth: '580px' }}>
+      <div className="hero-content-col" style={{ flex: '1', position: 'relative', zIndex: 2, maxWidth: '580px' }}>
+        {/* Badge */}
         <div style={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: '8px',
-          background: '#EBF8F0',
-          color: '#0AA84F',
-          padding: '6px 16px',
-          borderRadius: '100px',
-          fontSize: '0.82rem',
-          fontWeight: '700',
+          gap: 'var(--space-xs)',
+          background: 'var(--primary-light)',
+          color: 'var(--primary)',
+          padding: '6px var(--space-sm)',
+          borderRadius: 'var(--radius-full)',
+          fontSize: 'var(--fs-xs)',
+          fontWeight: 'var(--fw-bold)',
           letterSpacing: '0.5px',
           textTransform: 'uppercase',
-          marginBottom: '20px'
+          marginBottom: 'var(--space-sm)',
         }}>
           ✨ Votre bien-être, notre priorité
         </div>
 
         <h1 style={{
-          fontSize: '3.4rem',
-          fontWeight: '800',
-          lineHeight: '1.15',
-          color: '#17213C',
+          fontWeight: 'var(--fw-extrabold)',
+          lineHeight: 'var(--lh-heading)',
+          color: 'var(--text)',
           fontFamily: 'var(--font-title)',
-          marginBottom: '16px'
+          marginBottom: 'var(--space-sm)',
         }}>
-          Bienvenue chez <span style={{ color: '#0AA84F', textShadow: '0 2px 10px rgba(10,168,79,0.05)' }}>Parapharmacie Ben Moussa</span>
+          Bienvenue chez{' '}
+          <span style={{ color: 'var(--primary)', textShadow: '0 2px 10px var(--primary-glow)' }}>
+            Parapharmacie Ben Moussa
+          </span>
         </h1>
 
         <p style={{
           fontSize: '1.05rem',
-          lineHeight: '1.65',
-          color: '#5D6A85',
-          marginBottom: '32px',
-          maxWidth: '500px'
+          lineHeight: 'var(--lh-body)',
+          color: 'var(--text-muted)',
+          marginBottom: 'var(--space-lg)',
+          maxWidth: '500px',
+          fontWeight: 'var(--fw-regular)',
         }}>
           Des soins de qualité sélectionnés avec soin pour votre santé, votre beauté et votre bien-être au quotidien.
         </p>
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '32px' }}>
-          <Link to="/products" style={{
-            display: 'inline-flex',
+        <div
+          className="hero-cta-row"
+          style={{
+            display: 'flex',
+            gap: 'var(--space-sm)',
             alignItems: 'center',
-            gap: '10px',
-            background: '#0AA84F',
-            color: '#FFFFFF',
-            padding: '15px 26px',
-            borderRadius: '16px',
-            fontWeight: '700',
-            fontSize: '0.96rem',
-            textDecoration: 'none',
-            boxShadow: '0 8px 24px rgba(10,168,79,0.2)',
-            transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
+            marginBottom: 'var(--space-lg)',
+            flexWrap: 'wrap',
           }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 28px rgba(10,168,79,0.3)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(10,168,79,0.2)'; }}
+        >
+          <Link
+            to="/products"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              background: 'var(--primary)',
+              color: '#FFFFFF',
+              padding: '15px 26px',
+              borderRadius: 'var(--radius-md)',
+              fontWeight: 'var(--fw-bold)',
+              fontSize: 'var(--fs-sm)',
+              textDecoration: 'none',
+              boxShadow: 'var(--shadow-hover)',
+              transition: 'var(--transition)',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = 'translateY(-3px)';
+              e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'var(--shadow-hover)';
+            }}
           >
             <ShoppingBag size={18} />
             Découvrir nos produits
           </Link>
 
-          <Link to="/promotions" style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: '#FFFFFF',
-            color: '#0AA84F',
-            border: '2px solid #0AA84F',
-            padding: '13px 26px',
-            borderRadius: '16px',
-            fontWeight: '700',
-            fontSize: '0.96rem',
-            textDecoration: 'none',
-            transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
-          }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.background = '#EBF8F0'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.background = '#FFFFFF'; }}
+          <Link
+            to="/promotions"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'var(--bg-card)',
+              color: 'var(--primary)',
+              border: '2px solid var(--primary)',
+              padding: '13px 26px',
+              borderRadius: 'var(--radius-md)',
+              fontWeight: 'var(--fw-bold)',
+              fontSize: 'var(--fs-sm)',
+              textDecoration: 'none',
+              transition: 'var(--transition)',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = 'translateY(-3px)';
+              e.currentTarget.style.background = 'var(--primary-light)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.background = 'var(--bg-card)';
+            }}
           >
             Voir les offres
             <ArrowRight size={18} />
@@ -119,22 +134,47 @@ const HeroCarousel = () => {
         </div>
 
         {/* Trust Badges */}
-        <div style={{
-          display: 'flex',
-          gap: '20px',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          borderTop: '1px solid #E7ECEF',
-          paddingTop: '20px'
-        }}>
+        <div
+          className="hero-trust-row"
+          style={{
+            display: 'flex',
+            gap: 'var(--space-sm)',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            borderTop: '1px solid var(--border)',
+            paddingTop: 'var(--space-sm)',
+          }}
+        >
           {[
-            { icon: <ShieldCheck size={18} color="#0AA84F" />, label: 'Produits authentiques' },
-            { icon: <Truck size={18} color="#0AA84F" />, label: 'Livraison rapide 24h' },
-            { icon: <Lock size={18} color="#0AA84F" />, label: 'Paiement sécurisé' },
-            { icon: <ShieldAlert size={18} color="#0AA84F" />, label: 'Conseils experts' }
+            { icon: <ShieldCheck size={15} color="var(--primary)" />, label: 'Produits authentiques' },
+            { icon: <Truck size={15} color="var(--primary)" />, label: 'Livraison 24h' },
+            { icon: <Lock size={15} color="var(--primary)" />, label: 'Paiement sécurisé' },
+            { icon: <ShieldAlert size={15} color="var(--primary)" />, label: 'Conseils experts' },
           ].map((item, index) => (
-            <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: '600', color: '#5D6A85' }}>
-              {item.icon}
+            <div
+              key={index}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: 'var(--fs-xs)',
+                fontWeight: 'var(--fw-semibold)',
+                color: 'var(--text-muted)',
+              }}
+            >
+              <div style={{
+                width: '30px',
+                height: '30px',
+                borderRadius: '50%',
+                background: 'var(--primary-transparent)',
+                border: '1px solid var(--primary-light)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                {item.icon}
+              </div>
               {item.label}
             </div>
           ))}
@@ -142,17 +182,18 @@ const HeroCarousel = () => {
       </div>
 
       {/* Right Column: Cosmetics Image */}
-      <div style={{ flex: '1.4', position: 'relative', display: 'flex', justifyContent: 'center', zIndex: 2 }}>
+      <div className="hero-image-col" style={{ flex: '1.4', position: 'relative', display: 'flex', justifyContent: 'center', zIndex: 2 }}>
         <img
           src={heroProducts}
           alt="Parapharmacie Cosmetic Products"
+          loading="eager"
           style={{
             maxWidth: '100%',
             height: 'auto',
-            maxHeight: '520px',
+            maxHeight: '480px',
             objectFit: 'contain',
-            borderRadius: '24px',
-            transition: 'transform 0.5s ease-out'
+            borderRadius: 'var(--radius-md)',
+            transition: 'transform 0.5s ease-out',
           }}
           onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.025) translateY(-5px)'; }}
           onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1) translateY(0)'; }}

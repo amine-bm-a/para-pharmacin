@@ -6,12 +6,14 @@ return [
     'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 
     'allowed_origins' => array_values(array_filter(array_merge(
-        [
-            'http://localhost:3000',
-            'http://localhost:5173',
-            'http://127.0.0.1:3000',
-            'http://127.0.0.1:5173',
-        ],
+        env('APP_ENV', 'production') === 'local'
+            ? [
+                'http://localhost:3000',
+                'http://localhost:5173',
+                'http://127.0.0.1:3000',
+                'http://127.0.0.1:5173',
+            ]
+            : [],
         explode(',', env('FRONTEND_URL', ''))
     ))),
 

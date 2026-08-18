@@ -12,13 +12,18 @@ import BestSellers from '../components/home/BestSellers';
 import ClientReviews from '../components/home/ClientReviews';
 import Newsletter from '../components/home/Newsletter';
 import BlogGrid from '../components/home/BlogGrid';
+import TrustBar from '../components/home/TrustBar';
 import { HomeLoadingSkeleton } from '../components/LoadingSkeleton';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 
 const Home = () => {
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Activate scroll-reveal animations after render & section load
+  useScrollReveal([loading, sections], { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
 
   useEffect(() => {
     if (user) {
@@ -51,6 +56,7 @@ const Home = () => {
           const defaults = [
             { id: 'hero', is_visible: true },
             { id: 'categories', is_visible: true },
+            { id: 'trust', is_visible: true },
             { id: 'promotions', is_visible: true },
             { id: 'new_arrivals', is_visible: true },
             { id: 'best_sellers', is_visible: true },
@@ -76,12 +82,18 @@ const Home = () => {
     return <HomeLoadingSkeleton />;
   }
 
+  // Zebra pattern: alternate section background
+  // Sections that use section-alt (bg-subtle): categories, best_sellers, blog, newsletter
+  const altSections = new Set(['categories', 'best_sellers', 'blog', 'newsletter']);
+
   const renderSection = (id) => {
     switch (id) {
       case 'hero':
         return <HeroCarousel key="hero" />;
       case 'categories':
         return <CircularCategories key="categories" />;
+      case 'trust':
+        return <TrustBar key="trust" />;
       case 'promotions':
         return (
           <React.Fragment key="promotions">
@@ -108,12 +120,22 @@ const Home = () => {
     }
   };
 
+  const visibleSections = sections.filter((sec) => sec.is_visible);
+
+  // Inject TrustBar after hero if not already in sections
+  const hasTrust = visibleSections.some(s => s.id === 'trust');
+  const sectionsToRender = hasTrust
+    ? visibleSections
+    : visibleSections.reduce((acc, sec) => {
+        acc.push(sec);
+        if (sec.id === 'hero') acc.push({ id: 'trust', is_visible: true });
+        return acc;
+      }, []);
+
   return (
     <main className="fade-in">
-      {sections
-        .filter((sec) => sec.is_visible)
-        .map((sec) => renderSection(sec.id))}
-      <div style={{ height: '40px' }}></div>
+      {sectionsToRender.map((sec) => renderSection(sec.id))}
+      <div style={{ height: 'var(--space-lg)' }} />
     </main>
   );
 };

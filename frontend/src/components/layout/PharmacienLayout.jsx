@@ -1,14 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useUserNotif } from '../../context/UserNotifContext';
-import {
-  LayoutDashboard, ScanBarcode, Package, ClipboardCheck,
-  Bell, LogOut, HeartPulse, ExternalLink, FileText, UserCog,
-  ChevronDown, Search, ChevronRight, X, Check
-} from 'lucide-react';
+import { LayoutDashboard, ScanBarcode, Package, ClipboardCheck, CreditCard, Pill, Gift, Settings, Bell, LogOut, HeartPulse, ExternalLink, FileText, UserCog, ChevronDown, Search, ChevronRight, X, Check, Store } from 'lucide-react';
+import ThemeToggleButton from '../ui/ThemeToggleButton';
+import { timeAgo } from '../../utils/textUtils';
 
 function buildNavGroups(pendingPrescriptionsCount) {
   return [
@@ -69,18 +67,7 @@ const PAGE_TITLES = {
   '/pharmacien/profile':      { title: 'Mon Profil',          sub: 'Informations personnelles et sécurité' },
 };
 
-function timeAgo(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  const diff = Math.floor((new Date() - d) / 60000);
-  if (diff < 1) return "À l'instant";
-  if (diff < 60) return `Il y a ${diff} min`;
-  const h = Math.floor(diff / 60);
-  if (h < 24) return `Il y a ${h}h`;
-  const days = Math.floor(h / 24);
-  if (days < 7) return `Il y a ${days}j`;
-  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
-}
+
 
 function notifIcon(type) {
   return { order: '📦', payment: '💳', prescription: '💊', promo: '🎁', system: '⚙️' }[type] || '🔔';
@@ -99,7 +86,10 @@ function PharmacienTopbar() {
   const menuRef = useRef(null);
   const notifRef = useRef(null);
 
-  const handleLogout = async () => { await logout(); navigate('/'); };
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/login';
+  };
   const pageInfo = PAGE_TITLES[location.pathname] || { title: 'Espace Pharmacien', sub: 'Portail employé' };
 
   useEffect(() => {
@@ -138,9 +128,36 @@ function PharmacienTopbar() {
           <input type="text" placeholder="Rechercher..." className="topbar-search-input" />
         </div>
 
-        {/* Visit Store */}
-        <a href="/" className="topbar-action-btn" title="Voir la boutique" target="_blank" rel="noopener noreferrer">
-          <ExternalLink size={17} />
+        {/* Visit Store Button */}
+        <a 
+          href="/" 
+          title="Retourner à la boutique"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 14px',
+            borderRadius: '10px',
+            background: 'var(--primary-light, #eef9f4)',
+            color: 'var(--primary, #0AA84F)',
+            fontWeight: 700,
+            fontSize: '0.85rem',
+            textDecoration: 'none',
+            border: '1px solid rgba(10,168,79,0.2)',
+            transition: 'all 0.2s ease',
+            whiteSpace: 'nowrap'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--primary, #0AA84F)';
+            e.currentTarget.style.color = 'white';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'var(--primary-light, #eef9f4)';
+            e.currentTarget.style.color = 'var(--primary, #0AA84F)';
+          }}
+        >
+          <Store size={16} />
+          <span>Retourner à la boutique</span>
         </a>
 
         {/* ─── Notifications Bell + Real Dropdown ─── */}
@@ -333,22 +350,8 @@ function PharmacienTopbar() {
           )}
         </div>
 
-        {/* ─── Dark Mode Toggle (1 seul) ─── */}
-        <button
-          className={`theme-toggle-btn${isDark ? ' theme-toggle-btn--dark' : ''}`}
-          onClick={toggleTheme}
-          title={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
-          aria-label="Toggle dark mode"
-        >
-          <span className="theme-toggle-bg" />
-          <span className="theme-toggle-stars"><span /><span /><span /></span>
-          <span className="theme-toggle-face">
-            <span className="theme-toggle-rays">
-              {[...Array(8)].map((_, i) => <span key={i} className="ray" style={{ '--i': i }} />)}
-            </span>
-            <span className="theme-toggle-core" />
-          </span>
-        </button>
+        {/* Dark Mode Toggle */}
+        <ThemeToggleButton />
 
         {/* User Dropdown */}
         <div className="topbar-user-wrap" ref={menuRef}>
@@ -390,7 +393,10 @@ export default function PharmacienLayout() {
   const [collapsed, setCollapsed] = useState({});
   const [pendingPrescriptionsCount, setPendingPrescriptionsCount] = useState(0);
 
-  const handleLogout = async () => { await logout(); navigate('/'); };
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/login';
+  };
 
   const toggleGroup = (label) => {
     setCollapsed(prev => ({ ...prev, [label]: !prev[label] }));
@@ -424,20 +430,20 @@ export default function PharmacienLayout() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%' }}>
             <div style={{
               width: 38, height: 38, borderRadius: '12px',
-              background: 'linear-gradient(135deg, #2ebb80 0%, #0d9488 100%)',
+              background: 'var(--admin-sidebar-accent)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0, boxShadow: '0 4px 12px rgba(46,187,128,0.4)'
+              flexShrink: 0
             }}>
-              <HeartPulse size={20} style={{ color: 'white' }} />
+              <HeartPulse size={20} style={{ color: 'var(--admin-sidebar-bg)' }} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="sidebar-logo-text">ParaPharma</div>
               <div className="sidebar-logo-sub">Espace Employé</div>
             </div>
             <a href="/" target="_blank" rel="noopener noreferrer" title="Voir la boutique"
-              style={{ color: 'rgba(255,255,255,0.3)', display: 'flex', flexShrink: 0, transition: 'color 0.2s' }}
-              onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.8)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
+              style={{ color: 'var(--admin-sidebar-title)', display: 'flex', flexShrink: 0, transition: 'color 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--primary)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--admin-sidebar-title)'}
             >
               <ExternalLink size={14} />
             </a>

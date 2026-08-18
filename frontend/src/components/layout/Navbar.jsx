@@ -9,6 +9,7 @@ import logo from '../../assets/logo.png';
 import axios from 'axios';
 import { createPortal } from 'react-dom';
 import { Heart, ShoppingCart, User, Search, Bell, Sun, Moon } from 'lucide-react';
+import ThemeToggleButton from '../ui/ThemeToggleButton';
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,7 +19,7 @@ const Navbar = () => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [searchPosition, setSearchPosition] = useState({ top: 0, left: 0, width: 0 });
   const [userDropdownPosition, setUserDropdownPosition] = useState({ top: 0, right: 0 });
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, isPharmacien } = useAuth();
   const { getCartCount } = useCart();
   const { isDark, toggleTheme } = useTheme();
   const { unreadCount } = useUserNotif() || { unreadCount: 0 };
@@ -336,23 +337,35 @@ const Navbar = () => {
                     <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--primary)', marginBottom: '4px' }}>{user.name}</div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{user.email}</div>
                   </div>
-                  {[
-                    { label: '👤 Mon compte', path: '/mon-compte' },
-                    { label: '📦 Mes commandes', path: '/mes-commandes' },
-                  ].map(item => (
+                  {(
+                    isAdmin
+                      ? [
+                          { label: '⚙️ Panel Administration', path: '/admin', highlight: true },
+                          { label: '👤 Profil Admin', path: '/admin/profile' },
+                        ]
+                      : isPharmacien
+                        ? [
+                            { label: '💊 Espace Pharmacien', path: '/pharmacien', highlight: true },
+                            { label: '👤 Profil Pharmacien', path: '/pharmacien/profile' },
+                          ]
+                        : [
+                            { label: '👤 Mon compte', path: '/mon-compte' },
+                            { label: '📦 Mes commandes', path: '/mes-commandes' },
+                          ]
+                  ).map(item => (
                     <Link key={item.path} to={item.path} onClick={() => setShowUserDropdown(false)}
                       style={{ 
                         display: 'block', 
                         padding: '14px 20px', 
                         fontSize: '0.9rem', 
-                        color: 'var(--text)', 
+                        color: item.highlight ? 'var(--primary)' : 'var(--text)', 
                         transition: 'all 0.2s ease', 
                         textDecoration: 'none',
-                        fontWeight: 600,
+                        fontWeight: item.highlight ? 800 : 600,
                         borderBottom: '1px solid var(--border-light)'
                       }}
                       onMouseEnter={(e) => {
-                        e.target.style.background = 'var(--bg-subtle)';
+                        e.target.style.background = item.highlight ? 'var(--primary-light)' : 'var(--bg-subtle)';
                         e.target.style.paddingLeft = '24px';
                       }}
                       onMouseLeave={(e) => {
@@ -363,27 +376,6 @@ const Navbar = () => {
                       {item.label}
                     </Link>
                   ))}
-                  {isAdmin && (
-                    <Link to="/admin" onClick={() => setShowUserDropdown(false)}
-                      style={{ 
-                        display: 'block', 
-                        padding: '14px 20px', 
-                        fontSize: '0.9rem', 
-                        color: 'var(--primary)', 
-                        fontWeight: 800, 
-                        textDecoration: 'none',
-                        borderBottom: '1px solid var(--border-light)'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.background = 'var(--primary-light)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.background = isDark ? '#16162a' : 'white';
-                      }}
-                    >
-                      ⚙️ Administration
-                    </Link>
-                  )}
                   <div style={{ borderTop: '2px solid var(--border-light)' }}>
                     <button onClick={handleLogout}
                       style={{ 
@@ -452,20 +444,7 @@ const Navbar = () => {
             )}
 
             {/* Dark Mode Toggle */}
-            <button
-              onClick={toggleTheme}
-              title={isDark ? 'Mode clair' : 'Mode sombre'}
-              style={{
-                ...actionBtnStyle,
-                minWidth: '44px',
-                padding: '8px',
-              }}
-              onMouseEnter={handleBtnEnter}
-              onMouseLeave={handleBtnLeave}
-            >
-              {isDark ? <Sun size={20} strokeWidth={2.2} style={{ color: '#C9A96A' }} /> : <Moon size={20} strokeWidth={2.2} style={{ color: '#1a8f5c' }} />}
-              <span>{isDark ? 'Clair' : 'Sombre'}</span>
-            </button>
+            <ThemeToggleButton />
 
             {/* Cart */}
             <button 

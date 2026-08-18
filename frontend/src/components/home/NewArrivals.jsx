@@ -6,7 +6,6 @@ import useScrollAnimation from '../../hooks/useScrollAnimation';
 
 export default function NewArrivals() {
   const { t } = useLang();
-  const sectionRef = useScrollAnimation('-left');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,21 +37,22 @@ export default function NewArrivals() {
   if (products.length === 0) return null;
 
   return (
-    <section ref={sectionRef} style={{ padding: '60px 0', background: 'var(--bg-light)' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', marginBottom: '32px' }}>
+    <section className="py-section section-alt reveal">
+      <div className="container">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
           <div>
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
+            <span className="section-label">{t('newArrivals')}</span>
+            <h2 className="section-title" style={{ marginTop: 'var(--space-xs)' }}>
               {t('newArrivals')}
             </h2>
-            <div style={{ width: '40px', height: '3px', background: 'var(--primary)', marginTop: '8px' }} />
+            <div style={{ width: '40px', height: '3px', background: 'var(--primary)', marginTop: 'var(--space-xs)', borderRadius: 'var(--radius-full)' }} />
           </div>
         </div>
 
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-          gap: '24px'
+          gap: 'var(--space-md)'
         }}>
           {products.map(product => (
             <ProductCard key={product.id} product={product} />

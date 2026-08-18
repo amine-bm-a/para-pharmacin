@@ -1,0 +1,12 @@
+:root {
+  --status-pending-bg: rgba(245, 158, 11, 0.1);
+  --status-pending-color: #f59e0b;
+  --status-preparing-bg: rgba(59, 130, 246, 0.1);
+  --status-preparing-color: #3b82f6;
+  --status-shipped-bg: rgba(139, 92, 246, 0.1);
+  --status-shipped-color: #8b5cf6;
+  --status-delivered-bg: rgba(16, 185, 129, 0.1);
+  --status-delivered-color: #10b981;
+  --status-cancelled-bg: rgba(239, 68, 68, 0.1);
+  --status-cancelled-color: #ef4444;
+}

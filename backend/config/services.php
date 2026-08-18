@@ -35,4 +35,21 @@ return [
         ],
     ],
 
+    'cmi' => [
+        'client_id' => env('CMI_CLIENT_ID'),
+        'store_key' => env('CMI_STORE_KEY'),
+        'test_url' => env('CMI_TEST_URL', 'https://testpayment.cmi.co.ma/fim/est3Dgate'),
+        'prod_url' => env('CMI_PROD_URL', 'https://payment.cmi.co.ma/fim/est3Dgate'),
+    ],
+
+    'sms' => [
+        'driver' => env('SMS_DRIVER', 'log'),
+        'twilio' => [
+            'sid' => env('TWILIO_SID'),
+            'auth_token' => env('TWILIO_AUTH_TOKEN'),
+            'from' => env('TWILIO_FROM'),
+            'whatsapp_from' => env('TWILIO_WHATSAPP_FROM'),
+        ],
+    ],
+
 ];

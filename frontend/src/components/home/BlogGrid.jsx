@@ -33,23 +33,12 @@ const BlogGrid = () => {
   if (loading || articles.length === 0) return null;
 
   return (
-    <section className="py-section" style={{ background: 'var(--bg)' }}>
+    <section className="py-section section-alt reveal" style={{ position: 'relative', background: 'var(--bg-subtle)' }}>
       <div className="container">
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <span style={{ 
-            color: 'var(--primary)', 
-            fontWeight: 700, 
-            fontSize: '0.88rem', 
-            textTransform: 'uppercase', 
-            letterSpacing: '2px',
-            background: 'var(--primary-light)',
-            padding: '6px 16px',
-            borderRadius: 'var(--radius-full)'
-          }}>
-            Le Magazine
-          </span>
-          <h2 className="section-title" style={{ marginTop: '16px' }}>Conseils Beauté & Santé</h2>
-          <p style={{ color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto', fontSize: '1.05rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: 'var(--space-xl)' }}>
+          <span className="section-label">Le Magazine</span>
+          <h2 className="section-title" style={{ marginTop: 'var(--space-xs)' }}>Conseils Beauté &amp; Santé</h2>
+          <p style={{ color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto', fontSize: '1.05rem', lineHeight: 'var(--lh-body)' }}>
             Découvrez nos conseils d'experts pour prendre soin de vous au quotidien.
           </p>
         </div>

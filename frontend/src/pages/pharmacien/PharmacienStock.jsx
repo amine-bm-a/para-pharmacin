@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Package, Save, Edit2, AlertCircle, Search } from 'lucide-react';
+import { Package, Save, Edit2, AlertCircle, Search, Loader2, Pill } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 
 export default function PharmacienStock() {
@@ -24,7 +24,8 @@ export default function PharmacienStock() {
     } finally {
       setLoading(false);
     }
-  }, [notif]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     fetchStock();
@@ -95,7 +96,7 @@ export default function PharmacienStock() {
             alignItems: 'center',
             gap: '12px'
           }}>
-            <span style={{ fontSize: '2.2rem' }}>📦</span>
+            <Package size={28} color="var(--primary)" />
             <span>Gestion du Stock</span>
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', margin: 0 }}>
@@ -145,8 +146,8 @@ export default function PharmacienStock() {
           gap: '16px'
         }}>
           <div style={{
-            width: '48px', height: '48px', borderRadius: '12px',
-            background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6',
+            width: '48px', height: '48px', borderRadius: 'var(--radius-sm)',
+            background: 'var(--status-info-bg)', color: 'var(--status-info)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
           }}>
             <Package size={20} />
@@ -169,15 +170,15 @@ export default function PharmacienStock() {
           gap: '16px'
         }}>
           <div style={{
-            width: '48px', height: '48px', borderRadius: '12px',
-            background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b',
+            width: '48px', height: '48px', borderRadius: 'var(--radius-sm)',
+            background: 'var(--status-warning-bg)', color: 'var(--status-warning)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
           }}>
             <AlertCircle size={20} />
           </div>
           <div>
             <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 700 }}>Stock Faible (≤5)</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#f59e0b', marginTop: '2px' }}>{lowStockItems}</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--status-warning)', marginTop: '2px' }}>{lowStockItems}</div>
           </div>
         </div>
 
@@ -193,15 +194,15 @@ export default function PharmacienStock() {
           gap: '16px'
         }}>
           <div style={{
-            width: '48px', height: '48px', borderRadius: '12px',
-            background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444',
+            width: '48px', height: '48px', borderRadius: 'var(--radius-sm)',
+            background: 'var(--status-danger-bg)', color: 'var(--status-danger)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
           }}>
             <AlertCircle size={20} />
           </div>
           <div>
             <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 700 }}>Rupture de Stock</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ef4444', marginTop: '2px' }}>{outOfStockItems}</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--status-danger)', marginTop: '2px' }}>{outOfStockItems}</div>
           </div>
         </div>
       </div>
@@ -215,7 +216,8 @@ export default function PharmacienStock() {
           borderRadius: 'var(--radius-lg)',
           boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
         }}>
-          <div style={{ fontSize: '4rem', marginBottom: '20px', animation: 'spin 2s linear infinite', display: 'inline-block' }}>⏳</div>
+          <Loader2 size={40} style={{ color: 'var(--primary)', animation: 'spin 1s linear infinite', marginBottom: '16px' }} />
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           <p style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-muted)' }}>Chargement des stocks...</p>
         </div>
       ) : filteredProducts.length === 0 ? (
@@ -282,7 +284,7 @@ export default function PharmacienStock() {
                           <div style={{
                             width: '40px', height: '40px',
                             background: p.image_url ? 'none' : 'var(--bg-subtle)',
-                            borderRadius: '8px',
+                            borderRadius: 'var(--radius-sm)',
                             overflow: 'hidden',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             border: '1px solid var(--border-light)'
@@ -290,7 +292,7 @@ export default function PharmacienStock() {
                             {p.image_url ? (
                               <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }} />
                             ) : (
-                              <span style={{ fontSize: '1.2rem' }}>💊</span>
+                              <Pill size={20} style={{ color: 'var(--text-muted)', opacity: 0.5 }} />
                             )}
                           </div>
                           <span style={{ fontWeight: 700, fontSize: '0.92rem' }}>{p.name}</span>
@@ -324,10 +326,10 @@ export default function PharmacienStock() {
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '6px',
-                            background: isOut ? 'rgba(239, 68, 68, 0.1)' : isLow ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                            color: isOut ? '#ef4444' : isLow ? '#f59e0b' : '#10b981',
+                            background: isOut ? 'var(--status-danger-bg)' : isLow ? 'var(--status-warning-bg)' : 'var(--status-success-bg)',
+                            color: isOut ? 'var(--status-danger)' : isLow ? 'var(--status-warning)' : 'var(--status-success)',
                             padding: '4px 12px',
-                            borderRadius: '20px',
+                            borderRadius: 'var(--radius-full)',
                             fontSize: '0.8rem',
                             fontWeight: 700,
                           }}>
@@ -345,7 +347,7 @@ export default function PharmacienStock() {
                               background: 'var(--primary)',
                               color: 'white',
                               border: 'none',
-                              borderRadius: '8px',
+                              borderRadius: 'var(--radius-sm)',
                               padding: '8px 14px',
                               cursor: 'pointer',
                               fontWeight: 700,
@@ -366,7 +368,7 @@ export default function PharmacienStock() {
                               background: 'var(--bg-subtle)',
                               border: '1px solid var(--border-light)',
                               color: 'var(--text-muted)',
-                              borderRadius: '8px',
+                              borderRadius: 'var(--radius-sm)',
                               padding: '8px 14px',
                               cursor: 'pointer',
                               fontWeight: 700,

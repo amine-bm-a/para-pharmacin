@@ -28,7 +28,8 @@ export default function PharmacienPrescriptions() {
     } finally {
       setLoading(false);
     }
-  }, [notif]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     fetchPrescriptions();
@@ -96,7 +97,7 @@ export default function PharmacienPrescriptions() {
           alignItems: 'center',
           gap: '12px'
         }}>
-          <span style={{ fontSize: '2.2rem' }}>📄</span>
+          <FileText size={28} color="var(--primary)" />
           <span>Validation des Ordonnances</span>
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', margin: 0 }}>
@@ -127,7 +128,7 @@ export default function PharmacienPrescriptions() {
             </div>
           ) : prescriptions.length === 0 ? (
             <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🍃</div>
+              <FileWarning size={36} style={{ color: 'var(--text-muted)', opacity: 0.4, marginBottom: '12px' }} />
               <p style={{ fontWeight: 600, margin: 0 }}>Toutes les ordonnances ont été validées !</p>
             </div>
           ) : (
@@ -162,10 +163,10 @@ export default function PharmacienPrescriptions() {
                 >
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                     <div style={{
-                      width: '40px', height: '40px', borderRadius: '50%',
-                      background: 'rgba(147, 51, 234, 0.1)', color: '#9333ea',
+                      width: '40px', height: '40px', borderRadius: 'var(--radius-sm)',
+                      background: 'var(--status-purple-bg)', color: 'var(--status-purple)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: 700
+                      fontWeight: 800, fontSize: '0.78rem'
                     }}>
                       RX
                     </div>
@@ -227,9 +228,9 @@ export default function PharmacienPrescriptions() {
               </div>
               <button
                 onClick={() => { setSelectedPrescription(null); setViewingFileUrl(null); }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--text-muted)' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', padding: '4px' }}
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 
@@ -286,8 +287,8 @@ export default function PharmacienPrescriptions() {
 
             {/* Decision Fields */}
             <div>
-              <label style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text)', marginBottom: '8px', display: 'block' }}>
-                ✍️ Commentaire du pharmacien (Obligatoire en cas de rejet)
+              <label style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <FileText size={14} color="var(--text-muted)" /> Commentaire du pharmacien (Obligatoire en cas de rejet)
               </label>
               <textarea
                 className="form-control"
@@ -304,11 +305,11 @@ export default function PharmacienPrescriptions() {
                 disabled={submitLoading}
                 style={{
                   padding: '12px',
-                  background: 'linear-gradient(135deg, var(--primary), #45a049)',
-                  border: 'none', borderRadius: 'var(--radius-md)', color: 'white',
+                  background: 'var(--primary)',
+                  border: 'none', borderRadius: 'var(--radius-sm)', color: 'white',
                   fontWeight: 700, cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                  boxShadow: '0 4px 12px rgba(76, 175, 80, 0.2)'
+                  boxShadow: 'var(--shadow-hover)'
                 }}
               >
                 <Check size={16} /> Valider l'ordonnance
@@ -318,11 +319,11 @@ export default function PharmacienPrescriptions() {
                 disabled={submitLoading}
                 style={{
                   padding: '12px',
-                  background: 'var(--danger)',
-                  border: 'none', borderRadius: 'var(--radius-md)', color: 'white',
+                  background: 'var(--status-danger)',
+                  border: 'none', borderRadius: 'var(--radius-sm)', color: 'white',
                   fontWeight: 700, cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                  boxShadow: '0 4px 12px rgba(220, 53, 69, 0.2)'
+                  boxShadow: 'var(--status-danger-bg) 0 4px 12px'
                 }}
               >
                 <X size={16} /> Rejeter
@@ -331,15 +332,15 @@ export default function PharmacienPrescriptions() {
 
             {/* Warning block */}
             <div style={{
-              background: 'rgba(239, 68, 68, 0.04)',
-              border: '1px solid rgba(239, 68, 68, 0.15)',
-              borderRadius: 'var(--radius-md)',
+              background: 'var(--status-danger-bg)',
+              border: '1px solid var(--status-danger-border)',
+              borderRadius: 'var(--radius-sm)',
               padding: '12px',
               display: 'flex',
               gap: '10px',
               alignItems: 'flex-start'
             }}>
-              <FileWarning size={16} color="var(--danger)" style={{ flexShrink: 0, marginTop: '2px' }} />
+              <FileWarning size={16} color="var(--status-danger)" style={{ flexShrink: 0, marginTop: '2px' }} />
               <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
                 <strong>Attention :</strong> Le rejet d'une ordonnance entraînera automatiquement l'annulation de la commande parente et enverra une notification in-app, SMS et e-mail au client contenant votre motif.
               </p>

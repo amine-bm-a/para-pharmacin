@@ -15,27 +15,30 @@ class AdminUserController extends Controller
         return $request->user()->role === 'admin';
     }
 
-    // List clients (role=client) with order stats
+    // List all users (clients, staff, admin) with order stats
     public function clients(Request $request)
     {
         if (! $this->ensureAdmin($request)) {
             return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
         }
 
-        $clients = User::where('role', 'client')
-            ->withCount('orders')
+        $currentUserId = $request->user()->id;
+
+        $clients = User::withCount('orders')
             ->withSum('orders', 'total_amount')
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(function ($u) {
+            ->map(function ($u) use ($currentUserId) {
                 return [
                     'id' => $u->id,
                     'name' => $u->name,
                     'email' => $u->email,
                     'phone' => $u->phone,
-                    'orders_count' => $u->orders_count,
+                    'role' => $u->role ?? 'client',
+                    'is_current_user' => $u->id === $currentUserId,
+                    'orders_count' => $u->orders_count ?? 0,
                     'total_spent' => $u->orders_sum_total_amount ?? 0,
-                    'created_at' => $u->created_at->format('d/m/Y'),
+                    'created_at' => $u->created_at ? $u->created_at->format('d/m/Y') : '',
                 ];
             });
 

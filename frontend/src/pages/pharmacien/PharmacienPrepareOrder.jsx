@@ -3,7 +3,8 @@ import axios from 'axios';
 import {
   ArrowRight, Clock, CheckCircle2,
   User, ChevronDown, ChevronUp, AlertCircle,
-  ShoppingBag, CheckSquare, Square, Search, Printer
+  ShoppingBag, CheckSquare, Square, Search, Printer,
+  ClipboardList, Loader2
 } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 
@@ -22,35 +23,35 @@ function PrintLabel({ order }) {
       <!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/>
       <title>Étiquette #${order.order_number || order.id}</title>
       <style>
-        body { font-family:'Segoe UI',sans-serif; padding:24px; color:#1f2937; }
-        .header { text-align:center; border-bottom:3px solid #2ebb80; padding-bottom:16px; margin-bottom:16px; }
-        .logo { font-size:1.4rem; font-weight:800; color:#0d3c26; }
-        .order-num { font-size:2rem; font-weight:900; color:#2ebb80; margin:6px 0; }
+        body { font-family:'Segoe UI',sans-serif; padding:24px; color:var(--text); }
+        .header { text-align:center; border-bottom:3px solid var(--primary); padding-bottom:16px; margin-bottom:16px; }
+        .logo { font-size:1.4rem; font-weight:800; color:var(--primary-dark); }
+        .order-num { font-size:2rem; font-weight:900; color:var(--primary); margin:6px 0; }
         .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
-        .info-block { background:#f9fafb; border-radius:8px; padding:12px; }
-        .info-label { font-size:0.7rem; text-transform:uppercase; color:#9ca3af; font-weight:700; margin-bottom:4px; }
+        .info-block { background:var(--bg-subtle); border-radius:var(--radius-md); padding:12px; }
+        .info-label { font-size:0.7rem; text-transform:uppercase; color:var(--text-muted); font-weight:700; margin-bottom:4px; }
         .info-val { font-size:0.95rem; font-weight:600; }
         table { width:100%; border-collapse:collapse; font-size:0.88rem; }
-        th { background:#f3f4f6; padding:8px 10px; text-align:left; font-size:0.75rem; text-transform:uppercase; color:#6b7280; }
-        .total { text-align:right; font-size:1.1rem; font-weight:800; color:#2ebb80; margin-top:16px; padding-top:10px; border-top:2px solid #e5e7eb; }
-        .footer { margin-top:24px; text-align:center; font-size:0.75rem; color:#9ca3af; border-top:1px dashed #e5e7eb; padding-top:12px; }
+        th { background:var(--bg-subtle); padding:8px 10px; text-align:left; font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); }
+        .total { text-align:right; font-size:1.1rem; font-weight:800; color:var(--primary); margin-top:16px; padding-top:10px; border-top:2px solid var(--border-light); }
+        .footer { margin-top:24px; text-align:center; font-size:0.75rem; color:var(--text-muted); border-top:1px dashed var(--border-light); padding-top:12px; }
         @media print { button { display:none !important; } }
       </style></head><body>
       <div class="header">
-        <div class="logo">💊 Pharmacie Ben Moussa</div>
+        <div class="logo">Pharmacie Ben Moussa</div>
         <div class="order-num">Commande #${order.order_number || order.id}</div>
         <div>Date : ${new Date(order.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</div>
       </div>
       <div class="info-grid">
-        <div class="info-block"><div class="info-label">👤 Client</div><div class="info-val">${order.user?.name||'Client'}</div><div style="color:#6b7280;font-size:0.85rem;">${order.phone_number||''}</div></div>
-        <div class="info-block"><div class="info-label">📍 Livraison</div><div class="info-val">${order.shipping_address||'—'}</div><div style="color:#6b7280;font-size:0.85rem;">${order.shipping_city||''} ${order.postal_code||''}</div></div>
-        <div class="info-block"><div class="info-label">💳 Paiement</div><div class="info-val">${order.payment_method==='delivery'?'Livraison':order.payment_method||'—'}</div></div>
-        <div class="info-block"><div class="info-label">📦 Statut</div><div class="info-val">${order.status}</div></div>
+        <div class="info-block"><div class="info-label">Client</div><div class="info-val">${order.user?.name||'Client'}</div><div style="color:var(--text-muted);font-size:0.85rem;">${order.phone_number||''}</div></div>
+        <div class="info-block"><div class="info-label">Livraison</div><div class="info-val">${order.shipping_address||'—'}</div><div style="color:var(--text-muted);font-size:0.85rem;">${order.shipping_city||''} ${order.postal_code||''}</div></div>
+        <div class="info-block"><div class="info-label">Paiement</div><div class="info-val">${order.payment_method==='delivery'?'Livraison':order.payment_method||'—'}</div></div>
+        <div class="info-block"><div class="info-label">Statut</div><div class="info-val">${order.status}</div></div>
       </div>
       <table><thead><tr><th>Produit</th><th style="text-align:center">Qté</th><th style="text-align:right">Prix</th></tr></thead><tbody>${items}</tbody></table>
       <div class="total">Total : ${parseFloat(order.total_amount||0).toFixed(2)} MAD</div>
-      <div class="footer">Parapharmacie Ben Moussa Abbes — Oujda, Maroc<br/>Merci pour votre confiance 💚</div>
-      <br/><button onclick="window.print()" style="display:block;margin:0 auto;padding:10px 24px;background:#2ebb80;color:white;border:none;border-radius:8px;font-size:1rem;cursor:pointer;">🖨️ Imprimer</button>
+      <div class="footer">Parapharmacie Ben Moussa Abbes — Oujda, Maroc<br/>Merci pour votre confiance !</div>
+      <br/><button onclick="window.print()" style="display:block;margin:0 auto;padding:10px 24px;background:var(--primary);color:white;border:none;border-radius:var(--radius-md);font-size:1rem;cursor:pointer;">Imprimer</button>
       </body></html>
     `);
     win.document.close();
@@ -64,10 +65,10 @@ function PrintLabel({ order }) {
       style={{
         display: 'inline-flex', alignItems: 'center', gap: '6px',
         padding: '8px 14px',
-        background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-        color: 'white', border: 'none', borderRadius: '8px',
+        background: 'var(--primary)',
+        color: 'white', border: 'none', borderRadius: 'var(--radius-md)',
         fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer',
-        boxShadow: '0 2px 8px rgba(99,102,241,0.3)', transition: 'all 0.2s'
+        boxShadow: 'var(--shadow-sm)', transition: 'all 0.2s'
       }}
       onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
       onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
@@ -100,7 +101,8 @@ export default function PharmacienPrepareOrder() {
     } finally {
       setLoading(false);
     }
-  }, [notif]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     fetchOrders();
@@ -133,6 +135,19 @@ export default function PharmacienPrepareOrder() {
     }
   };
 
+  const handleMarkDelivered = async (id, e) => {
+    if (e) e.stopPropagation();
+    try {
+      const res = await axios.put(`/pharmacien/prepare/${id}`, { status: 'delivered', payment_status: 'paid' });
+      if (res.data.success) {
+        notif.success('Commande marquée comme Livrée !');
+        fetchOrders();
+      }
+    } catch (e) {
+      notif.error('Erreur lors de la validation de la livraison.');
+    }
+  };
+
   const toggleExpand = (id) => {
     setExpandedOrderId(prev => prev === id ? null : id);
   };
@@ -154,11 +169,11 @@ export default function PharmacienPrepareOrder() {
 
   const getStatusBadgeStyle = (status) => {
     const statusMap = {
-      pending: { bg: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', text: 'En attente' },
-      preparing: { bg: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', text: 'En cours de préparation' },
-      shipped: { bg: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', text: 'Expédiée' },
-      delivered: { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981', text: 'Livrée' },
-      cancelled: { bg: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', text: 'Annulée' },
+      pending:   { bg: 'var(--status-warning-bg)', color: 'var(--status-warning)', text: 'En attente' },
+      preparing: { bg: 'var(--status-info-bg)',    color: 'var(--status-info)',    text: 'En cours de préparation' },
+      shipped:   { bg: 'var(--status-purple-bg)',  color: 'var(--status-purple)',  text: 'Expédiée' },
+      delivered: { bg: 'var(--status-success-bg)', color: 'var(--status-success)', text: 'Livrée' },
+      cancelled: { bg: 'var(--status-danger-bg)',  color: 'var(--status-danger)',  text: 'Annulée' },
     };
     return statusMap[status] || { bg: 'var(--border-light)', color: 'var(--text-muted)', text: status };
   };
@@ -204,7 +219,7 @@ export default function PharmacienPrepareOrder() {
             alignItems: 'center',
             gap: '12px'
           }}>
-            <span style={{ fontSize: '2.2rem' }}>📋</span>
+            <ClipboardList size={28} color="var(--primary)" />
             <span>Préparation des commandes</span>
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', margin: 0 }}>
@@ -280,7 +295,8 @@ export default function PharmacienPrepareOrder() {
           borderRadius: 'var(--radius-lg)',
           boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
         }}>
-          <div style={{ fontSize: '4rem', marginBottom: '20px', animation: 'spin 2s linear infinite', display: 'inline-block' }}>⏳</div>
+          <Loader2 size={40} style={{ color: 'var(--primary)', animation: 'spin 1s linear infinite', marginBottom: '16px' }} />
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           <p style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-muted)' }}>Chargement des commandes...</p>
         </div>
       ) : filteredOrders.length === 0 ? (
@@ -341,12 +357,12 @@ export default function PharmacienPrepareOrder() {
                     <div style={{
                       width: '46px',
                       height: '46px',
-                      borderRadius: '12px',
-                      background: isPreparing ? 'rgba(59, 130, 246, 0.1)' : isPending ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                      borderRadius: 'var(--radius-sm)',
+                      background: isPreparing ? 'var(--status-info-bg)' : isPending ? 'var(--status-warning-bg)' : 'var(--status-success-bg)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: isPreparing ? '#3b82f6' : isPending ? '#f59e0b' : '#10b981',
+                      color: isPreparing ? 'var(--status-info)' : isPending ? 'var(--status-warning)' : 'var(--status-success)',
                       flexShrink: 0
                     }}>
                       <Clock size={22} />
@@ -387,7 +403,7 @@ export default function PharmacienPrepareOrder() {
                           background: 'var(--primary)',
                           color: '#ffffff',
                           border: 'none',
-                          borderRadius: '8px',
+                          borderRadius: 'var(--radius-sm)',
                           padding: '10px 20px',
                           fontWeight: 700,
                           fontSize: '0.85rem',
@@ -396,7 +412,7 @@ export default function PharmacienPrepareOrder() {
                           alignItems: 'center',
                           gap: '6px',
                           transition: 'transform 0.2s',
-                          boxShadow: '0 4px 12px rgba(76, 175, 80, 0.15)'
+                          boxShadow: 'var(--shadow-hover)'
                         }}
                         onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
                         onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
@@ -411,10 +427,10 @@ export default function PharmacienPrepareOrder() {
                         onClick={(e) => handleMarkShipped(order.id, e)}
                         disabled={!allItemsChecked}
                         style={{
-                          background: allItemsChecked ? '#3b82f6' : 'var(--border)',
+                          background: allItemsChecked ? 'var(--status-info)' : 'var(--border)',
                           color: '#ffffff',
                           border: 'none',
-                          borderRadius: '8px',
+                          borderRadius: 'var(--radius-sm)',
                           padding: '10px 20px',
                           fontWeight: 700,
                           fontSize: '0.85rem',
@@ -423,13 +439,39 @@ export default function PharmacienPrepareOrder() {
                           alignItems: 'center',
                           gap: '6px',
                           transition: 'all 0.2s',
-                          boxShadow: allItemsChecked ? '0 4px 12px rgba(59, 130, 246, 0.2)' : 'none'
+                          boxShadow: allItemsChecked ? 'var(--status-info-bg) 0 4px 12px' : 'none'
                         }}
                         onMouseEnter={e => { if (allItemsChecked) e.currentTarget.style.transform = 'scale(1.03)'; }}
                         onMouseLeave={e => { if (allItemsChecked) e.currentTarget.style.transform = 'scale(1)'; }}
                       >
                         <CheckCircle2 size={14} />
                         <span>Expédier</span>
+                      </button>
+                    )}
+
+                    {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                      <button
+                        onClick={(e) => handleMarkDelivered(order.id, e)}
+                        style={{
+                          background: 'linear-gradient(135deg, #10b981, #059669)',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: 'var(--radius-sm)',
+                          padding: '10px 18px',
+                          fontWeight: 700,
+                          fontSize: '0.85rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          transition: 'all 0.2s',
+                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
+                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                      >
+                        <CheckCircle2 size={14} />
+                        <span>Valider comme Livrée</span>
                       </button>
                     )}
 
@@ -453,12 +495,12 @@ export default function PharmacienPrepareOrder() {
                     background: 'var(--bg-subtle)'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                      <h5 style={{ fontSize: '0.95rem', fontWeight: 800, margin: 0, color: 'var(--text)' }}>
-                        📋 Liste des articles à emballer :
+                      <h5 style={{ fontSize: '0.95rem', fontWeight: 800, margin: 0, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <ClipboardList size={15} color="var(--primary)" /> Liste des articles à emballer :
                       </h5>
                       {isPreparing && (
-                        <span style={{ fontSize: '0.8rem', color: allItemsChecked ? 'var(--success)' : 'var(--text-muted)', fontWeight: 700 }}>
-                          {allItemsChecked ? '✓ Prêt à expédier !' : 'Cochez chaque produit pour valider'}
+                        <span style={{ fontSize: '0.8rem', color: allItemsChecked ? 'var(--status-success)' : 'var(--text-muted)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          {allItemsChecked ? <><CheckCircle2 size={13} /> Prêt à expédier !</> : 'Cochez chaque produit pour valider'}
                         </span>
                       )}
                     </div>
@@ -476,15 +518,15 @@ export default function PharmacienPrepareOrder() {
                               justifyContent: 'space-between',
                               background: 'var(--bg-card)',
                               padding: '14px 20px',
-                              borderRadius: '10px',
-                              border: isChecked ? '1.5px solid var(--success)' : '1px solid var(--border-light)',
+                              borderRadius: 'var(--radius-sm)',
+                              border: isChecked ? '1.5px solid var(--status-success)' : '1px solid var(--border-light)',
                               cursor: isPreparing ? 'pointer' : 'default',
                               transition: 'all 0.2s',
                             }}
                           >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                               {isPreparing && (
-                                <div style={{ color: isChecked ? 'var(--success)' : 'var(--text-muted)' }}>
+                                <div style={{ color: isChecked ? 'var(--status-success)' : 'var(--text-muted)' }}>
                                   {isChecked ? <CheckSquare size={20} /> : <Square size={20} />}
                                 </div>
                               )}
@@ -499,15 +541,15 @@ export default function PharmacienPrepareOrder() {
                                 )}
                               </div>
                             </div>
-                            <span style={{
+                             <span style={{
                               background: 'var(--bg-subtle)',
                               padding: '4px 12px',
-                              borderRadius: '6px',
+                              borderRadius: 'var(--radius-sm)',
                               color: 'var(--text-muted)',
                               fontSize: '0.85rem',
                               fontWeight: 700
                             }}>
-                              Quantité : {item.quantity}
+                              Qté : {item.quantity}
                             </span>
                           </div>
                         );
@@ -517,14 +559,14 @@ export default function PharmacienPrepareOrder() {
                     {isPreparing && !allItemsChecked && (
                       <div style={{
                         fontSize: '0.85rem',
-                        color: '#f59e0b',
-                        background: 'rgba(245, 158, 11, 0.08)',
+                        color: 'var(--status-warning)',
+                        background: 'var(--status-warning-bg)',
                         padding: '12px 18px',
-                        borderRadius: '8px',
+                        borderRadius: 'var(--radius-sm)',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px',
-                        border: '1px solid rgba(245, 158, 11, 0.2)'
+                        border: '1px solid var(--status-warning-border)'
                       }}>
                         <AlertCircle size={16} />
                         <span>Veuillez vérifier et cocher chaque produit avant d'expédier cette commande.</span>

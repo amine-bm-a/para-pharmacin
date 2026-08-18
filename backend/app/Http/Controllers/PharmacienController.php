@@ -51,14 +51,14 @@ class PharmacienController extends Controller
         // Try searching by ID
         $order = null;
         if (is_numeric($code)) {
-            $order = Order::with(['user', 'orderItems.product'])->find($code);
+            $order = Order::with(['user', 'items.product'])->find($code);
         }
 
         // Try searching by tracking number in delivery if not found
         if (! $order) {
             $delivery = Delivery::where('tracking_number', $code)->first();
             if ($delivery) {
-                $order = Order::with(['user', 'orderItems.product'])->find($delivery->order_id);
+                $order = Order::with(['user', 'items.product'])->find($delivery->order_id);
             }
         }
 
@@ -75,41 +75,48 @@ class PharmacienController extends Controller
         ]);
     }
 
-    // Prepare order: change status of order
-    public function prepareOrder(Request $request, $id)
+    // Update order status & payment status (including validating delivered orders)
+    public function updateOrderStatus(Request $request, $id)
     {
         $order = Order::findOrFail($id);
 
         $request->validate([
             'status' => 'required|in:pending,preparing,processing,shipped,delivered,completed,cancelled',
+            'payment_status' => 'nullable|in:pending,paid,failed',
         ]);
 
         $oldStatus = $order->status;
         $order->status = $request->status;
+
+        // Auto update payment_status to 'paid' if marked delivered & payment_method is cash on delivery
+        if ($request->filled('payment_status')) {
+            $order->payment_status = $request->payment_status;
+        } elseif ($request->status === 'delivered' && $order->payment_method === 'delivery') {
+            $order->payment_status = 'paid';
+        }
+
         $order->save();
 
         if ($request->status === 'cancelled' && $oldStatus !== 'cancelled') {
             $order->restoreStock();
         }
 
-        // Adjust stock if transitioning to preparing (if not already done at ordering)
-        // Usually stock is decremented on checkout. Let's make sure we update delivery state too.
-        if ($request->status === 'preparing') {
-            Delivery::updateOrCreate(
-                ['order_id' => $order->id],
-                [
-                    'status' => 'preparing',
-                    'address' => $order->shipping_address ?? 'Retrait en pharmacie',
-                    'city' => $order->shipping_city ?? 'Default',
-                ]
-            );
-        }
+        // Keep Delivery model in sync
+        Delivery::updateOrCreate(
+            ['order_id' => $order->id],
+            [
+                'status' => $request->status,
+                'address' => $order->shipping_address ?? 'Retrait en pharmacie',
+                'city' => $order->shipping_city ?? 'Marrakech',
+            ]
+        );
 
         // Notify client via in-app notification
+        $orderNum = $order->order_number ?? "#{$order->id}";
         NotificationService::notifyUser(
             $order->user_id,
             '📦 Statut de votre commande mis à jour',
-            "Votre commande **#{$order->id}** est maintenant : ".NotificationService::statusLabel($request->status),
+            "Votre commande **{$orderNum}** est maintenant : ".NotificationService::statusLabel($request->status),
             'order',
             '/mes-commandes'
         );
@@ -117,7 +124,7 @@ class PharmacienController extends Controller
         // Notify admin for visibility
         NotificationService::notifyAdmins(
             '🔄 Commande mise à jour par l\'employé',
-            "La commande **#{$order->id}** a été mise à jour vers : ".NotificationService::statusLabel($request->status),
+            "La commande **{$orderNum}** a été mise à jour vers : ".NotificationService::statusLabel($request->status),
             'order',
             '/admin/orders'
         );
@@ -133,9 +140,15 @@ class PharmacienController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Statut de la commande mis à jour vers: {$request->status}",
-            'data' => $order,
+            'message' => 'Statut de la commande mis à jour vers: '.NotificationService::statusLabel($request->status),
+            'data' => $order->load(['user', 'items.product', 'prescriptions.product']),
+            'order' => $order->load(['user', 'items.product', 'prescriptions.product']),
         ]);
+    }
+
+    public function prepareOrder(Request $request, $id)
+    {
+        return $this->updateOrderStatus($request, $id);
     }
 
     // Stock management for pharmacist
@@ -171,7 +184,7 @@ class PharmacienController extends Controller
     // List all orders with items and product details for preparation
     public function listOrders()
     {
-        $orders = Order::with(['user', 'orderItems.product', 'prescriptions.product'])
+        $orders = Order::with(['user', 'items.product', 'prescriptions.product'])
             ->orderByRaw("FIELD(status, 'pending', 'preparing', 'shipped', 'delivered', 'cancelled')")
             ->orderBy('created_at', 'desc')
             ->get();

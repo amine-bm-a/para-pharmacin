@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Send, CheckCircle, Mail, Sparkles } from 'lucide-react';
+import { Send, CheckCircle, Mail, Sparkles, Lock } from 'lucide-react';
 import { useLang } from '../../context/LangContext';
 import { useNotification } from '../../context/NotificationContext';
 
@@ -154,10 +154,14 @@ export default function Newsletter() {
                   onBlur={() => setFocused(false)}
                   placeholder={t('yourEmail')}
                   required
+                  className="newsletter-input"
                   style={{
                     flexGrow: 1,
                     border: 'none',
-                    background: 'transparent',
+                    backgroundColor: 'transparent',
+                    colorScheme: 'light',
+                    WebkitAppearance: 'none',
+                    appearance: 'none',
                     fontSize: '0.98rem',
                     color: '#1f2937',
                     outline: 'none',
@@ -189,8 +193,8 @@ export default function Newsletter() {
                   <Send size={15} />
                 </button>
               </div>
-              <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.78rem', marginTop: '12px' }}>
-                🔒 Pas de spam. Désinscription facile à tout moment.
+              <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: 'rgba(255,255,255,0.6)', fontSize: '0.78rem', marginTop: '12px' }}>
+                <Lock size={12} /> Pas de spam. Désinscription facile à tout moment.
               </p>
             </form>
           )}

@@ -16,7 +16,7 @@ class AdminStockController extends Controller
             return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
         }
 
-        $query = Product::with(['category', 'brandRelation']);
+        $query = Product::with(['category', 'brand']);
 
         if ($request->filled('status')) {
             if ($request->status === 'low') {

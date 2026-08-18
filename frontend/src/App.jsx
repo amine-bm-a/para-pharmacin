@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
@@ -16,103 +16,115 @@ import Footer from './components/layout/Footer';
 import BackToTop from './components/ui/BackToTop';
 import PWAInstallBanner from './components/ui/PWAInstallBanner';
 
+const LoadingFallback = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ width: '40px', height: '40px', border: '4px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
+      <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Chargement...</p>
+    </div>
+  </div>
+);
+
 // Pages publiques
-import Home from './pages/Home';
-import Products from './pages/Products';
-import Brands from './pages/Brands';
-import ProductDetails from './pages/ProductDetails';
-import Cart from './pages/Cart';
-import Checkout from './pages/Checkout';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Promotions from './pages/Promotions';
-import Blog from './pages/Blog';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import OrderHistory from './pages/OrderHistory';
-import Account from './pages/Account';
+const Home = lazy(() => import('./pages/Home'));
+const Products = lazy(() => import('./pages/Products'));
+const Brands = lazy(() => import('./pages/Brands'));
+const ProductDetails = lazy(() => import('./pages/ProductDetails'));
+const Cart = lazy(() => import('./pages/Cart'));
+const Checkout = lazy(() => import('./pages/Checkout'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Promotions = lazy(() => import('./pages/Promotions'));
+const Blog = lazy(() => import('./pages/Blog'));
+const About = lazy(() => import('./pages/About'));
+const Contact = lazy(() => import('./pages/Contact'));
+const OrderHistory = lazy(() => import('./pages/OrderHistory'));
+const Account = lazy(() => import('./pages/Account'));
 
 // Pages publiques/client
-import SearchResults from './pages/SearchResults';
-import CategoryPage from './pages/CategoryPage';
-import BrandPage from './pages/BrandPage';
-import Nouveautes from './pages/Nouveautes';
-import OrderConfirmation from './pages/OrderConfirmation';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import Wishlist from './pages/Wishlist';
-import Notifications from './pages/Notifications';
-import FAQ from './pages/FAQ';
-import OrderTracking from './pages/OrderTracking';
-import ProductComparison from './pages/ProductComparison';
-import PageBebe from './pages/PageBebe';
-import PolitiqueConfidentialite from './pages/PolitiqueConfidentialite';
-import CGV from './pages/CGV';
-import NotFound from './pages/NotFound';
+const SearchResults = lazy(() => import('./pages/SearchResults'));
+const CategoryPage = lazy(() => import('./pages/CategoryPage'));
+const BrandPage = lazy(() => import('./pages/BrandPage'));
+const Nouveautes = lazy(() => import('./pages/Nouveautes'));
+const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const Wishlist = lazy(() => import('./pages/Wishlist'));
+const Notifications = lazy(() => import('./pages/Notifications'));
+const FAQ = lazy(() => import('./pages/FAQ'));
+const OrderTracking = lazy(() => import('./pages/OrderTracking'));
+const ProductComparison = lazy(() => import('./pages/ProductComparison'));
+const PageBebe = lazy(() => import('./pages/PageBebe'));
+const PolitiqueConfidentialite = lazy(() => import('./pages/PolitiqueConfidentialite'));
+const CGV = lazy(() => import('./pages/CGV'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Admin pages
-import AdminLayout from './components/AdminLayout';
-import AdminOverview from './pages/admin/AdminOverview';
-import AdminOrders from './pages/admin/AdminOrders';
-import AdminProducts from './pages/admin/AdminProducts';
-import AdminCategories from './pages/admin/AdminCategories';
-import AdminBrands from './pages/admin/AdminBrands';
-import AdminStocks from './pages/admin/AdminStocks';
-import AdminClients from './pages/admin/AdminClients';
-import AdminStaff from './pages/admin/AdminStaff';
-import AdminPromotions from './pages/admin/AdminPromotions';
-import AdminBanners from './pages/admin/AdminBanners';
-import AdminReviews from './pages/admin/AdminReviews';
-import AdminSubCategories from './pages/admin/AdminSubCategories';
-import AdminCoupons from './pages/admin/AdminCoupons';
-import AdminSuppliers from './pages/admin/AdminSuppliers';
-import AdminDeliveries from './pages/admin/AdminDeliveries';
-import AdminSettings from './pages/admin/AdminSettings';
-import AdminProfile from './pages/admin/AdminProfile';
-import AdminNotifications from './pages/admin/AdminNotifications';
-import AdminBlog from './pages/admin/AdminBlog';
-import AdminPartners from './pages/admin/AdminPartners';
+const AdminLayout = lazy(() => import('./components/AdminLayout'));
+const AdminOverview = lazy(() => import('./pages/admin/AdminOverview'));
+const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'));
+const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
+const AdminCategories = lazy(() => import('./pages/admin/AdminCategories'));
+const AdminBrands = lazy(() => import('./pages/admin/AdminBrands'));
+const AdminStocks = lazy(() => import('./pages/admin/AdminStocks'));
+const AdminClients = lazy(() => import('./pages/admin/AdminClients'));
+const AdminStaff = lazy(() => import('./pages/admin/AdminStaff'));
+const AdminPromotions = lazy(() => import('./pages/admin/AdminPromotions'));
+const AdminBanners = lazy(() => import('./pages/admin/AdminBanners'));
+const AdminReviews = lazy(() => import('./pages/admin/AdminReviews'));
+const AdminSubCategories = lazy(() => import('./pages/admin/AdminSubCategories'));
+const AdminCoupons = lazy(() => import('./pages/admin/AdminCoupons'));
+const AdminSuppliers = lazy(() => import('./pages/admin/AdminSuppliers'));
+const AdminDeliveries = lazy(() => import('./pages/admin/AdminDeliveries'));
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
+const AdminProfile = lazy(() => import('./pages/admin/AdminProfile'));
+const AdminNotifications = lazy(() => import('./pages/admin/AdminNotifications'));
+const AdminBlog = lazy(() => import('./pages/admin/AdminBlog'));
+const AdminPartners = lazy(() => import('./pages/admin/AdminPartners'));
 
 // Pharmacien pages
-import PharmacienLayout from './components/layout/PharmacienLayout';
-import PharmacienDashboard from './pages/pharmacien/PharmacienDashboard';
-import PharmacienScanOrder from './pages/pharmacien/PharmacienScanOrder';
-import PharmacienPrepareOrder from './pages/pharmacien/PharmacienPrepareOrder';
-import PharmacienOrders from './pages/pharmacien/PharmacienOrders';
-import PharmacienStock from './pages/pharmacien/PharmacienStock';
-import PharmacienNotifications from './pages/pharmacien/PharmacienNotifications';
-import PharmacienPrescriptions from './pages/pharmacien/PharmacienPrescriptions';
-import PharmacienProfile from './pages/pharmacien/PharmacienProfile';
+const PharmacienLayout = lazy(() => import('./components/layout/PharmacienLayout'));
+const PharmacienDashboard = lazy(() => import('./pages/pharmacien/PharmacienDashboard'));
+const PharmacienScanOrder = lazy(() => import('./pages/pharmacien/PharmacienScanOrder'));
+const PharmacienPrepareOrder = lazy(() => import('./pages/pharmacien/PharmacienPrepareOrder'));
+const PharmacienOrders = lazy(() => import('./pages/pharmacien/PharmacienOrders'));
+const PharmacienStock = lazy(() => import('./pages/pharmacien/PharmacienStock'));
+const PharmacienNotifications = lazy(() => import('./pages/pharmacien/PharmacienNotifications'));
+const PharmacienPrescriptions = lazy(() => import('./pages/pharmacien/PharmacienPrescriptions'));
+const PharmacienProfile = lazy(() => import('./pages/pharmacien/PharmacienProfile'));
 
 // Account sub-pages
-import Loyalty from './pages/account/Loyalty';
-import Subscriptions from './pages/account/Subscriptions';
+const Loyalty = lazy(() => import('./pages/account/Loyalty'));
+const Subscriptions = lazy(() => import('./pages/account/Subscriptions'));
 
 // Route Guard — clients connectés
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
-  if (loading) return <div className="text-center" style={{ padding: '80px' }}>Chargement...</div>;
-  return user ? children : <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} />;
+  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}><div style={{ textAlign: 'center' }}><div style={{ width: '40px', height: '40px', border: '4px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} /><p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Chargement...</p></div></div>;
+  if (!user) return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} />;
+  if (user.role === 'admin') return <Navigate to="/admin" replace />;
+  if (user.role === 'pharmacien' || user.role === 'employe') return <Navigate to="/pharmacien" replace />;
+  return children;
 };
 
 // Route Guard — Administrateurs
 const AdminRoute = ({ children }) => {
   const { user, isAdmin, loading } = useAuth();
-  if (loading) return <div className="text-center" style={{ padding: '80px' }}>Chargement...</div>;
+  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}><div style={{ textAlign: 'center' }}><div style={{ width: '40px', height: '40px', border: '4px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} /><p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Chargement...</p></div></div>;
   return user && isAdmin ? children : <Navigate to="/login?redirect=admin" />;
 };
 
 // Route Guard — Pharmaciens / Employés
 const PharmacienRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  if (loading) return <div className="text-center" style={{ padding: '80px' }}>Chargement...</div>;
+  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}><div style={{ textAlign: 'center' }}><div style={{ width: '40px', height: '40px', border: '4px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} /><p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Chargement...</p></div></div>;
   const isPharmacien = user && (user.role === 'pharmacien' || user.role === 'employe' || user.role === 'admin');
   return isPharmacien ? children : <Navigate to="/login?redirect=pharmacien" />;
 };
 
 // Layout conditionnel (header/footer masqués sur dashboards)
-const LayoutWrapper = ({ children }) => {
+const LayoutWrapper = React.memo(({ children }) => {
   const location = useLocation();
   const isDashboardRoute =
     location.pathname.startsWith('/admin') ||
@@ -134,7 +146,9 @@ const LayoutWrapper = ({ children }) => {
         </>
       )}
       <main style={{ minHeight: isDashboardRoute || isAuthRoute ? '100vh' : 'calc(100vh - 400px)' }}>
-        {children}
+        <Suspense fallback={<LoadingFallback />}>
+          {children}
+        </Suspense>
       </main>
       {!isDashboardRoute && !isAuthRoute && <Footer />}
       {!isDashboardRoute && !isAuthRoute && <BackToTop />}
@@ -142,7 +156,7 @@ const LayoutWrapper = ({ children }) => {
       {!isDashboardRoute && !isAuthRoute && <PWAInstallBanner />}
     </>
   );
-};
+});
 
 export default function App() {
   return (

@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import ProductCard from '../components/ProductCard';
+import { ProductDetailsSkeleton } from '../components/LoadingSkeleton';
 
 export default function ProductDetails() {
   const { slug } = useParams();
@@ -104,17 +105,7 @@ export default function ProductDetails() {
     }
   };
 
-  if (loading) return (
-    <div className="container text-center" style={{ 
-      padding: '100px', 
-      background: 'white',
-      borderRadius: 'var(--radius-lg)',
-      border: '1px solid var(--border-light)'
-    }}>
-      <div style={{ fontSize: '2rem', marginBottom: '16px' }}>⏳</div>
-      <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Chargement...</p>
-    </div>
-  );
+  if (loading) return <ProductDetailsSkeleton />;
   if (error || !product) return (
     <div className="container text-center" style={{ 
       padding: '100px', 

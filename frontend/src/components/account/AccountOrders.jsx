@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { Package, Loader2, Clock, CheckCircle2, Truck, XCircle } from 'lucide-react';
 
 export default function AccountOrders() {
   const [orders, setOrders] = useState([]);
@@ -39,11 +40,14 @@ export default function AccountOrders() {
 
   const getStatusStyle = (status) => {
     switch (status) {
-      case 'completed': return { bg: 'var(--success-light)', color: 'var(--success)', label: 'Livrée' };
-      case 'processing': return { bg: 'hsl(38, 80%, 92%)', color: 'hsl(38, 80%, 40%)', label: 'En cours' };
-      case 'pending': return { bg: 'hsl(210, 60%, 93%)', color: 'hsl(210, 60%, 45%)', label: 'En attente' };
-      case 'cancelled': return { bg: 'var(--danger-light)', color: 'var(--danger)', label: 'Annulée' };
-      default: return { bg: '#eee', color: '#666', label: status };
+      case 'completed':
+      case 'delivered': return { bg: 'var(--status-success-bg)', color: 'var(--status-success)', label: 'Livrée' };
+      case 'shipped': return { bg: 'var(--status-purple-bg)', color: 'var(--status-purple)', label: 'Expédiée' };
+      case 'preparing':
+      case 'processing': return { bg: 'var(--status-info-bg)', color: 'var(--status-info)', label: 'En cours de préparation' };
+      case 'pending': return { bg: 'var(--status-warning-bg)', color: 'var(--status-warning)', label: 'En attente' };
+      case 'cancelled': return { bg: 'var(--status-danger-bg)', color: 'var(--status-danger)', label: 'Annulée' };
+      default: return { bg: 'var(--bg-subtle)', color: 'var(--text-muted)', label: status };
     }
   };
 
@@ -60,7 +64,7 @@ export default function AccountOrders() {
           alignItems: 'center',
           gap: '12px'
         }}>
-          <span style={{ fontSize: '2.2rem' }}>📦</span>
+          <Package size={28} color="var(--primary)" />
           <span>Mes Commandes</span>
         </h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
@@ -77,7 +81,8 @@ export default function AccountOrders() {
           boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
           color: 'var(--text-muted)'
         }}>
-          <div style={{ fontSize: '4rem', marginBottom: '20px', animation: 'spin 2s linear infinite' }}>⏳</div>
+          <Loader2 size={40} style={{ color: 'var(--primary)', animation: 'spin 1s linear infinite', marginBottom: '16px' }} />
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           <p style={{ fontSize: '1rem', fontWeight: 600 }}>Chargement de vos commandes...</p>
         </div>
       ) : error ? (

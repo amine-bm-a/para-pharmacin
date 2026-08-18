@@ -9,13 +9,23 @@ axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/
 // Security: add CSRF-like protection via custom header
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
+// Initialize default Authorization header from localStorage on module load
+const initialToken = localStorage.getItem('token');
+if (initialToken) {
+  axios.defaults.headers.common['Authorization'] = `Bearer ${initialToken}`;
+}
+
 // Interceptor to handle token expiry (401) automatically
 axios.interceptors.response.use(
   res => res,
   err => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
+      const url = err.config?.url || '';
+      if (!url.includes('/login') && !url.includes('/register') && !url.includes('/verify-2fa')) {
+        localStorage.removeItem('token');
+        delete axios.defaults.headers.common['Authorization'];
+        window.dispatchEvent(new Event('auth:unauthorized'));
+      }
     }
     return Promise.reject(err);
   }
@@ -26,6 +36,16 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Sync token clearing when 401 occurs anywhere
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setToken(null);
+      setUser(null);
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, []);
 
   // Keep axios header in sync with token
   useEffect(() => {
@@ -41,6 +61,7 @@ export const AuthProvider = ({ children }) => {
     const fetchProfile = async () => {
       if (!token) { setLoading(false); return; }
       try {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         const res = await axios.get('/profile');
         if (res.data.success) setUser(res.data.user);
         else handleLogout();
@@ -69,9 +90,10 @@ export const AuthProvider = ({ children }) => {
         }
         const { access_token, user: userData } = res.data;
         localStorage.setItem('token', access_token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
         setToken(access_token);
         setUser(userData);
-        return { success: true };
+        return { success: true, user: userData };
       }
     } catch (err) {
       const msg = err.response?.data?.message || 'Erreur de connexion. Veuillez réessayer.';
@@ -89,9 +111,10 @@ export const AuthProvider = ({ children }) => {
       if (res.data.success) {
         const { access_token, user: userData } = res.data;
         localStorage.setItem('token', access_token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
         setToken(access_token);
         setUser(userData);
-        return { success: true };
+        return { success: true, user: userData };
       }
     } catch (err) {
       const msg = err.response?.data?.message || 'Code invalide ou expiré.';
@@ -111,6 +134,7 @@ export const AuthProvider = ({ children }) => {
       if (res.data.success) {
         const { access_token, user: userData } = res.data;
         localStorage.setItem('token', access_token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
         setToken(access_token);
         setUser(userData);
         return { success: true };
@@ -132,17 +156,27 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setUser(null);
     delete axios.defaults.headers.common['Authorization'];
+    if ('caches' in window) {
+      caches.keys().then((names) => {
+        names.forEach((name) => caches.delete(name));
+      });
+    }
   };
 
   const logout = async () => {
-    try { await axios.post('/logout'); } catch { /* ignore logout errors */ }
-    finally { handleLogout(); }
+    handleLogout();
+    try {
+      await axios.post('/logout');
+    } catch {
+      /* ignore server logout errors */
+    }
   };
 
   const isAdmin = user?.role === 'admin';
+  const isPharmacien = user && (user?.role === 'pharmacien' || user?.role === 'employe' || user?.role === 'admin');
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, error, login, loginWith2fa, register, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, token, loading, error, login, loginWith2fa, register, logout, isAdmin, isPharmacien }}>
       {children}
     </AuthContext.Provider>
   );

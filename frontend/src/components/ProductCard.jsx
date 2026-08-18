@@ -2,10 +2,14 @@ import React, { useState, useCallback, memo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useWishlist } from '../context/WishlistContext';
+import { ShoppingCart, Heart, Flame } from 'lucide-react';
+import { BACKEND_BASE_URL } from '../utils/textUtils';
 
 const ProductCard = ({ product, onWishlistToggle }) => {
   const { addToCart } = useCart();
   const { user } = useAuth();
+  const { isInWishlist, toggleWishlist } = useWishlist();
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [addedFlash, setAddedFlash] = useState(false);
@@ -18,15 +22,7 @@ const ProductCard = ({ product, onWishlistToggle }) => {
     : 0;
   const isLowStock = product.stock > 0 && product.stock <= 5;
 
-  const [isLiked, setIsLiked] = useState(() => {
-    if (!user?.id) return false;
-    try {
-      const wishlist = JSON.parse(localStorage.getItem(`wishlist_${user.id}`) || '[]');
-      return wishlist.some(item => item.id === product.id);
-    } catch (e) {
-      return false;
-    }
-  });
+  const isLiked = isInWishlist(product.id);
 
   /* ── Ripple helper ── */
   const createRipple = useCallback((e) => {
@@ -55,21 +51,9 @@ const ProductCard = ({ product, onWishlistToggle }) => {
     }
     setWishlistAnim(true);
     setTimeout(() => setWishlistAnim(false), 700);
-    try {
-      const wishlist = JSON.parse(localStorage.getItem(`wishlist_${user.id}`) || '[]');
-      let updated;
-      if (isLiked) {
-        updated = wishlist.filter(item => item.id !== product.id);
-      } else {
-        updated = [...wishlist, product];
-      }
-      localStorage.setItem(`wishlist_${user.id}`, JSON.stringify(updated));
-      setIsLiked(!isLiked);
-      if (onWishlistToggle) onWishlistToggle(product, !isLiked);
-    } catch (err) {
-      console.error(err);
-    }
-  }, [user, isLiked, product, onWishlistToggle]);
+    const newLikedState = toggleWishlist(product);
+    if (onWishlistToggle) onWishlistToggle(product, newLikedState);
+  }, [user, product, toggleWishlist, onWishlistToggle]);
 
   const handleAddToCart = useCallback((e) => {
     e.preventDefault();
@@ -104,8 +88,7 @@ const ProductCard = ({ product, onWishlistToggle }) => {
   const resolveImageUrl = (url) => {
     if (!url) return 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&q=80';
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
-    const backendBase = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api').replace(/\/api$/, '');
-    return `${backendBase}${url.startsWith('/') ? '' : '/'}${url}`;
+    return `${BACKEND_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
   };
 
   return (
@@ -116,15 +99,15 @@ const ProductCard = ({ product, onWishlistToggle }) => {
       style={{
         background: 'var(--bg-card)',
         border: isHovered ? '2px solid var(--primary-glow)' : '2px solid var(--border-light)',
-        borderRadius: '20px',
+        borderRadius: 'var(--radius-md)',
         overflow: 'hidden',
-        transition: 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
+        transition: 'var(--transition)',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
         boxShadow: isHovered
-          ? '0 20px 50px rgba(10,168,79,0.18), 0 8px 20px rgba(0,0,0,0.08)'
-          : '0 4px 12px rgba(0,0,0,0.05)',
+          ? 'var(--shadow-hover), var(--shadow-md)'
+          : 'var(--shadow-sm)',
         transform: isHovered ? 'translateY(-8px) scale(1.01)' : 'translateY(0) scale(1)',
       }}
     >
@@ -135,14 +118,14 @@ const ProductCard = ({ product, onWishlistToggle }) => {
             position: 'absolute',
             top: '12px',
             left: '12px',
-            background: 'linear-gradient(135deg, #FF6B6B, #EE5A5A)',
+            background: 'linear-gradient(135deg, var(--danger), #EE5A5A)',
             color: 'white',
             padding: '6px 14px',
-            borderRadius: '12px',
-            fontSize: '0.75rem',
-            fontWeight: 800,
+            borderRadius: 'var(--radius-sm)',
+            fontSize: 'var(--fs-xs)',
+            fontWeight: 'var(--fw-black)',
             zIndex: 3,
-            boxShadow: '0 4px 12px rgba(255,107,107,0.5)',
+            boxShadow: '0 4px 12px rgba(220,53,69,0.4)',
             letterSpacing: '0.5px',
             animation: 'badgePulse 2s ease-in-out infinite',
           }}
@@ -161,14 +144,18 @@ const ProductCard = ({ product, onWishlistToggle }) => {
             background: 'linear-gradient(135deg, #FF9800, #F57C00)',
             color: 'white',
             padding: '4px 10px',
-            borderRadius: '8px',
-            fontSize: '0.68rem',
-            fontWeight: 700,
+            borderRadius: 'var(--radius-sm)',
+            fontSize: 'var(--fs-xs)',
+            fontWeight: 'var(--fw-bold)',
             zIndex: 3,
             boxShadow: '0 2px 8px rgba(255,152,0,0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
           }}
         >
-          🔥 Plus que {product.stock}!
+          <Flame size={12} color="white" />
+          Plus que {product.stock}!
         </span>
       )}
 
@@ -182,22 +169,26 @@ const ProductCard = ({ product, onWishlistToggle }) => {
           width: '40px',
           height: '40px',
           borderRadius: '50%',
-          background: isLiked ? 'rgba(255,107,107,0.12)' : 'rgba(255,255,255,0.95)',
-          border: isLiked ? '2px solid rgba(255,107,107,0.4)' : '2px solid var(--border-light)',
+          background: isLiked ? 'rgba(220,53,69,0.1)' : 'rgba(255,255,255,0.95)',
+          border: isLiked ? '2px solid rgba(220,53,69,0.35)' : '2px solid var(--border-light)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '1.1rem',
           cursor: 'pointer',
           zIndex: 3,
-          transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          transition: 'var(--transition-spring)',
           opacity: isHovered || isLiked ? 1 : 0,
-          transform: `${isHovered || isLiked ? 'scale(1)' : 'scale(0.7) translateY(8px)'} ${wishlistAnim ? '' : ''}`,
-          boxShadow: isHovered || isLiked ? '0 6px 20px rgba(0,0,0,0.15)' : 'none',
+          transform: `${isHovered || isLiked ? 'scale(1)' : 'scale(0.7) translateY(8px)'}`,
+          boxShadow: isHovered || isLiked ? 'var(--shadow-md)' : 'none',
           animation: wishlistAnim ? 'heartBeat 0.7s ease' : 'none',
         }}
       >
-        {isLiked ? '❤️' : '🤍'}
+        <Heart
+          size={16}
+          color={isLiked ? 'var(--danger)' : 'var(--text-muted)'}
+          fill={isLiked ? 'var(--danger)' : 'none'}
+          strokeWidth={2}
+        />
       </button>
 
       {/* Product image */}
@@ -290,15 +281,15 @@ const ProductCard = ({ product, onWishlistToggle }) => {
           <div>
             {product.discount_price ? (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '1.15rem', fontWeight: 900, color: '#FF6B6B', lineHeight: 1 }}>
+                <span style={{ fontSize: '1.15rem', fontWeight: 'var(--fw-black)', color: 'var(--danger)', lineHeight: 1 }}>
                   {parseFloat(product.discount_price).toFixed(2)} MAD
                 </span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 600 }}>
+                <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 'var(--fw-semibold)' }}>
                   {parseFloat(product.price).toFixed(2)} MAD
                 </span>
               </div>
             ) : (
-              <span style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--primary)', lineHeight: 1 }}>
+              <span style={{ fontSize: '1.15rem', fontWeight: 'var(--fw-black)', color: 'var(--primary)', lineHeight: 1 }}>
                 {parseFloat(product.price).toFixed(2)} MAD
               </span>
             )}
@@ -316,14 +307,14 @@ const ProductCard = ({ product, onWishlistToggle }) => {
                 color: 'white',
                 border: 'none',
                 padding: '10px 16px',
-                borderRadius: '12px',
-                fontSize: '0.85rem',
-                fontWeight: 700,
+                borderRadius: 'var(--radius-sm)',
+                fontSize: 'var(--fs-xs)',
+                fontWeight: 'var(--fw-bold)',
                 cursor: 'pointer',
-                transition: 'all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                transition: 'var(--transition-spring)',
                 boxShadow: addedFlash
-                  ? '0 0 0 4px rgba(34,197,94,0.3), 0 6px 20px rgba(16,130,89,0.4)'
-                  : '0 4px 12px rgba(16,130,89,0.3)',
+                  ? '0 0 0 4px rgba(34,197,94,0.3), var(--shadow-hover)'
+                  : 'var(--shadow-sm)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
@@ -331,17 +322,19 @@ const ProductCard = ({ product, onWishlistToggle }) => {
                 animation: addedFlash ? 'pulseGlow 0.6s ease' : 'none',
               }}
             >
-              <span>{addedFlash ? '✓' : '🛒'}</span>
+              {addedFlash
+                ? <span style={{ fontWeight: 'var(--fw-bold)' }}>✓</span>
+                : <ShoppingCart size={14} color="white" strokeWidth={2} />}
               <span>{addedFlash ? 'Ajouté !' : 'Ajouter'}</span>
             </button>
           ) : (
             <span style={{
-              color: '#FF6B6B',
-              fontSize: '0.75rem',
-              fontWeight: 800,
+              color: 'var(--danger)',
+              fontSize: 'var(--fs-xs)',
+              fontWeight: 'var(--fw-black)',
               padding: '8px 12px',
-              background: 'rgba(255,107,107,0.1)',
-              borderRadius: '10px'
+              background: 'var(--danger-light)',
+              borderRadius: 'var(--radius-sm)'
             }}>
               Rupture
             </span>

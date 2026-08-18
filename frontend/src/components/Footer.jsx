@@ -4,7 +4,7 @@ import logo from '../assets/logo.png';
 import { useTheme } from '../context/ThemeContext';
 import {
   MapPin, Phone, Mail, Clock, Facebook, Instagram,
-  Truck, ShieldCheck, User, ShoppingBag, HelpCircle, BadgeCheck, Lock
+  Truck, ShieldCheck, User, ShoppingBag, HelpCircle, Lock
 } from 'lucide-react';
 
 export default function Footer() {
@@ -16,9 +16,7 @@ export default function Footer() {
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : '#5D6A85';
   const border = isDark ? 'rgba(255,255,255,0.08)' : '#f3f4f6';
   const borderDarker = isDark ? 'rgba(255,255,255,0.15)' : '#e5e7eb';
-  const trustBg = isDark ? 'rgba(255,255,255,0.02)' : '#f9fafb';
   const green = '#166534'; // Pro green
-  const greenLight = isDark ? 'rgba(22,101,52,0.2)' : '#e8f5ed';
 
   const socialIconStyle = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -30,13 +28,12 @@ export default function Footer() {
   };
 
   const listContainerStyle = {
-    display: 'flex', flexDirection: 'column', gap: '0'
+    display: 'flex', flexDirection: 'column', gap: '8px'
   };
 
   const listItemStyle = {
-    display: 'flex', alignItems: 'center', gap: '16px',
-    padding: '16px 0',
-    borderBottom: `1px solid ${border}`,
+    display: 'flex', alignItems: 'center', gap: '12px',
+    padding: '6px 0',
     color: textMuted,
     fontSize: '0.9rem',
     textDecoration: 'none',
@@ -54,10 +51,20 @@ export default function Footer() {
     color: green,
     textTransform: 'uppercase',
     letterSpacing: '1px',
-    marginBottom: '12px',
+    marginBottom: '16px',
     display: 'flex',
     flexDirection: 'column',
     gap: '8px'
+  };
+
+  const subSectionTitleStyle = {
+    fontSize: '0.85rem',
+    fontWeight: 700,
+    color: textMain,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    marginTop: '16px',
+    marginBottom: '8px'
   };
 
   const titleUnderlineStyle = {
@@ -90,19 +97,8 @@ export default function Footer() {
       <style>{`
         .footer-main-grid {
           display: grid;
-          grid-template-columns: 1.2fr 1fr 1fr 1.2fr;
-          gap: 50px;
-        }
-        .footer-trust-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 30px;
-          align-items: center;
-        }
-        .trust-item {
-          display: flex;
-          align-items: center;
-          gap: 16px;
+          grid-template-columns: 1.2fr 1.2fr 1.2fr;
+          gap: 60px;
         }
         .footer-bottom-grid {
           display: flex;
@@ -111,23 +107,10 @@ export default function Footer() {
           flex-wrap: wrap;
           gap: 20px;
         }
-        @media (min-width: 992px) {
-          .trust-item:not(:first-child) {
-            border-left: 1px solid ${borderDarker};
-            padding-left: 30px;
-          }
-        }
         @media (max-width: 992px) {
           .footer-main-grid {
             grid-template-columns: 1fr 1fr;
-          }
-          .footer-trust-grid {
-            grid-template-columns: 1fr;
-            gap: 20px;
-          }
-          .trust-item {
-            justify-content: center;
-            text-align: center;
+            gap: 40px;
           }
           .footer-bottom-grid {
             justify-content: center;
@@ -137,7 +120,7 @@ export default function Footer() {
         @media (max-width: 600px) {
           .footer-main-grid {
             grid-template-columns: 1fr;
-            gap: 40px;
+            gap: 30px;
           }
         }
       `}</style>
@@ -148,7 +131,7 @@ export default function Footer() {
           
           {/* Col 1 – Brand */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-            <img src={logo} alt="Parapharmacie Ben Moussa" style={{ height: '90px', width: 'auto', objectFit: 'contain', marginBottom: '16px' }} />
+            <img src={logo} alt="Parapharmacie Ben Moussa" style={{ height: '80px', width: 'auto', objectFit: 'contain', marginBottom: '16px' }} />
             <div style={{ fontSize: '1rem', fontWeight: 700, color: textMain, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>Parapharmacie</div>
             <div style={{ fontSize: '1.4rem', fontWeight: 800, color: green, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px' }}>Ben Moussa</div>
             <p style={{ fontSize: '0.9rem', lineHeight: 1.6, color: textMuted, marginBottom: '24px', maxWidth: '240px' }}>
@@ -171,48 +154,40 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Col 2 – Liens Utiles */}
+          {/* Col 2 – Liens Utiles & Mon Compte (Merged for balance) */}
           <div>
             <div style={sectionTitleStyle}>
-              LIENS UTILES
+              NAVIGATION
               <div style={titleUnderlineStyle} />
             </div>
+            
+            {/* Subsection 1 */}
+            <div style={subSectionTitleStyle}>Liens Utiles</div>
             <div style={listContainerStyle}>
               <Link to="/livraison" style={listItemStyle} onMouseEnter={e => e.currentTarget.style.color = green} onMouseLeave={e => e.currentTarget.style.color = textMuted}>
-                <Truck size={18} style={listIconStyle} /> Livraison & Retour
+                <Truck size={16} style={listIconStyle} /> Livraison &amp; Retour
               </Link>
               <Link to="/faq" style={listItemStyle} onMouseEnter={e => e.currentTarget.style.color = green} onMouseLeave={e => e.currentTarget.style.color = textMuted}>
-                <HelpCircle size={18} style={listIconStyle} /> FAQ
+                <HelpCircle size={16} style={listIconStyle} /> FAQ
               </Link>
               <Link to="/contact" style={listItemStyle} onMouseEnter={e => e.currentTarget.style.color = green} onMouseLeave={e => e.currentTarget.style.color = textMuted}>
-                <Mail size={18} style={listIconStyle} /> Contact
-              </Link>
-              <Link to="/mentions-legales" style={{...listItemStyle, borderBottom: 'none'}} onMouseEnter={e => e.currentTarget.style.color = green} onMouseLeave={e => e.currentTarget.style.color = textMuted}>
-                <ShieldCheck size={18} style={listIconStyle} /> Mentions légales
+                <Mail size={16} style={listIconStyle} /> Contact
               </Link>
             </div>
-          </div>
 
-          {/* Col 3 – Mon Compte */}
-          <div>
-            <div style={sectionTitleStyle}>
-              MON COMPTE
-              <div style={titleUnderlineStyle} />
-            </div>
+            {/* Subsection 2 */}
+            <div style={subSectionTitleStyle}>Mon Compte</div>
             <div style={listContainerStyle}>
               <Link to="/mon-compte" style={listItemStyle} onMouseEnter={e => e.currentTarget.style.color = green} onMouseLeave={e => e.currentTarget.style.color = textMuted}>
-                <User size={18} style={listIconStyle} /> Mon compte
+                <User size={16} style={listIconStyle} /> Mon compte
               </Link>
               <Link to="/mes-commandes" style={listItemStyle} onMouseEnter={e => e.currentTarget.style.color = green} onMouseLeave={e => e.currentTarget.style.color = textMuted}>
-                <ShoppingBag size={18} style={listIconStyle} /> Mes commandes
-              </Link>
-              <Link to="/mes-adresses" style={{...listItemStyle, borderBottom: 'none'}} onMouseEnter={e => e.currentTarget.style.color = green} onMouseLeave={e => e.currentTarget.style.color = textMuted}>
-                <MapPin size={18} style={listIconStyle} /> Mes adresses
+                <ShoppingBag size={16} style={listIconStyle} /> Mes commandes
               </Link>
             </div>
           </div>
 
-          {/* Col 4 – Contact */}
+          {/* Col 3 – Contact */}
           <div>
             <div style={sectionTitleStyle}>
               CONTACT
@@ -220,80 +195,53 @@ export default function Footer() {
             </div>
             <div style={listContainerStyle}>
               <div style={listItemStyle}>
-                <MapPin size={18} style={listIconStyle} /> 
+                <MapPin size={16} style={listIconStyle} /> 
                 <span style={{lineHeight: 1.4}}>Rue Abbes, Guéliz<br/>Marrakech, Maroc</span>
               </div>
               <div style={listItemStyle}>
-                <Phone size={18} style={listIconStyle} /> +212 5 24 42 38 23
+                <Phone size={16} style={listIconStyle} /> +212 5 24 42 38 23
               </div>
               <div style={listItemStyle}>
-                <Mail size={18} style={listIconStyle} /> contact@parabenmoussa.ma
+                <Mail size={16} style={listIconStyle} /> contact@parabenmoussa.ma
               </div>
-              <div style={{...listItemStyle, borderBottom: 'none'}}>
-                <Clock size={18} style={listIconStyle} /> Lun - Sam : 09h00 - 20h00
+              <div style={listItemStyle}>
+                <Clock size={16} style={listIconStyle} /> Lun - Sam : 09h00 - 20h00
               </div>
             </div>
           </div>
 
-        </div>
-      </div>
-
-      {/* ── Trust Banner (Light Gray) ── */}
-      <div style={{ background: trustBg, borderTop: `1px solid ${borderDarker}`, borderBottom: `1px solid ${borderDarker}` }}>
-        <div className="container" style={{ padding: '30px 20px' }}>
-          <div className="footer-trust-grid">
-            
-            <div className="trust-item">
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: greenLight, display: 'flex', alignItems: 'center', justifyContent: 'center', color: green, flexShrink: 0 }}>
-                <Truck size={24} />
-              </div>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 700, color: textMain, fontSize: '0.95rem', marginBottom: '2px' }}>Livraison rapide</div>
-                <div style={{ color: textMuted, fontSize: '0.85rem' }}>Partout au Maroc en 24h - 48h</div>
-              </div>
-            </div>
-
-            <div className="trust-item">
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: greenLight, display: 'flex', alignItems: 'center', justifyContent: 'center', color: green, flexShrink: 0 }}>
-                <Lock size={24} />
-              </div>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 700, color: textMain, fontSize: '0.95rem', marginBottom: '2px' }}>Paiement sécurisé</div>
-                <div style={{ color: textMuted, fontSize: '0.85rem' }}>100% sécurisé et crypté</div>
-              </div>
-            </div>
-
-            <div className="trust-item">
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: greenLight, display: 'flex', alignItems: 'center', justifyContent: 'center', color: green, flexShrink: 0 }}>
-                <BadgeCheck size={24} />
-              </div>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 700, color: textMain, fontSize: '0.95rem', marginBottom: '2px' }}>Produits authentiques</div>
-                <div style={{ color: textMuted, fontSize: '0.85rem' }}>Sélectionnés avec soin</div>
-              </div>
-            </div>
-
-          </div>
         </div>
       </div>
 
       {/* ── Footer Bottom ── */}
-      <div style={{ padding: '24px 0' }}>
+      <div style={{ padding: '24px 0', borderTop: `1px solid ${border}` }}>
         <div className="container footer-bottom-grid">
           <div style={{ color: textMuted, fontSize: '0.85rem', lineHeight: 1.6 }}>
             © {new Date().getFullYear()} Parapharmacie Ben Moussa.<br/>
             Tous droits réservés.
           </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            {/* Fake Payment Icons */}
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <div style={{ border: `1px solid ${borderDarker}`, borderRadius: '4px', padding: '4px 8px', fontSize: '10px', fontWeight: 800, color: '#1434CB', background: isDark ? '#fff' : 'transparent' }}>VISA</div>
-              <div style={{ border: `1px solid ${borderDarker}`, borderRadius: '4px', padding: '4px 8px', display: 'flex', alignItems: 'center', background: isDark ? '#fff' : 'transparent' }}>
-                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#EB001B' }}></div>
-                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#F79E1B', marginLeft: '-4px', mixBlendMode: 'multiply' }}></div>
-              </div>
-              <div style={{ border: `1px solid ${borderDarker}`, borderRadius: '4px', padding: '4px 8px', fontSize: '10px', fontWeight: 800, color: '#0AA84F', background: isDark ? '#fff' : 'transparent' }}>CMI</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {/* Real SVG Payment Logos */}
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              {/* VISA */}
+              <svg width="38" height="24" viewBox="0 0 24 15" fill="none" style={{ filter: 'grayscale(0.1)' }}>
+                <rect width="24" height="15" rx="2" fill="#1434CB"/>
+                <path d="M4 11l.8-4.8H6L5.2 11H4zm5-4.8l-1.3 3.3-.2-.8-.4-1.8c-.1-.4-.3-.7-.7-.7H5.2l.1.3c.4.1.8.3 1 .6l.9 3.9h1.9l2.7-4.8H9zm4.2 2.8c0-.6-.4-.9-1-.9H11v1.8h1.2c.6 0 1-.3 1-.9zm.4-1.8H11v1h2c.5 0 .8-.2.8-.7s-.3-.3-.8-.3zm3.5 1.5l.3-1.6.4 1.6h-.7zm1.1 2.3l-.8-4.8H16l-2 4.8h1.5l.3-.8h1.8l.2.8h1.6z" fill="#FFF"/>
+              </svg>
+
+              {/* Mastercard */}
+              <svg width="38" height="24" viewBox="0 0 24 15" fill="none">
+                <rect width="24" height="15" rx="2" fill="#1e1e24"/>
+                <circle cx="9.5" cy="7.5" r="4.5" fill="#EB001B"/>
+                <circle cx="14.5" cy="7.5" r="4.5" fill="#F79E1B" fillOpacity="0.85"/>
+              </svg>
+
+              {/* CMI (Centre Monétique Interbancaire) logo */}
+              <svg width="38" height="24" viewBox="0 0 24 15" fill="none">
+                <rect width="24" height="15" rx="2" fill="#00A854"/>
+                <path d="M5 4.5h3.5v2H5zm0 4h3.5v2H5zm5-4h3.5v2H10zm0 4h3.5v2H10zm5-4h4v6h-4z" fill="#FFF"/>
+              </svg>
             </div>
             
             <div style={{ width: '1px', height: '24px', background: borderDarker }}></div>

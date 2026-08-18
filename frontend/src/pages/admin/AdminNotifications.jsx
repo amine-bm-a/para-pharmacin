@@ -7,6 +7,7 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useUserNotif } from '../../context/UserNotifContext';
 import { Bell, CheckCheck, Trash2, Package, User, Info, RefreshCw } from 'lucide-react';
+import { formatBold, timeAgo } from '../../utils/textUtils';
 
 const typeConfig = {
   order:  { icon: <Package size={18} />,     color: '#3b82f6', bg: 'rgba(59,130,246,0.1)',  label: 'Commande' },
@@ -14,20 +15,6 @@ const typeConfig = {
   info:   { icon: <Info size={18} />,        color: '#f59e0b', bg: 'rgba(245,158,11,0.1)',  label: 'Info' },
   default:{ icon: <Bell size={18} />,        color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)',  label: 'Notification' },
 };
-
-function formatBold(text) {
-  return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-}
-
-function timeAgo(dateStr) {
-  const now = new Date();
-  const date = new Date(dateStr);
-  const diff = Math.floor((now - date) / 1000);
-  if (diff < 60) return 'À l\'instant';
-  if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
-  if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)}h`;
-  return `Il y a ${Math.floor(diff / 86400)} jour(s)`;
-}
 
 export default function AdminNotifications() {
   const { notifications, loading, fetchNotifications, markAsRead, markAllAsRead, deleteNotif, unreadCount } = useUserNotif();

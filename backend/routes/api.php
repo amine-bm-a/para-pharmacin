@@ -45,7 +45,7 @@ Route::get('/brands', [BrandController::class, 'index']);
 Route::get('/products/search/autocomplete', [ProductController::class, 'autocomplete']);
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{slug}', [ProductController::class, 'show']);
-Route::post('/coupons/validate', [AdminCouponController::class, 'validate']);
+Route::post('/coupons/validate', [AdminCouponController::class, 'validate'])->middleware('throttle:15,1');
 
 // New Homepage CMS Public Routes
 Route::get('/banners', [AdminBannerController::class, 'publicIndex']);
@@ -71,6 +71,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders/{id}', [OrderController::class, 'show']);
     Route::get('/orders/{id}/prescription', [OrderController::class, 'downloadPrescription']);
     Route::get('/orders/{id}/invoice', [OrderController::class, 'downloadInvoice']);
+
+    // Client Prescriptions
+    Route::get('/prescriptions', [PrescriptionController::class, 'index']);
+    Route::post('/prescriptions', [PrescriptionController::class, 'store']);
+    Route::get('/prescriptions/{id}/download', [PrescriptionController::class, 'download']);
 
     // Product Review
     Route::post('/products/{productId}/reviews', [ProductController::class, 'storeReview']);
@@ -203,6 +208,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('pharmacien')->middleware('pharmacien')->group(function () {
         Route::get('/dashboard', [PharmacienController::class, 'dashboard']);
         Route::get('/orders', [PharmacienController::class, 'listOrders']);
+        Route::put('/orders/{id}', [PharmacienController::class, 'updateOrderStatus']);
         Route::post('/scan', [PharmacienController::class, 'scanOrder']);
         Route::put('/prepare/{id}', [PharmacienController::class, 'prepareOrder']);
         Route::get('/stock', [PharmacienController::class, 'listStock']);

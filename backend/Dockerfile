@@ -1,7 +1,8 @@
 
 FROM php:8.2-apache
- 
-# 1. Update w install les dépendances système f nafs RUN (bach ma-y-w9a3ch 404 cache)
+
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update --fix-missing && apt-get install -y --no-install-recommends \
     libpng-dev \
     libjpeg-dev \
@@ -47,7 +48,9 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
  
-EXPOSE 80
+# Railway exposes on $PORT, default 80
+ENV PORT=80
+EXPOSE ${PORT}
  
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["apache2-foreground"]

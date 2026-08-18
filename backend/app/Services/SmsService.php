@@ -12,7 +12,7 @@ class SmsService
      */
     public static function sendSms(string $to, string $message): bool
     {
-        $driver = env('SMS_DRIVER', 'log');
+        $driver = config('services.sms.driver');
 
         if ($driver === 'twilio') {
             return self::sendTwilioSms($to, $message);
@@ -36,12 +36,12 @@ class SmsService
      */
     public static function sendWhatsApp(string $to, string $message): bool
     {
-        $driver = env('SMS_DRIVER', 'log');
+        $driver = config('services.sms.driver');
 
         if ($driver === 'twilio_whatsapp' || $driver === 'twilio') {
-            $sid = env('TWILIO_SID');
-            $token = env('TWILIO_AUTH_TOKEN');
-            $from = env('TWILIO_WHATSAPP_FROM', env('TWILIO_FROM'));
+            $sid = config('services.sms.twilio.sid');
+            $token = config('services.sms.twilio.auth_token');
+            $from = config('services.sms.twilio.whatsapp_from') ?? config('services.sms.twilio.from');
 
             if (! $sid || ! $token || ! $from) {
                 Log::error('Twilio WhatsApp: Missing credentials in .env');
@@ -91,9 +91,9 @@ class SmsService
      */
     private static function sendTwilioSms(string $to, string $message): bool
     {
-        $sid = env('TWILIO_SID');
-        $token = env('TWILIO_AUTH_TOKEN');
-        $from = env('TWILIO_FROM');
+        $sid = config('services.sms.twilio.sid');
+        $token = config('services.sms.twilio.auth_token');
+        $from = config('services.sms.twilio.from');
 
         if (! $sid || ! $token || ! $from) {
             Log::error('Twilio SMS: Missing configuration credentials.');

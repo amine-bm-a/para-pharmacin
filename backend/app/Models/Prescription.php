@@ -11,9 +11,11 @@ class Prescription extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'order_id',
         'product_id',
         'fichier',
+        'file_name',
         'statut',
         'commentaire_pharmacien',
         'validated_by',
@@ -23,6 +25,11 @@ class Prescription extends Model
     protected $casts = [
         'date' => 'datetime',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function order(): BelongsTo
     {

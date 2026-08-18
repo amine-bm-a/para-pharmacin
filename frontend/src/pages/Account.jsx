@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -6,13 +6,14 @@ import { useWishlist } from '../context/WishlistContext';
 import { useUserNotif } from '../context/UserNotifContext';
 import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
+import { BACKEND_BASE_URL } from '../utils/textUtils';
 import {
   User, ShoppingBag, Heart, FileText, Activity, MapPin, Award,
   Bell, Tag, HelpCircle, Settings, LogOut, Search, ShoppingCart,
   Menu, X, Upload,
   ExternalLink, MessageSquare, Phone, ChevronDown, ChevronUp, Copy,
   Check, Key, Eye, EyeOff, Sparkles, Plus, Trash, Sun, Moon,
-  Star, MessageCircle, Send, RefreshCw
+  Star, MessageCircle, Send, RefreshCw, Hand
 } from 'lucide-react';
 import Loyalty from './account/Loyalty';
 import Subscriptions from './account/Subscriptions';
@@ -30,10 +31,18 @@ const FALLBACK_PRODUCTS = [
 export default function Account() {
   const { user, logout } = useAuth();
   const { addToCart, getCartCount } = useCart();
-  const { wishlist } = useWishlist() || { wishlist: [] };
+  const { wishlist, removeFromWishlist } = useWishlist();
   const { unreadCount, notifications, loading: notifLoading, fetchNotifications, markAsRead, markAllAsRead, deleteNotif } = useUserNotif() || {};
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      navigate('/admin', { replace: true });
+    } else if (user?.role === 'pharmacien' || user?.role === 'employe') {
+      navigate('/pharmacien', { replace: true });
+    }
+  }, [user, navigate]);
 
   // Sidebar controls
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -92,6 +101,17 @@ export default function Account() {
   });
   const [showPassword, setShowPassword] = useState(false);
 
+  useEffect(() => {
+    if (user) {
+      setProfileForm({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        two_factor_enabled: !!user.two_factor_enabled
+      });
+    }
+  }, [user]);
+
   // Address states
   const [addresses, setAddresses] = useState([]);
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -147,15 +167,49 @@ export default function Account() {
       // Load addresses
       const savedAddrs = localStorage.getItem(`addresses_${user.id}`);
       setAddresses(savedAddrs ? JSON.parse(savedAddrs) : []);
-
-      // Load mock prescriptions
-      const savedPrescs = localStorage.getItem(`prescriptions_${user.id}`);
-      setPrescriptions(savedPrescs ? JSON.parse(savedPrescs) : [
-        { id: 201, date: '10/07/2026', fileName: 'ordonnance_juillet.pdf', status: 'approved' },
-        { id: 202, date: '28/06/2026', fileName: 'ordonnance_skincare.png', status: 'approved' }
-      ]);
     }
   }, [user]);
+
+  // Fetch real prescriptions from API
+  const fetchPrescriptions = useCallback(async () => {
+    if (!user) return;
+    try {
+      const res = await axios.get('/prescriptions');
+      if (res.data.success) {
+        setPrescriptions(res.data.prescriptions || []);
+      }
+    } catch (err) {
+      console.error('Error loading prescriptions:', err);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchPrescriptions();
+    }
+  }, [user, fetchPrescriptions]);
+
+  const handlePrescriptionUpload = async (e) => {
+    e.preventDefault();
+    if (!prescFile) return;
+    setPrescUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('prescription_file', prescFile);
+      const res = await axios.post('/prescriptions', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (res.data.success) {
+        notifSuccess('Ordonnance envoyée avec succès !');
+        setPrescFile(null);
+        fetchPrescriptions();
+      }
+    } catch (err) {
+      notifError(err.response?.data?.message || "Erreur lors de l'envoi de l'ordonnance.");
+    } finally {
+      setPrescUploading(false);
+    }
+  };
 
   // Handle updates
   const handleSaveHealthProfile = async (e) => {
@@ -250,26 +304,7 @@ export default function Account() {
     notifSuccess('Adresse supprimée.');
   };
 
-  // Prescription upload logic
-  const handlePrescriptionUpload = (e) => {
-    e.preventDefault();
-    if (!prescFile) return;
-    setPrescUploading(true);
-    setTimeout(() => {
-      const newPresc = {
-        id: Date.now(),
-        date: new Date().toLocaleDateString('fr-FR'),
-        fileName: prescFile.name,
-        status: 'pending'
-      };
-      const list = [newPresc, ...prescriptions];
-      setPrescriptions(list);
-      localStorage.setItem(`prescriptions_${user.id}`, JSON.stringify(list));
-      setPrescFile(null);
-      setPrescUploading(false);
-      notifSuccess('Ordonnance soumise avec succès.');
-    }, 1500);
-  };
+
 
   // Toast feedback wrappers
   const notifSuccess = (msg) => {
@@ -291,20 +326,39 @@ export default function Account() {
   };
 
   // Menu Definition
-  const menuItems = [
-    ...(showDashboard ? [{ key: 'dashboard', label: 'Tableau de bord', icon: <ShoppingBag size={18} /> }] : []),
-    { key: 'orders', label: 'Mes commandes', icon: <ShoppingCart size={18} /> },
-    { key: 'subscriptions', label: 'Mes abonnements', icon: <RefreshCw size={18} /> },
-    { key: 'wishlist', label: 'Ma Liste de favoris', icon: <Heart size={18} /> },
-    { key: 'reviews', label: 'Mes Avis', icon: <Star size={18} /> },
-    { key: 'prescriptions', label: 'Mes Ordonnances', icon: <FileText size={18} /> },
-    { key: 'health', label: 'Profil de Santé', icon: <Activity size={18} /> },
-    { key: 'addresses', label: 'Adresses', icon: <MapPin size={18} /> },
-    { key: 'loyalty', label: 'Programme Fidélité', icon: <Award size={18} /> },
-    { key: 'notifications', label: 'Centre de Notifications', icon: <Bell size={18} />, badge: unreadCount > 0 },
-    { key: 'offers', label: 'Offres exclusives', icon: <Tag size={18} /> },
-    { key: 'help', label: 'Centre d\'aide', icon: <HelpCircle size={18} /> },
-    { key: 'settings', label: 'Paramètres', icon: <Settings size={18} /> },
+  const menuGroups = [
+    {
+      title: 'Achats',
+      items: [
+        { key: 'orders', label: 'Mes commandes', icon: <ShoppingCart size={18} /> },
+        { key: 'subscriptions', label: 'Mes abonnements', icon: <RefreshCw size={18} /> },
+        { key: 'wishlist', label: 'Ma Liste de favoris', icon: <Heart size={18} /> },
+        { key: 'reviews', label: 'Mes Avis', icon: <Star size={18} /> },
+      ]
+    },
+    {
+      title: 'Santé',
+      items: [
+        { key: 'prescriptions', label: 'Mes Ordonnances', icon: <FileText size={18} /> },
+        { key: 'health', label: 'Profil de Santé', icon: <Activity size={18} /> },
+      ]
+    },
+    {
+      title: 'Compte',
+      items: [
+        { key: 'addresses', label: 'Adresses', icon: <MapPin size={18} /> },
+        { key: 'loyalty', label: 'Programme Fidélité', icon: <Award size={18} /> },
+        { key: 'notifications', label: 'Centre de Notifications', icon: <Bell size={18} />, badge: unreadCount > 0 },
+        { key: 'offers', label: 'Offres exclusives', icon: <Tag size={18} /> },
+      ]
+    },
+    {
+      title: 'Support',
+      items: [
+        { key: 'help', label: 'Centre d\'aide', icon: <HelpCircle size={18} /> },
+        { key: 'settings', label: 'Paramètres', icon: <Settings size={18} /> },
+      ]
+    }
   ];
 
   const handleToggleDashboard = () => {
@@ -329,10 +383,9 @@ export default function Account() {
   const lastPurchase = orders.length > 0 ? orders[0] : null;
 
   return (
-    <div style={{
+    <div className="admin-layout" style={{
       display: 'flex',
       minHeight: '100vh',
-      background: 'var(--bg-subtle)',
       color: 'var(--text)',
       fontFamily: 'var(--font-body)',
     }}>
@@ -341,8 +394,8 @@ export default function Account() {
          ======================================================== */}
       <aside style={{
         width: isSidebarCollapsed ? '80px' : '280px',
-        background: 'var(--bg-card)',
-        borderRight: '1px solid var(--border-light)',
+        background: 'var(--admin-sidebar-bg)',
+        borderRight: '1px solid var(--admin-sidebar-border)',
         display: 'flex',
         flexDirection: 'column',
         transition: 'width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
@@ -356,21 +409,21 @@ export default function Account() {
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
-          borderBottom: '1px solid var(--border-light)',
+          borderBottom: '1px solid var(--admin-sidebar-border)',
           justifyContent: isSidebarCollapsed ? 'center' : 'flex-start'
         }}>
           <div style={{
             width: '40px', height: '40px', borderRadius: '12px',
-            background: 'linear-gradient(135deg, var(--primary), #8FAF9B)',
+            background: 'var(--admin-sidebar-accent)',
             display: 'flex', alignItems: 'center', justifyItems: 'center',
-            justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '1.2rem'
+            justifyContent: 'center', color: '#14532D', fontWeight: 800, fontSize: '1.2rem'
           }}>
             M
           </div>
           {!isSidebarCollapsed && (
             <div>
-              <span style={{ fontSize: '1rem', fontWeight: 800, fontFamily: 'var(--font-title)', display: 'block', color: 'var(--primary)' }}>Ben Moussa</span>
-              <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-light)', fontWeight: 700 }}>Espace Client</span>
+              <span style={{ fontSize: '1rem', fontWeight: 800, fontFamily: 'var(--font-title)', display: 'block', color: 'var(--admin-sidebar-logo)' }}>Ben Moussa</span>
+              <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--admin-sidebar-title)', fontWeight: 700 }}>Espace Client</span>
             </div>
           )}
         </div>
@@ -380,7 +433,8 @@ export default function Account() {
           <div style={{
             padding: '24px 20px',
             margin: '16px',
-            background: 'var(--bg-warm)',
+            background: 'var(--admin-sidebar-hover)',
+            border: '1px solid var(--admin-sidebar-border)',
             borderRadius: 'var(--radius-lg)',
             display: 'flex',
             alignItems: 'center',
@@ -388,71 +442,117 @@ export default function Account() {
           }}>
             <div style={{
               width: '44px', height: '44px', borderRadius: '50%',
-              background: 'var(--primary)', color: 'white',
+              background: 'var(--admin-sidebar-accent)', color: '#14532D',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontWeight: 800, fontSize: '1.1rem'
             }}>
               {user?.name?.charAt(0).toUpperCase() || 'C'}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ fontWeight: 700, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--admin-sidebar-logo)' }}>
                 {user?.name || 'Client'}
               </div>
-              <span style={{ fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Award size={12} /> Silver Member
+              <span style={{ fontSize: '0.72rem', color: 'var(--admin-sidebar-title)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Award size={12} color="var(--admin-sidebar-accent)" />
+                {user?.loyalty_points >= 5000 ? '👑 Diamant VIP' : user?.loyalty_points >= 3000 ? '💎 Platine' : user?.loyalty_points >= 1500 ? '🥇 Or' : user?.loyalty_points >= 500 ? '🥈 Argent' : '🥉 Bronze'}
               </span>
             </div>
           </div>
         )}
 
         {/* Navigation Menu */}
-        <nav style={{ flex: 1, padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {menuItems.map(item => {
-            const isActive = activeTab === item.key;
-            return (
-              <button
-                key={item.key}
-                onClick={() => {
-                  setActiveTab(item.key);
-                  setIsMobileSidebarOpen(false);
-                  // Fetch real notifications from DB when opening the panel
-                  if (item.key === 'notifications' && fetchNotifications) {
-                    fetchNotifications();
-                  }
-                }}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  background: isActive ? 'var(--primary-light)' : 'transparent',
-                  color: isActive ? 'var(--primary)' : 'var(--text-muted)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '14px',
-                  cursor: 'pointer',
-                  fontWeight: isActive ? 700 : 600,
-                  fontSize: '0.9rem',
-                  transition: 'all 0.2s',
-                  justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
-                  position: 'relative'
-                }}
-                onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--bg-subtle)'; }}
-                onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
-              >
-                <div style={{ color: isActive ? 'var(--primary)' : 'inherit' }}>
-                  {item.icon}
+        <nav style={{ flex: 1, padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto' }}>
+          {showDashboard && (
+            <button
+              onClick={() => {
+                setActiveTab('dashboard');
+                setIsMobileSidebarOpen(false);
+              }}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                border: activeTab === 'dashboard' ? '1.5px solid var(--admin-sidebar-active-border)' : '1.5px solid transparent',
+                background: activeTab === 'dashboard' ? 'var(--admin-sidebar-active-bg)' : 'transparent',
+                color: activeTab === 'dashboard' ? 'var(--admin-sidebar-text-active)' : 'var(--admin-sidebar-text)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '14px',
+                cursor: 'pointer',
+                fontWeight: activeTab === 'dashboard' ? 700 : 600,
+                fontSize: '0.9rem',
+                transition: 'all 0.2s',
+                justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+                position: 'relative',
+                marginBottom: '12px'
+              }}
+              onMouseEnter={e => { if (activeTab !== 'dashboard') { e.currentTarget.style.background = 'var(--admin-sidebar-hover)'; e.currentTarget.style.color = 'var(--admin-sidebar-text-active)'; } }}
+              onMouseLeave={e => { if (activeTab !== 'dashboard') { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--admin-sidebar-text)'; } }}
+            >
+              <div style={{ color: activeTab === 'dashboard' ? 'var(--admin-sidebar-accent)' : 'inherit' }}>
+                <ShoppingBag size={18} />
+              </div>
+              {!isSidebarCollapsed && <span>Tableau de bord</span>}
+            </button>
+          )}
+
+          {menuGroups.map((group, gIdx) => (
+            <div key={gIdx} style={{ marginBottom: '12px' }}>
+              {!isSidebarCollapsed && (
+                <div style={{ padding: '0 16px', marginBottom: '6px', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--admin-sidebar-title)', fontWeight: 750, letterSpacing: '0.5px' }}>
+                  {group.title}
                 </div>
-                {!isSidebarCollapsed && <span>{item.label}</span>}
-                {item.badge && !isSidebarCollapsed && (
-                  <span style={{
-                    position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)',
-                    width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%'
-                  }} />
-                )}
-              </button>
-            );
-          })}
+              )}
+              {group.items.map(item => {
+                const isActive = activeTab === item.key;
+                return (
+                  <button
+                    key={item.key}
+                    onClick={() => {
+                      setActiveTab(item.key);
+                      setIsMobileSidebarOpen(false);
+                      if (item.key === 'notifications' && fetchNotifications) {
+                        fetchNotifications();
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      borderRadius: '12px',
+                      border: isActive ? '1.5px solid var(--admin-sidebar-active-border)' : '1.5px solid transparent',
+                      background: isActive ? 'var(--admin-sidebar-active-bg)' : 'transparent',
+                      color: isActive ? 'var(--admin-sidebar-text-active)' : 'var(--admin-sidebar-text)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      cursor: 'pointer',
+                      fontWeight: isActive ? 700 : 600,
+                      fontSize: '0.9rem',
+                      transition: 'all 0.2s',
+                      justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+                      position: 'relative'
+                    }}
+                    onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'var(--admin-sidebar-hover)'; e.currentTarget.style.color = 'var(--admin-sidebar-text-active)'; } }}
+                    onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--admin-sidebar-text)'; } }}
+                  >
+                    <div style={{ color: isActive ? 'var(--admin-sidebar-accent)' : 'inherit' }}>
+                      {item.icon}
+                    </div>
+                    {!isSidebarCollapsed && <span>{item.label}</span>}
+                    {item.badge && !isSidebarCollapsed && (
+                      <span style={{
+                        position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)',
+                        background: 'var(--admin-sidebar-accent)', color: '#14532D', padding: '2px 6px',
+                        fontSize: '0.65rem', fontWeight: 800, borderRadius: 'var(--radius-full)'
+                      }}>
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
 
           {/* Collapsible toggle */}
           <button
@@ -463,11 +563,14 @@ export default function Account() {
               background: 'transparent',
               padding: '12px',
               cursor: 'pointer',
-              color: 'var(--text-light)',
+              color: 'var(--admin-sidebar-title)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              transition: 'color 0.2s'
             }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--admin-sidebar-text-active)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--admin-sidebar-title)'}
           >
             {isSidebarCollapsed ? '→' : '← Réduire le menu'}
           </button>
@@ -480,7 +583,7 @@ export default function Account() {
               borderRadius: '12px',
               border: 'none',
               background: 'transparent',
-              color: 'var(--danger)',
+              color: 'var(--admin-sidebar-text)',
               display: 'flex',
               alignItems: 'center',
               gap: '14px',
@@ -488,9 +591,10 @@ export default function Account() {
               fontWeight: 700,
               fontSize: '0.9rem',
               justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+              transition: 'all 0.2s'
             }}
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-light)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--status-danger-bg)'; e.currentTarget.style.color = 'var(--status-danger)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--admin-sidebar-text)'; }}
           >
             <LogOut size={18} />
             {!isSidebarCollapsed && <span>Déconnexion</span>}
@@ -686,7 +790,9 @@ export default function Account() {
                 <div style={{ zIndex: 2 }}>
                   <h2 style={{ fontSize: '2rem', fontWeight: 800, margin: '0 0 10px 0', fontFamily: 'var(--font-title)', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span>{new Date().getHours() < 17 ? 'Bonjour' : 'Bonsoir'}, {user?.name || 'Client'}</span>
-                    <span style={{ animation: 'wave 2s infinite' }}>👋</span>
+                    <div style={{ animation: 'wave 2s infinite', display: 'flex', color: 'var(--accent)' }}>
+                      <Hand size={32} />
+                    </div>
                   </h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '1rem', margin: '0 0 24px 0', maxWidth: '480px' }}>
                     Bienvenue dans votre espace santé et beauté parapharmaceutique. Retrouvez vos ordonnances, votre programme fidélité et vos commandes.
@@ -739,7 +845,7 @@ export default function Account() {
                   { label: 'Commandes actives', val: activeOrdersCount, sub: 'À livrer', icon: <ShoppingBag size={20} color="var(--primary)" /> },
                   { label: 'Points de fidélité', val: loyaltyPoints, sub: 'Statut : Silver Member', icon: <Award size={20} color="var(--accent)" /> },
                   { label: 'Articles sauvegardés', val: wishlistCount, sub: 'Dans votre liste', icon: <Heart size={20} color="#e54b4b" /> },
-                  { label: 'Dernier achat', val: lastPurchase ? `#${lastPurchase.order_number.substring(0, 10)}...` : 'Aucun', sub: lastPurchase ? new Date(lastPurchase.created_at).toLocaleDateString('fr-FR') : 'Parcourir nos produits', icon: <ShoppingCart size={20} color="var(--text)" /> },
+                  { label: 'Dernier achat', val: lastPurchase ? `#${lastPurchase.order_number.substring(0, 8)}` : 'Aucun', sub: lastPurchase ? new Date(lastPurchase.created_at).toLocaleDateString('fr-FR') : 'Parcourir nos produits', icon: <ShoppingCart size={20} color="var(--text)" /> },
                 ].map((card, idx) => (
                   <div
                     key={idx}
@@ -780,7 +886,7 @@ export default function Account() {
               </div>
 
               {/* Main row grid (Timeline & Health Profiles Quick view) */}
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '28px', flexWrap: 'wrap' }} className="dashboard-grid">
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '28px' }} className="dashboard-grid">
 
                 {/* Recent Order Timeline widget */}
                 <div style={{
@@ -796,8 +902,10 @@ export default function Account() {
                   </h3>
 
                   {orders.length === 0 ? (
-                    <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                      Aucune commande passée.
+                    <div style={{ padding: '50px', textAlign: 'center', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-lg)', margin: '10px 0' }}>
+                      <ShoppingBag size={40} style={{ color: 'var(--text-light)', marginBottom: '16px', opacity: 0.6 }} />
+                      <p style={{ fontWeight: 600, color: 'var(--text-muted)', marginBottom: '20px' }}>Aucune commande passée.</p>
+                      <Link to="/" style={{ background: 'var(--primary)', color: 'white', padding: '10px 24px', borderRadius: 'var(--radius-full)', fontWeight: 700, textDecoration: 'none', display: 'inline-block', fontSize: '0.9rem' }}>Découvrir nos produits</Link>
                     </div>
                   ) : (
                     <div>
@@ -846,7 +954,7 @@ export default function Account() {
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 fontSize: '0.75rem', fontWeight: 800
                               }}>
-                                {isDone ? '✓' : sIdx + 1}
+                                {isDone ? <Check size={14} strokeWidth={3} /> : sIdx + 1}
                               </div>
                               <span style={{ fontSize: '0.75rem', color: isDone ? 'var(--text)' : 'var(--text-light)', fontWeight: 700, marginTop: '8px', textAlign: 'center' }}>
                                 {step.label}
@@ -939,9 +1047,14 @@ export default function Account() {
                         <div style={{
                           width: '100%', height: '120px', borderRadius: '10px',
                           background: 'var(--bg-subtle)', display: 'flex',
-                          alignItems: 'center', justifyContent: 'center', marginBottom: '14px'
+                          alignItems: 'center', justifyContent: 'center', marginBottom: '14px',
+                          overflow: 'hidden'
                         }}>
-                          <span style={{ fontSize: '2.5rem' }}>💊</span>
+                          {p.image_url ? (
+                            <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'multiply' }} />
+                          ) : (
+                            <span style={{ fontSize: '2.5rem' }}>💊</span>
+                          )}
                         </div>
                         <h4 style={{ fontSize: '0.88rem', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {p.name}
@@ -984,11 +1097,15 @@ export default function Account() {
 
               {loadingOrders ? (
                 <div style={{ textAlign: 'center', padding: '60px' }}>
-                  <div style={{ fontSize: '2.5rem', animation: 'spin 2s linear infinite', display: 'inline-block' }}>⏳</div>
+                  <div style={{ display: 'inline-block', animation: 'spin 1s linear infinite' }}>
+                    <Loader2 size={48} color="var(--primary)" />
+                  </div>
                 </div>
               ) : orders.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '80px', background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)' }}>
-                  Aucune commande passée.
+                  <ShoppingBag size={48} style={{ color: 'var(--text-light)', marginBottom: '16px', opacity: 0.6 }} />
+                  <p style={{ fontWeight: 600, color: 'var(--text-muted)', marginBottom: '24px', fontSize: '1.1rem' }}>Aucune commande passée pour le moment.</p>
+                  <Link to="/" style={{ background: 'var(--primary)', color: 'white', padding: '12px 28px', borderRadius: 'var(--radius-full)', fontWeight: 700, textDecoration: 'none', display: 'inline-block' }}>Découvrir nos produits</Link>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -1096,10 +1213,11 @@ export default function Account() {
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', margin: '4px 0 0' }}>Retrouvez les produits enregistrés.</p>
               </div>
 
-              {wishlistItems().length === 0 ? (
+              {(!wishlist || wishlist.length === 0) ? (
                 <div style={{ textAlign: 'center', padding: '80px', background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)' }}>
-                  <Heart size={44} style={{ color: 'var(--text-light)', marginBottom: '12px' }} />
-                  <p style={{ fontWeight: 600, color: 'var(--text-muted)' }}>Votre liste est vide.</p>
+                  <Heart size={48} style={{ color: 'var(--text-light)', marginBottom: '16px', opacity: 0.6 }} />
+                  <p style={{ fontWeight: 600, color: 'var(--text-muted)', marginBottom: '24px', fontSize: '1.1rem' }}>Votre liste est vide.</p>
+                  <Link to="/" style={{ background: 'var(--primary)', color: 'white', padding: '12px 28px', borderRadius: 'var(--radius-full)', fontWeight: 700, textDecoration: 'none', display: 'inline-block' }}>Découvrir nos produits</Link>
                 </div>
               ) : (
                 <div style={{
@@ -1107,7 +1225,7 @@ export default function Account() {
                   gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                   gap: '24px'
                 }}>
-                  {wishlistItems().map(item => (
+                  {wishlist.map(item => (
                     <div
                       key={item.id}
                       style={{
@@ -1124,9 +1242,14 @@ export default function Account() {
                       <div>
                         <div style={{
                           height: '110px', background: 'var(--bg-subtle)', borderRadius: '10px',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px'
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px',
+                          overflow: 'hidden'
                         }}>
-                          <span style={{ fontSize: '2rem' }}>💊</span>
+                          {item.image_url ? (
+                            <img src={item.image_url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'multiply' }} />
+                          ) : (
+                            <span style={{ fontSize: '2rem' }}>💊</span>
+                          )}
                         </div>
                         <h4 style={{ fontSize: '0.88rem', fontWeight: 700, margin: '0 0 6px 0' }}>{item.name}</h4>
                         <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '14px' }}>
@@ -1146,7 +1269,7 @@ export default function Account() {
                           Acheter
                         </button>
                         <button
-                          onClick={() => removeFromWishlist(item.id)}
+                          onClick={() => { removeFromWishlist(item.id); notifSuccess('Produit retiré des favoris.'); }}
                           style={{
                             background: 'var(--danger-light)', color: 'var(--danger)',
                             border: 'none', borderRadius: '8px', padding: '8px 12px',
@@ -1230,34 +1353,75 @@ export default function Account() {
                 }}>
                   <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 16px 0' }}>Historique des validations</h3>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    {prescriptions.map(presc => (
-                      <div
-                        key={presc.id}
-                        style={{
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          padding: '14px 18px', background: 'var(--bg-subtle)', borderRadius: '10px',
-                          border: '1px solid var(--border-light)'
-                        }}
-                      >
-                        <div>
-                          <strong style={{ fontSize: '0.9rem', color: 'var(--text)' }}>{presc.fileName}</strong>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', display: 'block', marginTop: '2px' }}>
-                            Soumise le {presc.date}
-                          </span>
+                  {prescriptions.length === 0 ? (
+                    <div style={{
+                      textAlign: 'center', padding: '40px 20px',
+                      border: '2px dashed var(--border-light)', borderRadius: '12px',
+                      background: 'var(--bg-subtle)'
+                    }}>
+                      <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>📄</div>
+                      <h4 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 6px' }}>Aucune ordonnance soumise</h4>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+                        Téléchargez votre premier scan ou PDF d'ordonnance ci-contre.
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      {prescriptions.map(presc => (
+                        <div
+                          key={presc.id}
+                          style={{
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                            padding: '14px 18px', background: 'var(--bg-subtle)', borderRadius: '10px',
+                            border: '1px solid var(--border-light)', gap: '12px', flexWrap: 'wrap'
+                          }}
+                        >
+                          <div style={{ flex: 1, minWidth: '180px' }}>
+                            <strong style={{ fontSize: '0.9rem', color: 'var(--text)', display: 'block', wordBreak: 'break-all' }}>{presc.fileName}</strong>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', display: 'block', marginTop: '2px' }}>
+                              Soumise le {presc.date} {presc.order_number ? `— Commande #${presc.order_number}` : ''}
+                            </span>
+                            {presc.comment && (
+                              <p style={{ margin: '6px 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                                💬 Note du pharmacien : {presc.comment}
+                              </p>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <span style={{
+                              background: (presc.status === 'approved' || presc.status === 'validated')
+                                ? 'var(--success-light)'
+                                : presc.status === 'rejected'
+                                  ? 'rgba(239, 68, 68, 0.1)'
+                                  : 'rgba(245, 158, 11, 0.1)',
+                              color: (presc.status === 'approved' || presc.status === 'validated')
+                                ? 'var(--success)'
+                                : presc.status === 'rejected'
+                                  ? 'var(--danger)'
+                                  : '#f59e0b',
+                              padding: '4px 12px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700
+                            }}>
+                              {presc.status_label || (presc.status === 'approved' ? 'Validée' : presc.status === 'rejected' ? 'Rejetée' : 'En attente')}
+                            </span>
+                            {presc.fichier && (
+                              <a
+                                href={`${BACKEND_BASE_URL}/api/prescriptions/${presc.id}/download`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  padding: '6px 12px', background: 'white', border: '1px solid var(--border)',
+                                  borderRadius: '6px', fontSize: '0.78rem', fontWeight: 700, color: 'var(--primary)',
+                                  textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px'
+                                }}
+                              >
+                                📥 Fichier
+                              </a>
+                            )}
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span style={{
-                            background: presc.status === 'approved' ? 'var(--success-light)' : 'rgba(245, 158, 11, 0.1)',
-                            color: presc.status === 'approved' ? 'var(--success)' : '#f59e0b',
-                            padding: '3px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 700
-                          }}>
-                            {presc.status === 'approved' ? 'Validée' : 'En attente'}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
               </div>
@@ -2178,25 +2342,48 @@ export default function Account() {
             </div>
 
             <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {menuItems.map(item => {
-                const isActive = activeTab === item.key;
-                return (
-                  <button
-                    key={item.key}
-                    onClick={() => { setActiveTab(item.key); setIsMobileSidebarOpen(false); }}
-                    style={{
-                      width: '100%', padding: '12px', borderRadius: '8px', border: 'none',
-                      background: isActive ? 'var(--primary-light)' : 'transparent',
-                      color: isActive ? 'var(--primary)' : 'var(--text-muted)',
-                      display: 'flex', alignItems: 'center', gap: '12px',
-                      fontWeight: isActive ? 700 : 600, cursor: 'pointer', textAlign: 'left'
-                    }}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
+              {showDashboard && (
+                <button
+                  onClick={() => { setActiveTab('dashboard'); setIsMobileSidebarOpen(false); }}
+                  style={{
+                    width: '100%', padding: '12px', borderRadius: '8px', border: 'none',
+                    background: activeTab === 'dashboard' ? 'var(--primary-light)' : 'transparent',
+                    color: activeTab === 'dashboard' ? 'var(--primary)' : 'var(--text-muted)',
+                    display: 'flex', alignItems: 'center', gap: '12px',
+                    fontWeight: activeTab === 'dashboard' ? 700 : 600, cursor: 'pointer', textAlign: 'left',
+                    marginBottom: '8px'
+                  }}
+                >
+                  <ShoppingBag size={18} />
+                  <span>Tableau de bord</span>
+                </button>
+              )}
+              {menuGroups.map((group, gIdx) => (
+                <div key={gIdx} style={{ marginBottom: '12px' }}>
+                  <div style={{ padding: '0 12px', marginBottom: '4px', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-light)', fontWeight: 750, letterSpacing: '0.5px' }}>
+                    {group.title}
+                  </div>
+                  {group.items.map(item => {
+                    const isActive = activeTab === item.key;
+                    return (
+                      <button
+                        key={item.key}
+                        onClick={() => { setActiveTab(item.key); setIsMobileSidebarOpen(false); }}
+                        style={{
+                          width: '100%', padding: '12px', borderRadius: '8px', border: 'none',
+                          background: isActive ? 'var(--primary-light)' : 'transparent',
+                          color: isActive ? 'var(--primary)' : 'var(--text-muted)',
+                          display: 'flex', alignItems: 'center', gap: '12px',
+                          fontWeight: isActive ? 700 : 600, cursor: 'pointer', textAlign: 'left'
+                        }}
+                      >
+                        {item.icon}
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
               <button
                 onClick={handleLogout}
                 style={{
@@ -2249,29 +2436,13 @@ export default function Account() {
     </div>
   );
 
-  // Quick list/set helpers for wishlist items mapping
-  function wishlistItems() {
-    const list = localStorage.getItem(`wishlist_${user?.id}`);
-    return list ? JSON.parse(list) : [];
-  }
-
-  function removeFromWishlist(id) {
-    const list = wishlistItems();
-    const updated = list.filter(item => item.id !== id);
-    localStorage.setItem(`wishlist_${user?.id}`, JSON.stringify(updated));
-    // Trigger state change so wishlist tab updates
-    setActiveTab('dashboard');
-    setTimeout(() => setActiveTab('wishlist'), 10);
-    notifSuccess('Produit retiré des favoris.');
-  }
-
   function getStatusBadgeStyle(status) {
     const statusMap = {
-      pending: { bg: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', text: 'Confirmée' },
-      preparing: { bg: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', text: 'En cours de préparation' },
-      shipped: { bg: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', text: 'Expédiée' },
-      delivered: { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981', text: 'Livrée' },
-      cancelled: { bg: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', text: 'Annulée' },
+      pending: { bg: 'var(--accent-light, rgba(245, 158, 11, 0.1))', color: 'var(--accent)', text: 'Confirmée' },
+      preparing: { bg: 'var(--info-light)', color: 'var(--info)', text: 'En cours de préparation' },
+      shipped: { bg: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6', text: 'Expédiée' },
+      delivered: { bg: 'var(--success-light)', color: 'var(--success)', text: 'Livrée' },
+      cancelled: { bg: 'var(--danger-light)', color: 'var(--danger)', text: 'Annulée' },
     };
     return statusMap[status] || { bg: 'var(--border-light)', color: 'var(--text-muted)', text: status };
   }

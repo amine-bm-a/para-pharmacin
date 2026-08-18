@@ -76,7 +76,7 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function brandRelation(): BelongsTo
+    public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class, 'brand_id');
     }
@@ -93,6 +93,10 @@ class Product extends Model
 
     public function getAverageRatingAttribute(): float
     {
+        if (isset($this->reviews_avg_rating)) {
+            return round((float) $this->reviews_avg_rating, 1);
+        }
+
         return round($this->reviews()->avg('rating') ?? 0, 1);
     }
 

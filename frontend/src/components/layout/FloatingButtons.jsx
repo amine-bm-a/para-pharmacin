@@ -1,9 +1,18 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Heart, Maximize, ArrowUp } from 'lucide-react';
 
 const FloatingButtons = () => {
   const navigate = useNavigate();
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShow(window.scrollY > 300);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
@@ -21,7 +30,14 @@ const FloatingButtons = () => {
   };
 
   return (
-    <div className="fab-container" style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-end' }}>
+    <div className="fab-container" style={{ 
+      position: 'fixed', bottom: '140px', right: '32px', zIndex: 40, 
+      display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-end',
+      opacity: show ? 1 : 0,
+      pointerEvents: show ? 'auto' : 'none',
+      transform: show ? 'translateY(0)' : 'translateY(20px)',
+      transition: 'all 0.3s ease-in-out'
+    }}>
       {/* WhatsApp Live Chat Button with Pulse Indicator */}
       <button 
         onClick={openWhatsAppSupport}

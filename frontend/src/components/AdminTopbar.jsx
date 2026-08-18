@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useUserNotif } from '../context/UserNotifContext';
-import { Bell, ExternalLink, LogOut, Search, ChevronDown, X, Check } from 'lucide-react';
-
+import { Bell, ExternalLink, LogOut, Search, ChevronDown, X, Check, Store } from 'lucide-react';
+import ThemeToggleButton from './ui/ThemeToggleButton';
+import { timeAgo } from '../utils/textUtils';
 const PAGE_TITLES = {
   '/admin':              { title: 'Tableau de bord',    sub: "Vue d'ensemble de votre pharmacie" },
   '/admin/orders':       { title: 'Commandes',          sub: 'Gérer toutes les commandes' },
@@ -26,20 +27,6 @@ const PAGE_TITLES = {
   '/admin/notifications':{ title: 'Notifications',      sub: 'Toutes vos alertes et messages' },
 };
 
-function timeAgo(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  const now = new Date();
-  const diff = Math.floor((now - d) / 60000);
-  if (diff < 1) return "À l'instant";
-  if (diff < 60) return `Il y a ${diff} min`;
-  const h = Math.floor(diff / 60);
-  if (h < 24) return `Il y a ${h}h`;
-  const days = Math.floor(h / 24);
-  if (days < 7) return `Il y a ${days}j`;
-  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
-}
-
 function notifIcon(type) {
   return { order: '📦', payment: '💳', prescription: '💊', promo: '🎁', system: '⚙️' }[type] || '🔔';
 }
@@ -57,7 +44,10 @@ export default function AdminTopbar() {
   const menuRef = useRef(null);
   const notifRef = useRef(null);
 
-  const handleLogout = async () => { await logout(); navigate('/'); };
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/login';
+  };
   const pageInfo = PAGE_TITLES[location.pathname] || { title: 'Admin', sub: 'Panel administrateur' };
 
   // Close dropdowns on outside click
@@ -104,9 +94,36 @@ export default function AdminTopbar() {
           <input type="text" placeholder="Rechercher..." className="topbar-search-input" />
         </div>
 
-        {/* Visit Store */}
-        <a href="/" className="topbar-action-btn" title="Voir la boutique" target="_blank" rel="noopener noreferrer">
-          <ExternalLink size={17} />
+        {/* Visit Store Button */}
+        <a 
+          href="/" 
+          title="Retourner à la boutique"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 14px',
+            borderRadius: '10px',
+            background: 'var(--primary-light, #eef9f4)',
+            color: 'var(--primary, #0AA84F)',
+            fontWeight: 700,
+            fontSize: '0.85rem',
+            textDecoration: 'none',
+            border: '1px solid rgba(10,168,79,0.2)',
+            transition: 'all 0.2s ease',
+            whiteSpace: 'nowrap'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--primary, #0AA84F)';
+            e.currentTarget.style.color = 'white';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'var(--primary-light, #eef9f4)';
+            e.currentTarget.style.color = 'var(--primary, #0AA84F)';
+          }}
+        >
+          <Store size={16} />
+          <span>Retourner à la boutique</span>
         </a>
 
         {/* ─── Notifications Bell + Real Dropdown ─── */}
@@ -311,22 +328,8 @@ export default function AdminTopbar() {
           )}
         </div>
 
-        {/* ─── Dark Mode Toggle (1 seul) ─── */}
-        <button
-          className={`theme-toggle-btn${isDark ? ' theme-toggle-btn--dark' : ''}`}
-          onClick={toggleTheme}
-          title={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
-          aria-label="Toggle dark mode"
-        >
-          <span className="theme-toggle-bg" />
-          <span className="theme-toggle-stars"><span /><span /><span /></span>
-          <span className="theme-toggle-face">
-            <span className="theme-toggle-rays">
-              {[...Array(8)].map((_, i) => <span key={i} className="ray" style={{ '--i': i }} />)}
-            </span>
-            <span className="theme-toggle-core" />
-          </span>
-        </button>
+        {/* Dark Mode Toggle */}
+        <ThemeToggleButton />
 
         {/* User Dropdown */}
         <div className="topbar-user-wrap" ref={menuRef}>

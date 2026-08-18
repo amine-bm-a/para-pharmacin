@@ -7,6 +7,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Review;
 use App\Services\CacheKeyService;
+use App\Traits\FilterProducts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
+    use FilterProducts;
+
     public function index(Request $request)
     {
         $search = $request->get('search', '');
@@ -31,50 +34,8 @@ class ProductController extends Controller
             $productQuery = Product::search($search)->query(function ($q) use (
                 $category, $brand, $minPrice, $maxPrice, $inStock, $promos, $featured, $sort
             ) {
-                $q->with('category');
-
-                if ($category !== '') {
-                    $q->whereHas('category', fn ($c) => $c->where('slug', $category));
-                }
-
-                if ($brand !== '') {
-                    $q->whereIn('brand', explode(',', $brand));
-                }
-
-                if ($minPrice !== '') {
-                    $q->whereRaw('COALESCE(discount_price, price) >= ?', [$minPrice]);
-                }
-
-                if ($maxPrice !== '') {
-                    $q->whereRaw('COALESCE(discount_price, price) <= ?', [$maxPrice]);
-                }
-
-                if ($inStock) {
-                    $q->where('stock', '>', 0);
-                }
-
-                if ($promos) {
-                    $q->whereNotNull('discount_price');
-                }
-
-                if ($featured) {
-                    $q->where('is_featured', true);
-                }
-
-                // Sorting
-                switch ($sort) {
-                    case 'price_asc':
-                        $q->orderByRaw('COALESCE(discount_price, price) asc');
-                        break;
-                    case 'price_desc':
-                        $q->orderByRaw('COALESCE(discount_price, price) desc');
-                        break;
-                    case 'newest':
-                        $q->orderBy('created_at', 'desc');
-                        break;
-                    default:
-                        $q->orderBy('id', 'desc');
-                }
+                $q->with('category')->withAvg('reviews', 'rating');
+                $this->applyProductFilters($q, $category, $brand, $minPrice, $maxPrice, $inStock, $promos, $featured, $sort);
             });
 
             $products = $productQuery->get()->map(fn ($p) => tap($p, fn ($p) => $p->average_rating));
@@ -90,53 +51,9 @@ class ProductController extends Controller
             $products = Cache::remember($cacheKey, CacheKeyService::ttl(), function () use (
                 $category, $brand, $minPrice, $maxPrice, $inStock, $promos, $featured, $sort
             ) {
-                $query = Product::with('category');
+                $query = Product::with('category')->withAvg('reviews', 'rating');
+                $this->applyProductFilters($query, $category, $brand, $minPrice, $maxPrice, $inStock, $promos, $featured, $sort);
 
-                if ($category !== '') {
-                    $query->whereHas('category', fn ($q) => $q->where('slug', $category));
-                }
-
-                if ($brand !== '') {
-                    $query->whereIn('brand', explode(',', $brand));
-                }
-
-                if ($minPrice !== '') {
-                    $query->whereRaw('COALESCE(discount_price, price) >= ?', [$minPrice]);
-                }
-
-                if ($maxPrice !== '') {
-                    $query->whereRaw('COALESCE(discount_price, price) <= ?', [$maxPrice]);
-                }
-
-                if ($inStock) {
-                    $query->where('stock', '>', 0);
-                }
-
-                if ($promos) {
-                    $query->whereNotNull('discount_price');
-                }
-
-                if ($featured) {
-                    $query->where('is_featured', true);
-                }
-
-                switch ($sort) {
-                    case 'price_asc':
-                        $query->orderByRaw('COALESCE(discount_price, price) asc');
-                        break;
-                    case 'price_desc':
-                        $query->orderByRaw('COALESCE(discount_price, price) desc');
-                        break;
-                    case 'newest':
-                        $query->orderBy('created_at', 'desc');
-                        break;
-                    default:
-                        $query->orderBy('id', 'desc');
-                }
-
-                // Eloquent collections cache/serialize fine, but the
-                // `average_rating` accessor is computed lazily per model,
-                // so we resolve it now while we still have live models.
                 return $query->get()->map(fn ($p) => tap($p, fn ($p) => $p->average_rating));
             });
         }
@@ -195,7 +112,7 @@ class ProductController extends Controller
             'reviews' => function ($query) {
                 $query->where('status', 'approved')->with('user:id,name,email');
             },
-        ])->where('slug', $slug)->first();
+        ])->withAvg('reviews', 'rating')->where('slug', $slug)->first();
 
         if (! $product) {
             return response()->json([

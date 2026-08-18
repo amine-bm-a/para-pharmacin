@@ -73,22 +73,26 @@ class NotificationService
     ): void {
         $staff = User::whereIn('role', ['admin', 'employe', 'pharmacien'])->get();
 
-        foreach ($staff as $member) {
-            UserNotification::create([
-                'user_id' => $member->id,
-                'title' => $title,
-                'message' => $message,
-                'type' => $type,
-                'link' => $member->role === 'admin'
-                    ? $link
-                    : str_replace('/admin', '/pharmacien', $link),
-                'is_read' => false,
-            ]);
+        $notifications = $staff->map(fn ($member) => [
+            'user_id' => $member->id,
+            'title' => $title,
+            'message' => $message,
+            'type' => $type,
+            'link' => $member->role === 'admin'
+                ? $link
+                : str_replace('/admin', '/pharmacien', $link),
+            'is_read' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])->toArray();
+
+        if ($notifications !== []) {
+            UserNotification::insert($notifications);
         }
     }
 
     /**
-     * Notify all admins only — DB notification.
+     * Notify all admins only — DB notification (bulk insert).
      */
     public static function notifyAdmins(
         string $title,
@@ -98,15 +102,19 @@ class NotificationService
     ): void {
         $admins = User::where('role', 'admin')->get();
 
-        foreach ($admins as $admin) {
-            UserNotification::create([
-                'user_id' => $admin->id,
-                'title' => $title,
-                'message' => $message,
-                'type' => $type,
-                'link' => $link,
-                'is_read' => false,
-            ]);
+        $notifications = $admins->map(fn ($admin) => [
+            'user_id' => $admin->id,
+            'title' => $title,
+            'message' => $message,
+            'type' => $type,
+            'link' => $link,
+            'is_read' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])->toArray();
+
+        if ($notifications !== []) {
+            UserNotification::insert($notifications);
         }
     }
 

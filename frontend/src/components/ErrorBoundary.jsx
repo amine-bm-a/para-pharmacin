@@ -58,7 +58,7 @@ class ErrorBoundary extends Component {
           >
             Rafraîchir la page
           </button>
-          {process.env.NODE_ENV === 'development' && (
+          {import.meta.env.DEV && (
             <details style={{
               marginTop: '24px',
               textAlign: 'left',

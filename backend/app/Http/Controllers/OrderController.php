@@ -23,7 +23,7 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $orders = Order::with(['items.product', 'orderItems.product', 'prescriptions.product'])
+        $orders = Order::with(['items.product', 'prescriptions.product'])
             ->where('user_id', $request->user()->id)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -134,6 +134,14 @@ class OrderController extends Controller
             $pointsSpent = 0;
             $user = $request->user();
 
+            // Apply Tier VIP percentage discount automatically (Bronze 0%, Argent 3%, Or 5%, Platine 8%, Diamant 12%)
+            $tierDetails = LoyaltyService::getTierDetails($user);
+            $tierDiscountPercent = $tierDetails['current_tier']['discount_percent'] ?? 0;
+            if ($tierDiscountPercent > 0) {
+                $tierDiscountMad = ($totalAmount * $tierDiscountPercent) / 100;
+                $totalAmount = max(0, $totalAmount - $tierDiscountMad);
+            }
+
             if ($request->filled('loyalty_points_to_spend') && $request->loyalty_points_to_spend > 0) {
                 $pointsToSpend = (int) $request->loyalty_points_to_spend;
                 if ($user->loyalty_points >= $pointsToSpend) {
@@ -146,8 +154,27 @@ class OrderController extends Controller
                 }
             }
 
+            // Check card balance and bank authorization if payment_method === 'card'
+            if ($request->payment_method === 'card') {
+                $cardNumber = preg_replace('/\D/', '', $request->input('card_number', ''));
+                $cardBalance = $request->filled('card_balance') ? (float) $request->card_balance : null;
+
+                // Simulate bank authorization refusal if balance < total OR test error card (ends with 0000)
+                if (str_ends_with($cardNumber, '0000') || ($cardBalance !== null && $cardBalance < $totalAmount)) {
+                    DB::rollBack();
+                    $availFormatted = $cardBalance !== null ? number_format($cardBalance, 2).' MAD' : '0.00 MAD';
+                    $totalFormatted = number_format($totalAmount, 2).' MAD';
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => "❌ Paiement refusé par votre banque : Solde bancaire insuffisant (Code 51 — Solde Insuffisant). Votre solde disponible ({$availFormatted}) est inférieur au montant total de la commande ({$totalFormatted}).",
+                    ], 422);
+                }
+            }
+
             // Create Order
             $orderNumber = 'CMD'.date('Ymd').strtoupper(bin2hex(random_bytes(3)));
+            $isCard = $request->payment_method === 'card';
 
             $order = Order::create([
                 'user_id' => $request->user()->id,
@@ -159,7 +186,7 @@ class OrderController extends Controller
                 'postal_code' => $request->postal_code,
                 'phone_number' => $request->phone_number,
                 'payment_method' => $request->payment_method,
-                'payment_status' => 'pending', // Card starts pending until webhook validates it
+                'payment_status' => 'pending',
                 'prescription_path' => $prescriptionPath,
                 'prescription_status' => $requiresPrescription ? 'pending' : null,
             ]);
@@ -259,7 +286,7 @@ class OrderController extends Controller
                 );
 
                 if (config('app.debug')) {
-                    $paymentParams['dev_note'] = 'Sandbox URL: https://testpayment.cmi.co.ma/fim/est3Dgate';
+                    $paymentParams['dev_note'] = 'Sandbox URL: '.config('services.cmi.test_url');
                 }
             } else {
                 // For delivery or pickup, dispatch queued notification (Email + SMS) immediately
@@ -276,7 +303,7 @@ class OrderController extends Controller
                 'order' => $order->load('items.product'),
                 'requires_redirect' => $requiresRedirect,
                 'payment_params' => $paymentParams,
-                'cmi_url' => 'https://testpayment.cmi.co.ma/fim/est3Dgate',
+                'cmi_url' => config('services.cmi.test_url'),
             ], 201);
 
         } catch (\Exception $e) {

@@ -55,10 +55,6 @@ class ContactController extends Controller
      */
     public function index(Request $request)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
-        }
-
         $messages = ContactMessage::orderBy('created_at', 'desc')->get();
 
         return response()->json([
@@ -72,10 +68,6 @@ class ContactController extends Controller
      */
     public function markAsRead(Request $request, $id)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
-        }
-
         $message = ContactMessage::findOrFail($id);
         $message->update(['is_read' => true]);
 
@@ -90,10 +82,6 @@ class ContactController extends Controller
      */
     public function destroy(Request $request, $id)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
-        }
-
         $message = ContactMessage::findOrFail($id);
         $message->delete();
 

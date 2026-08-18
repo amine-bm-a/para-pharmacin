@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Search, Pill, Loader2 } from 'lucide-react';
+import { BACKEND_BASE_URL } from '../utils/textUtils';
 
 const useDebounce = (value, delay) => {
   const [debounced, setDebounced] = useState(value);
@@ -25,13 +27,10 @@ export default function SearchAutocomplete() {
 
   const debouncedQuery = useDebounce(query, 250);
 
-  // Compute dynamic backend base URL
-  const backendBase = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api').replace(/\/api$/, '');
-
   const getImageSrc = (imgUrl) => {
     if (!imgUrl) return '';
     if (imgUrl.startsWith('http')) return imgUrl;
-    return `${backendBase}/storage/${imgUrl}`;
+    return `${BACKEND_BASE_URL}/storage/${imgUrl}`;
   };
 
   // Fetch suggestions when debounced query changes
@@ -128,9 +127,13 @@ export default function SearchAutocomplete() {
           aria-expanded={isOpen}
         />
         {loading ? (
-          <span className="search-icon" style={{ animation: 'spin 0.8s linear infinite', display: 'inline-block' }}>⟳</span>
+          <span className="search-icon">
+            <Loader2 size={18} style={{ animation: 'spin 0.8s linear infinite' }} />
+          </span>
         ) : (
-          <span className="search-icon">🔍</span>
+          <span className="search-icon">
+            <Search size={18} color="var(--text-muted)" />
+          </span>
         )}
       </form>
 
@@ -213,7 +216,7 @@ export default function SearchAutocomplete() {
                       onError={(e) => { e.target.style.display = 'none'; }}
                     />
                   ) : (
-                    <span style={{ fontSize: '1.4rem' }}>💊</span>
+                    <Pill size={20} color="var(--primary)" />
                   )}
                 </div>
 
@@ -285,7 +288,7 @@ export default function SearchAutocomplete() {
             onMouseEnter={(e) => e.currentTarget.style.background = '#f0fdf4'}
             onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
           >
-            <span style={{ fontSize: '1rem' }}>🔍</span>
+            <Search size={16} color="var(--primary)" />
             Voir tous les résultats pour <strong style={{ marginLeft: '4px' }}>"{query}"</strong>
           </li>
         </ul>

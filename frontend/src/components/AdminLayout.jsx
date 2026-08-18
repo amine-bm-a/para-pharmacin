@@ -9,6 +9,16 @@ import AdminTopbar from './AdminTopbar';
 export default function AdminLayout() {
   const { user, isAdmin, loading } = useAuth();
   const [pendingOrders, setPendingOrders] = useState(0);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('admin-sidebar-collapsed') === 'true';
+  });
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(prev => {
+      localStorage.setItem('admin-sidebar-collapsed', String(!prev));
+      return !prev;
+    });
+  };
 
   useEffect(() => {
     if (!user || !isAdmin) return;
@@ -35,8 +45,8 @@ export default function AdminLayout() {
   }
 
   return (
-    <div className="admin-layout">
-      <SidebarAdmin />
+    <div className={`admin-layout${sidebarCollapsed ? ' sidebar-is-collapsed' : ''}`}>
+      <SidebarAdmin isCollapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} />
       <div className="admin-main">
         <AdminTopbar pendingOrders={pendingOrders} unreadMessages={3} />
         <main className="admin-content">

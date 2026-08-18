@@ -22,8 +22,9 @@ export default function AdminClients() {
   }, []);
 
   const filtered = clients.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.email.toLowerCase().includes(search.toLowerCase())
+    (c.name || '').toLowerCase().includes(search.toLowerCase()) ||
+    (c.email || '').toLowerCase().includes(search.toLowerCase()) ||
+    (c.role || '').toLowerCase().includes(search.toLowerCase())
   );
 
   if (loading) return (
@@ -35,7 +36,7 @@ export default function AdminClients() {
       boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
     }}>
       <div style={{ fontSize: '4rem', marginBottom: '20px', animation: 'spin 2s linear infinite' }}>⏳</div>
-      <p style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-muted)' }}>Chargement des clients...</p>
+      <p style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-muted)' }}>Chargement des utilisateurs...</p>
     </div>
   );
 
@@ -59,10 +60,10 @@ export default function AdminClients() {
             gap: '12px'
           }}>
             <span style={{ fontSize: '2.2rem' }}>👥</span>
-            <span>Clients</span>
+            <span>Gestion des Utilisateurs</span>
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-            Liste de tous les clients enregistrés sur la plateforme
+            Liste complète de tous les comptes enregistrés sur la plateforme
           </p>
         </div>
       </div>
@@ -78,16 +79,7 @@ export default function AdminClients() {
           gap: '16px',
           transition: 'all 0.3s ease',
           border: '1px solid var(--border-light)'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-4px)';
-          e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.12)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)';
-        }}
-        >
+        }}>
           <div style={{ 
             width: '56px', 
             height: '56px', 
@@ -99,10 +91,11 @@ export default function AdminClients() {
             fontSize: '1.8rem' 
           }}>👥</div>
           <div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '4px' }}>Total clients</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '4px' }}>Total Utilisateurs</div>
             <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text)' }}>{clients.length}</div>
           </div>
         </div>
+
         <div style={{
           background: 'var(--bg-card)',
           borderRadius: 'var(--radius-lg)',
@@ -113,16 +106,7 @@ export default function AdminClients() {
           gap: '16px',
           transition: 'all 0.3s ease',
           border: '1px solid var(--border-light)'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-4px)';
-          e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.12)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)';
-        }}
-        >
+        }}>
           <div style={{ 
             width: '56px', 
             height: '56px', 
@@ -134,10 +118,11 @@ export default function AdminClients() {
             fontSize: '1.8rem' 
           }}>🛒</div>
           <div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '4px' }}>Avec au moins 1 commande</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text)' }}>{clients.filter(c => c.orders_count > 0).length}</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '4px' }}>Comptes Clients</div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text)' }}>{clients.filter(c => c.role === 'client').length}</div>
           </div>
         </div>
+
         <div style={{
           background: 'var(--bg-card)',
           borderRadius: 'var(--radius-lg)',
@@ -148,16 +133,7 @@ export default function AdminClients() {
           gap: '16px',
           transition: 'all 0.3s ease',
           border: '1px solid var(--border-light)'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-4px)';
-          e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.12)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)';
-        }}
-        >
+        }}>
           <div style={{ 
             width: '56px', 
             height: '56px', 
@@ -167,22 +143,21 @@ export default function AdminClients() {
             alignItems: 'center', 
             justifyContent: 'center', 
             fontSize: '1.8rem' 
-          }}>💰</div>
+          }}>🛡️</div>
           <div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '4px' }}>Dépenses totales</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text)' }}>{clients.reduce((s, c) => s + parseFloat(c.total_spent || 0), 0).toFixed(0)} MAD</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '4px' }}>Équipe & Admins</div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text)' }}>{clients.filter(c => c.role !== 'client').length}</div>
           </div>
         </div>
       </div>
 
       <div className="admin-panel">
         <div className="admin-panel-header">
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>Tous les clients</h3>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>Tous les comptes utilisateurs</h3>
           <div className="form-wrapper" style={{ width: '280px' }}>
-            <span className="input-icon\">🔍</span>
             <input
               type="text"
-              placeholder="Rechercher par nom ou email..."
+              placeholder="Rechercher par nom, email ou rôle..."
               className="form-control"
               style={{ height: '40px', padding: '4px 12px' }}
               value={search}
@@ -193,7 +168,8 @@ export default function AdminClients() {
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Client</th>
+              <th>Utilisateur</th>
+              <th>Rôle</th>
               <th>Contact</th>
               <th>Commandes</th>
               <th>Total dépensé</th>
@@ -207,13 +183,8 @@ export default function AdminClients() {
                   key={c.id}
                   style={{ 
                     borderBottom: '1px solid var(--border-light)',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--bg-subtle)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'var(--bg-card)';
+                    transition: 'all 0.2s',
+                    background: c.is_current_user ? 'rgba(10,168,79,0.06)' : 'transparent'
                   }}
                 >
                   <td style={{ padding: '16px 20px' }}>
@@ -222,16 +193,46 @@ export default function AdminClients() {
                         width: '40px', 
                         height: '40px', 
                         borderRadius: 'var(--radius-md)', 
-                        background: 'linear-gradient(135deg, var(--primary-light), var(--primary))', 
+                        background: c.role === 'admin' ? 'linear-gradient(135deg, #ef4444, #f87171)' : c.role === 'client' ? 'linear-gradient(135deg, var(--primary-light), var(--primary))' : 'linear-gradient(135deg, #10b981, #34d399)', 
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center', 
                         fontWeight: 800, 
                         color: 'white',
                         fontSize: '1.1rem'
-                      }}>{c.name.charAt(0)}</div>
-                      <strong style={{ fontSize: '0.95rem' }}>{c.name}</strong>
+                      }}>{c.name ? c.name.charAt(0).toUpperCase() : 'U'}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <strong style={{ fontSize: '0.95rem' }}>{c.name}</strong>
+                        {c.is_current_user && (
+                          <span style={{ 
+                            background: '#0AA84F', 
+                            color: 'white', 
+                            padding: '2px 8px', 
+                            borderRadius: '12px', 
+                            fontSize: '0.72rem', 
+                            fontWeight: 800,
+                            letterSpacing: '0.3px'
+                          }}>
+                            (Vous)
+                          </span>
+                        )}
+                      </div>
                     </div>
+                  </td>
+                  <td style={{ padding: '16px 20px' }}>
+                    {c.role === 'admin' ? (
+                      <span style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800 }}>
+                        👑 Admin
+                      </span>
+                    ) : c.role === 'pharmacien' || c.role === 'employe' ? (
+                      <span style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981', padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800 }}>
+                        💊 Employé / Pharmacien
+                      </span>
+                    ) : (
+                      <span style={{ background: 'rgba(59,130,246,0.15)', color: '#3b82f6', padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800 }}>
+                        👤 Client
+                      </span>
+                    )}
                   </td>
                   <td style={{ padding: '16px 20px' }}>
                     <div style={{ fontSize: '0.85rem' }}>{c.email}</div>
@@ -247,20 +248,20 @@ export default function AdminClients() {
                       color: c.orders_count > 0 ? 'var(--success)' : 'var(--text-muted)'
                     }}>{c.orders_count} commande(s)</span>
                   </td>
-                  <td style={{ padding: '16px 20px' }}><strong style={{ fontSize: '0.95rem' }}>{parseFloat(c.total_spent).toFixed(2)} MAD</strong></td>
+                  <td style={{ padding: '16px 20px' }}><strong style={{ fontSize: '0.95rem' }}>{parseFloat(c.total_spent || 0).toFixed(2)} MAD</strong></td>
                   <td style={{ padding: '16px 20px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>{c.created_at}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" style={{ 
+                <td colSpan="6" style={{ 
                   padding: '80px 40px',
                   textAlign: 'center',
                   color: 'var(--text-muted)',
                   fontSize: '1rem'
                 }}>
                   <div style={{ fontSize: '5rem', marginBottom: '20px', animation: 'float 3s ease-in-out infinite' }}>👥</div>
-                  <div style={{ fontWeight: 700, fontSize: '1.2rem', marginBottom: '8px' }}>Aucun client trouvé</div>
+                  <div style={{ fontWeight: 700, fontSize: '1.2rem', marginBottom: '8px' }}>Aucun utilisateur trouvé</div>
                   <div style={{ fontSize: '0.9rem' }}>Essayez une autre recherche</div>
                 </td>
               </tr>

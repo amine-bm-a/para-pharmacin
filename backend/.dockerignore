@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+.git
+.github
+.gitignore
+.idea
+.vscode
+.fleet
+.nova
+.zed
+node_modules
+storage/logs/*.log
+storage/framework/sessions/*
+vendor
+tests
+docker-compose.yml

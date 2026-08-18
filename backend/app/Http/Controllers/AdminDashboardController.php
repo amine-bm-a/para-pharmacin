@@ -21,11 +21,6 @@ class AdminDashboardController extends Controller
 {
     public function stats(Request $request)
     {
-        // Guard for Admin Role
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
-        }
-
         $totalOrders = Order::count();
         $totalRevenue = Order::where('status', 'completed')->sum('total_amount');
         $totalClients = User::where('role', 'client')->count();
@@ -95,10 +90,6 @@ class AdminDashboardController extends Controller
 
     public function orders(Request $request)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
-        }
-
         $orders = Order::with(['user', 'items.product'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -111,10 +102,6 @@ class AdminDashboardController extends Controller
 
     public function updateOrderStatus(Request $request, $id)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
-        }
-
         $validator = Validator::make($request->all(), [
             'status' => 'required|string|in:pending,preparing,processing,shipped,delivered,completed,cancelled',
             'payment_status' => 'required|string|in:pending,paid,failed',
@@ -165,10 +152,6 @@ class AdminDashboardController extends Controller
 
     public function updatePrescriptionStatus(Request $request, $id)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
-        }
-
         $validator = Validator::make($request->all(), [
             'prescription_status' => 'required|string|in:approved,rejected',
             'commentaire_pharmacien' => 'nullable|string|max:1000',
@@ -245,10 +228,6 @@ class AdminDashboardController extends Controller
 
     public function products(Request $request)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
-        }
-
         $products = Product::with('category')->orderBy('created_at', 'desc')->get();
 
         return response()->json([
@@ -259,10 +238,6 @@ class AdminDashboardController extends Controller
 
     public function storeProduct(Request $request)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
-        }
-
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
@@ -319,10 +294,6 @@ class AdminDashboardController extends Controller
 
     public function updateProduct(Request $request, $id)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
-        }
-
         $product = Product::find($id);
         if (! $product) {
             return response()->json(['success' => false, 'message' => 'Produit non trouvé.'], 404);
@@ -391,10 +362,6 @@ class AdminDashboardController extends Controller
 
     public function deleteProduct(Request $request, $id)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
-        }
-
         $product = Product::find($id);
         if (! $product) {
             return response()->json(['success' => false, 'message' => 'Produit non trouvé.'], 404);
@@ -412,10 +379,6 @@ class AdminDashboardController extends Controller
 
     public function storeCategory(Request $request)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
-        }
-
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:categories,name',
             'description' => 'nullable|string',
@@ -442,10 +405,6 @@ class AdminDashboardController extends Controller
 
     public function updateCategory(Request $request, $id)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
-        }
-
         $category = Category::find($id);
         if (! $category) {
             return response()->json(['success' => false, 'message' => 'Catégorie non trouvée.'], 404);
@@ -477,10 +436,6 @@ class AdminDashboardController extends Controller
 
     public function deleteCategory(Request $request, $id)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['success' => false, 'message' => 'Non autorisé.'], 403);
-        }
-
         $category = Category::find($id);
         if (! $category) {
             return response()->json(['success' => false, 'message' => 'Catégorie non trouvée.'], 404);

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import {
   LayoutDashboard, ShoppingBag, Pill, FolderOpen, Tag,
   Package, Percent, Image, Users, ShieldCheck, Star, LogOut, HeartPulse,
   Truck, CreditCard, Settings, ChevronDown, ChevronRight,
-  Bell, ExternalLink, Grid3X3, Store, BookOpen, Handshake
+  Bell, ExternalLink, Grid3X3, Store, BookOpen, Handshake, PanelLeftClose, PanelLeft
 } from 'lucide-react';
 
 const navGroups = [
@@ -67,7 +67,7 @@ const navGroups = [
   },
 ];
 
-export default function SidebarAdmin() {
+export default function SidebarAdmin({ isCollapsed, onToggleCollapse }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState({});
@@ -92,43 +92,61 @@ export default function SidebarAdmin() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleLogout = async () => { await logout(); navigate('/'); };
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/login';
+  };
 
   const toggleGroup = (label) => {
     setCollapsed(prev => ({ ...prev, [label]: !prev[label] }));
   };
 
   return (
-    <aside className="sidebar-admin">
+    <aside className={`sidebar-admin${isCollapsed ? ' sidebar-collapsed' : ''}`}>
       {/* Logo */}
       <div className="sidebar-logo">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%' }}>
           <div style={{
             width: 38, height: 38, borderRadius: '12px',
-            background: 'linear-gradient(135deg, #2ebb80 0%, #0d9488 100%)',
+            background: 'var(--admin-sidebar-accent)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0, boxShadow: '0 4px 12px rgba(46,187,128,0.4)'
+            flexShrink: 0
           }}>
-            <HeartPulse size={20} style={{ color: 'white' }} />
+            <HeartPulse size={20} style={{ color: 'var(--admin-sidebar-bg)' }} />
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="sidebar-logo-text">ParaPharma</div>
-            <div className="sidebar-logo-sub">Admin Panel</div>
-          </div>
-          <a href="/" target="_blank" rel="noopener noreferrer" title="Voir la boutique"
-            style={{ color: 'rgba(255,255,255,0.3)', display: 'flex', flexShrink: 0, transition: 'color 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.8)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
-          >
-            <ExternalLink size={14} />
-          </a>
+          {!isCollapsed && (
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="sidebar-logo-text">ParaPharma</div>
+              <div className="sidebar-logo-sub">Admin Panel</div>
+            </div>
+          )}
+          {!isCollapsed && (
+            <a href="/" title="Retourner à la boutique"
+              style={{ color: 'var(--admin-sidebar-title)', display: 'flex', flexShrink: 0, transition: 'color 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--primary)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--admin-sidebar-title)'}
+            >
+              <ExternalLink size={14} />
+            </a>
+          )}
         </div>
       </div>
+
+      {/* Collapse Toggle */}
+      <button
+        onClick={onToggleCollapse}
+        className="sidebar-collapse-btn"
+        title={isCollapsed ? 'Agrandir le menu' : 'Réduire le menu'}
+      >
+        {isCollapsed ? <PanelLeft size={18} /> : <PanelLeftClose size={18} />}
+        {!isCollapsed && <span>Réduire</span>}
+      </button>
 
       {/* Navigation Groups */}
       <nav className="sidebar-nav">
         {navGroups.map(group => (
           <div key={group.label} className="sidebar-group">
+            {!isCollapsed ? (
             <button
               className="sidebar-group-title"
               onClick={() => toggleGroup(group.label)}
@@ -138,6 +156,9 @@ export default function SidebarAdmin() {
                 ? <ChevronRight size={12} />
                 : <ChevronDown size={12} />}
             </button>
+          ) : (
+            <div style={{ borderTop: '1px solid var(--admin-sidebar-border)', margin: '6px 12px' }} />
+          )}
 
             {!collapsed[group.label] && group.items.map(item => (
               <NavLink
@@ -145,14 +166,15 @@ export default function SidebarAdmin() {
                 to={item.path}
                 end={item.end}
                 className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                title={isCollapsed ? item.label : undefined}
               >
                 <span className="icon">
                   <item.icon size={17} />
                 </span>
-                <span>{item.label}</span>
-                {item.badge && <span className="sidebar-badge">{item.badge}</span>}
+                {!isCollapsed && <span>{item.label}</span>}
+                {!isCollapsed && item.badge && <span className="sidebar-badge">{item.badge}</span>}
                 {item.isNotification && unreadCount > 0 && (
-                  <span className="sidebar-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                  <span className="sidebar-badge" style={isCollapsed ? { position: 'absolute', top: 4, right: 4, fontSize: '0.55rem', padding: '1px 4px' } : {}}>{unreadCount > 99 ? '99+' : unreadCount}</span>
                 )}
               </NavLink>
             ))}
@@ -162,18 +184,26 @@ export default function SidebarAdmin() {
 
       {/* Bottom Section */}
       <div className="sidebar-footer">
-        <div className="sidebar-user-card">
-          <div className="sidebar-user-avatar">
-            {user?.name?.charAt(0).toUpperCase()}
+        {!isCollapsed ? (
+          <div className="sidebar-user-card">
+            <div className="sidebar-user-avatar">
+              {user?.name?.charAt(0).toUpperCase()}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="sidebar-user-name">{user?.name}</div>
+              <div className="sidebar-user-role">Administrateur</div>
+            </div>
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="sidebar-user-name">{user?.name}</div>
-            <div className="sidebar-user-role">Administrateur</div>
+        ) : (
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+            <div className="sidebar-user-avatar">
+              {user?.name?.charAt(0).toUpperCase()}
+            </div>
           </div>
-        </div>
-        <button onClick={handleLogout} className="sidebar-logout-btn">
+        )}
+        <button onClick={handleLogout} className="sidebar-logout-btn" title={isCollapsed ? 'Déconnexion' : undefined}>
           <LogOut size={15} />
-          <span>Déconnexion</span>
+          {!isCollapsed && <span>Déconnexion</span>}
         </button>
       </div>
     </aside>

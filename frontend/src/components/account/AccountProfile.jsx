@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useWishlist } from '../../context/WishlistContext';
 import axios from 'axios';
 
 export default function AccountProfile() {
   const { user } = useAuth();
+  const { wishlist } = useWishlist();
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
@@ -16,18 +18,11 @@ export default function AccountProfile() {
   });
 
   const [ordersCount, setOrdersCount] = useState(0);
-  const [wishlistCount, setWishlistCount] = useState(0);
+  const wishlistCount = wishlist?.length || 0;
   const [addressesCount, setAddressesCount] = useState(0);
 
   useEffect(() => {
     if (user?.id) {
-      // Get wishlist count
-      try {
-        const wishlist = JSON.parse(localStorage.getItem(`wishlist_${user.id}`) || '[]');
-        setWishlistCount(wishlist.length);
-      } catch (e) {
-        console.error(e);
-      }
 
       // Get addresses count
       try {

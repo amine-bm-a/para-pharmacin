@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { BACKEND_BASE_URL } from '../../utils/textUtils';
 
 /* ─────────────────────────────────────────
    Star rating renderer
@@ -52,20 +53,19 @@ const SlideCard = ({ product, isActive }) => {
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
       return url;
     }
-    const backendBase = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api').replace(/\/api$/, '');
-    return `${backendBase}${url.startsWith('/') ? '' : '/'}${url}`;
+    return `${BACKEND_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
   };
 
   return (
     <div
       style={{
         background: 'var(--bg-card)',
-        borderRadius: '28px',
+        borderRadius: 'var(--radius-lg)',
         overflow: 'hidden',
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         height: '420px',
-        boxShadow: '0 24px 60px rgba(10,168,79,0.10), 0 4px 16px rgba(0,0,0,0.06)',
+        boxShadow: 'var(--shadow-lg), var(--shadow-sm)',
         border: '1.5px solid var(--border-light)',
         transition: 'transform 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease',
         transform: isActive ? 'scale(1)' : 'scale(0.97)',
@@ -231,24 +231,24 @@ const SlideCard = ({ product, isActive }) => {
           <button
             onClick={handleAdd}
             style={{
-              marginTop: '8px',
+              marginTop: 'var(--space-xs)',
               padding: '14px 28px',
-              borderRadius: '14px',
+              borderRadius: 'var(--radius-sm)',
               border: 'none',
               background: added
                 ? 'linear-gradient(135deg, #0AA84F, #0fa84f)'
                 : 'linear-gradient(135deg, var(--primary), #1a8f5c)',
               color: '#fff',
               fontFamily: 'var(--font-title)',
-              fontSize: '0.95rem',
-              fontWeight: 700,
+              fontSize: 'var(--fs-sm)',
+              fontWeight: 'var(--fw-bold)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
               alignSelf: 'flex-start',
-              boxShadow: '0 6px 20px rgba(10,168,79,0.3)',
-              transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+              boxShadow: 'var(--shadow-hover)',
+              transition: 'var(--transition-spring)',
               transform: added ? 'scale(0.97)' : 'scale(1)',
             }}
             onMouseEnter={(e) => {
@@ -262,7 +262,7 @@ const SlideCard = ({ product, isActive }) => {
               e.currentTarget.style.boxShadow = '0 6px 20px rgba(10,168,79,0.3)';
             }}
           >
-            <span style={{ fontSize: '1.1rem' }}>{added ? '✓' : '🛒'}</span>
+            <span style={{ fontSize: '1.1rem' }}>{added ? '✓' : ''}</span>
             <span>{added ? 'Ajouté !' : 'Ajouter au panier'}</span>
           </button>
         ) : (
@@ -465,7 +465,8 @@ const ProductSlider = () => {
 
   return (
     <section
-      style={{ margin: '0 0 8px', position: 'relative', userSelect: 'none', padding: '0 28px' }}
+      className="reveal"
+      style={{ margin: '0 0 var(--space-md)', position: 'relative', userSelect: 'none', padding: '0 28px' }}
       aria-label="Slider des produits"
     >
       {/* Main Slide */}

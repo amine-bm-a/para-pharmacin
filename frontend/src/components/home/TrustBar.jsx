@@ -74,21 +74,21 @@ function StatCard({ stat, index, startCount, isDark }) {
       style={{
         flex: '1 1 220px',
         background: isDark ? stat.darkBg : stat.lightBg,
-        borderRadius: '20px',
-        padding: '32px 24px',
+        borderRadius: 'var(--radius-md)',
+        padding: 'var(--space-lg) var(--space-md)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         textAlign: 'center',
-        gap: '10px',
+        gap: 'var(--space-xs)',
         position: 'relative',
         overflow: 'hidden',
         border: `1.5px solid ${isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.8)'}`,
         boxShadow: hovered
-          ? `0 20px 50px ${stat.color}28, 0 8px 24px rgba(0,0,0,0.08)`
-          : '0 4px 16px rgba(0,0,0,0.04)',
+          ? `0 20px 50px ${stat.color}28, var(--shadow-md)`
+          : 'var(--shadow-sm)',
         transform: hovered ? 'translateY(-6px) scale(1.02)' : 'translateY(0) scale(1)',
-        transition: 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
+        transition: 'var(--transition)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         cursor: 'default',
@@ -100,17 +100,17 @@ function StatCard({ stat, index, startCount, isDark }) {
         position: 'absolute', top: '-20px', right: '-20px',
         width: '80px', height: '80px', borderRadius: '50%',
         background: `${stat.color}14`,
-        transition: 'transform 0.4s ease',
+        transition: 'var(--transition)',
         transform: hovered ? 'scale(1.5)' : 'scale(1)',
       }} />
 
       {/* Icon circle */}
       <div style={{
-        width: '56px', height: '56px', borderRadius: '16px',
+        width: '56px', height: '56px', borderRadius: 'var(--radius-md)',
         background: `${stat.color}18`,
         border: `2px solid ${stat.color}30`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        transition: 'var(--transition-spring)',
         transform: hovered ? 'scale(1.15) rotate(-5deg)' : 'scale(1) rotate(0)',
         boxShadow: hovered ? `0 8px 20px ${stat.color}30` : 'none',
         zIndex: 1,
@@ -183,7 +183,7 @@ const TrustBar = () => {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
   return (
-    <section ref={sectionRef} style={{ padding: '20px 0 60px' }}>
+    <section ref={sectionRef} className="reveal" style={{ padding: 'var(--space-md) 0 var(--space-xl)' }}>
       <div className="container">
         <div style={{
           display: 'flex',

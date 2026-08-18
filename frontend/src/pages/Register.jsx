@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { User, Phone, Mail, Lock, Eye, EyeOff, KeyRound, UserPlus, Loader2, ShieldCheck, CheckCircle2, ArrowLeft, Gift } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { User, Phone, Mail, Lock, Eye, EyeOff, KeyRound, UserPlus, Loader2, ShieldCheck, CheckCircle2, ArrowLeft, Gift, Sun, Moon, Check } from 'lucide-react';
 
 import logo from '../assets/logo.png';
 
-function PasswordStrength({ password }) {
+function PasswordStrength({ password, isDark }) {
   if (!password) return null;
   const checks = [
     { label: '8 car.', ok: password.length >= 8 },
@@ -14,16 +15,18 @@ function PasswordStrength({ password }) {
   ];
   const score = checks.filter(c => c.ok).length;
   const colors = ['#ff6b6b', '#ffd93d', '#0AA84F'];
+  const barInactive = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)';
+  const textInactive = isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.25)';
   return (
     <div style={{ marginTop: '8px' }}>
       <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
         {[0, 1, 2].map(i => (
-          <div key={i} style={{ flex: 1, height: '3px', borderRadius: '2px', background: i < score ? colors[score - 1] : 'rgba(255,255,255,0.12)', transition: 'background 0.3s' }} />
+          <div key={i} style={{ flex: 1, height: '3px', borderRadius: '2px', background: i < score ? colors[score - 1] : barInactive, transition: 'background 0.3s' }} />
         ))}
       </div>
       <div style={{ display: 'flex', gap: '10px' }}>
         {checks.map(({ label, ok }) => (
-          <span key={label} style={{ fontSize: '0.73rem', color: ok ? '#0AA84F' : 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: '3px', transition: 'color 0.3s' }}>
+          <span key={label} style={{ fontSize: '0.73rem', color: ok ? '#0AA84F' : textInactive, display: 'flex', alignItems: 'center', gap: '3px', transition: 'color 0.3s' }}>
             <CheckCircle2 size={10} style={{ opacity: ok ? 1 : 0.3 }} /> {label}
           </span>
         ))}
@@ -34,6 +37,7 @@ function PasswordStrength({ password }) {
 
 export default function Register() {
   const { register, user } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -72,17 +76,30 @@ export default function Register() {
     else setError(res.message);
   };
 
-  const onFocus = e => { e.target.style.borderColor = 'rgba(255,255,255,0.6)'; e.target.style.boxShadow = '0 0 0 3px rgba(255,255,255,0.08)'; };
-  const onBlur  = e => { e.target.style.borderColor = 'rgba(255,255,255,0.15)'; e.target.style.boxShadow = 'none'; };
+  // ── Theme-aware colors ──
+  const bgGradient = isDark
+    ? 'linear-gradient(135deg, #062a18 0%, #0f2a3a 45%, #17213C 100%)'
+    : 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 45%, #e0e7ff 100%)';
+  const cardBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.7)';
+  const cardBorder = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.5)';
+  const cardShadow = isDark ? '0 32px 80px rgba(0,0,0,0.45)' : '0 32px 80px rgba(0,0,0,0.1)';
+  const textMain = isDark ? 'white' : '#1f2937';
+  const textMuted = isDark ? 'rgba(255,255,255,0.72)' : '#4b5563';
+  const textFaint = isDark ? 'rgba(255,255,255,0.62)' : '#6b7280';
+  const inputBg = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.8)';
+  const inputBorder = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)';
+
+  const onFocus = e => { e.target.style.borderColor = isDark ? 'rgba(255,255,255,0.6)' : '#0AA84F'; e.target.style.boxShadow = isDark ? '0 0 0 3px rgba(255,255,255,0.08)' : '0 0 0 3px rgba(10,168,79,0.15)'; };
+  const onBlur  = e => { e.target.style.borderColor = inputBorder; e.target.style.boxShadow = 'none'; };
 
   const fieldStyle = {
     width: '100%',
     padding: '13px 16px 13px 44px',
-    background: 'rgba(255,255,255,0.07)',
-    border: '1.5px solid rgba(255,255,255,0.15)',
+    background: inputBg,
+    border: `1.5px solid ${inputBorder}`,
     borderRadius: '14px',
-    color: 'white',
-    fontSize: '0.92rem',
+    color: textMain,
+    fontSize: '0.9rem',
     outline: 'none',
     transition: 'all 0.2s',
     boxSizing: 'border-box',
@@ -91,12 +108,12 @@ export default function Register() {
 
   const labelStyle = {
     display: 'block',
-    fontSize: '0.8rem',
+    fontSize: '0.72rem',
     fontWeight: 600,
-    color: 'rgba(255,255,255,0.6)',
-    marginBottom: '7px',
+    color: textMuted,
+    marginBottom: '8px',
     textTransform: 'uppercase',
-    letterSpacing: '0.5px',
+    letterSpacing: '0.8px',
   };
 
   const iconStyle = {
@@ -104,236 +121,351 @@ export default function Register() {
     left: '14px',
     top: '50%',
     transform: 'translateY(-50%)',
-    color: 'rgba(255,255,255,0.35)',
+    color: textFaint,
     pointerEvents: 'none',
     zIndex: 2,
   };
 
   return (
     <>
-
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+      <div className="register-container" style={{
         fontFamily: 'var(--font-body)',
-        position: 'relative',
-        overflow: 'hidden',
-        background: 'linear-gradient(135deg, #062a18 0%, #0f2a3a 45%, #17213C 100%)',
-        padding: '24px 16px',
+        '--bg-gradient': bgGradient,
+        '--card-bg': cardBg,
+        '--card-border': cardBorder,
+        '--card-shadow': cardShadow,
       }}>
 
-        {/* Logo watermark */}
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 0 }}>
-          <img src={logo} alt="" aria-hidden="true" style={{ width: '520px', maxWidth: '75vw', opacity: 0.06, filter: 'brightness(2) saturate(0)', userSelect: 'none' }} />
-        </div>
-
-        {/* Glow orbs */}
-        <div style={{ position:'absolute', top:'-80px', right:'-60px', width:'340px', height:'340px', borderRadius:'50%', background:'rgba(10,168,79,0.15)', filter:'blur(90px)', pointerEvents:'none', zIndex:0 }} />
-        <div style={{ position:'absolute', bottom:'-60px', left:'-60px', width:'280px', height:'280px', borderRadius:'50%', background:'rgba(199,166,91,0.1)', filter:'blur(80px)', pointerEvents:'none', zIndex:0 }} />
-
-        {/* Glass card */}
-        <div style={{
-          position: 'relative',
-          zIndex: 2,
-          width: '100%',
-          maxWidth: '460px',
-          background: 'rgba(255,255,255,0.06)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          border: '1.5px solid rgba(255,255,255,0.12)',
-          borderRadius: '28px',
-          padding: '40px 38px',
-          boxShadow: '0 32px 80px rgba(0,0,0,0.45)',
-        }}>
-
-          {/* Back link */}
-          <Link
-            to="/"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'rgba(255,255,255,0.4)', textDecoration: 'none', marginBottom: '20px', fontSize: '0.85rem', fontWeight: 600, transition: 'color 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#0AA84F'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
-          >
-            <ArrowLeft size={14} /> Retour à l'accueil
-          </Link>
-
-          {/* Logo */}
-          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-            <Link to="/" style={{ display: 'inline-block', transition: 'transform 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
-              <img src={logo} alt="Para Ben Moussa" style={{ height: '58px', width: 'auto', objectFit: 'contain', filter: 'brightness(1.1)' }} />
-            </Link>
+        {/* ── Left Panel (Branding) ── */}
+        <div className="register-left-panel">
+          {/* Giant logo watermark */}
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 0 }}>
+            <img src={logo} alt="" style={{ width: '600px', maxWidth: '80%', opacity: 0.05, filter: 'brightness(2) saturate(0)', userSelect: 'none' }} />
           </div>
 
-          {/* Title */}
-          <h2 style={{ fontSize: '1.55rem', fontWeight: 700, fontFamily: 'var(--font-title)', color: 'white', textAlign: 'center', marginBottom: '4px' }}>
-            Créer un compte
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.45)', textAlign: 'center', fontSize: '0.88rem', marginBottom: '26px', lineHeight: 1.5 }}>
-            Inscription gratuite, livraison rapide 🇲🇦
-          </p>
+          {/* Soft glow orbs */}
+          <div style={{ position:'absolute', top:'-10%', left:'-10%', width:'500px', height:'500px', borderRadius:'50%', background:'rgba(10,168,79,0.15)', filter:'blur(100px)', pointerEvents:'none', zIndex:0 }} />
+          <div style={{ position:'absolute', bottom:'-10%', right:'-10%', width:'400px', height:'400px', borderRadius:'50%', background:'rgba(199,166,91,0.1)', filter:'blur(90px)', pointerEvents:'none', zIndex:0 }} />
 
-          {/* Alerts */}
-          {message && (
-            <div style={{ marginBottom: '16px', padding: '11px 14px', borderRadius: '12px', background: 'rgba(10,168,79,0.15)', border: '1px solid rgba(10,168,79,0.25)', color: '#6ee7a8', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <UserPlus size={15} /> {message}
-            </div>
-          )}
-          {error && (
-            <div style={{ marginBottom: '16px', padding: '11px 14px', borderRadius: '12px', background: 'rgba(220,53,69,0.12)', border: '1px solid rgba(220,53,69,0.25)', color: '#ff8080', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <ShieldCheck size={15} /> {error}
-            </div>
-          )}
+          {/* Branding text */}
+          <div style={{ position: 'relative', zIndex: 1, maxWidth: '480px' }}>
+            <h1 style={{ fontSize: '3.2rem', fontWeight: 800, color: 'white', marginBottom: '24px', lineHeight: 1.15, fontFamily: 'var(--font-title)' }}>
+              Rejoignez la<br/> <span style={{ color: '#0AA84F' }}>communauté.</span>
+            </h1>
+            <p style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, fontWeight: 400 }}>
+              Créez votre compte pour profiter de prix exclusifs, suivre vos commandes et recevoir des offres personnalisées.
+            </p>
+          </div>
+        </div>
 
-          <form onSubmit={handleSubmit}>
-            {/* Name + Phone */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
-              <div>
-                <label style={labelStyle}>Nom</label>
-                <div style={{ position: 'relative' }}>
-                  <User size={15} style={iconStyle} />
-                  <input type="text" required placeholder="Votre nom" value={form.name} onChange={set('name')} style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
+        {/* ── Right Panel (Form) ── */}
+        <div className="register-right-panel">
+          <div className="register-form-container">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+  {/* Back link */}
+  <Link
+    to="/"
+    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: textFaint, textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600, transition: 'color 0.2s' }}
+    onMouseEnter={e => e.currentTarget.style.color = '#0AA84F'}
+    onMouseLeave={e => e.currentTarget.style.color = textFaint}
+  >
+    <ArrowLeft size={14} /> Retour
+  </Link>
+  {/* Theme Toggle */}
+  <button
+    type="button"
+    onClick={toggleTheme}
+    style={{
+      background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+      border: isDark ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0,0,0,0.1)',
+      color: textMain,
+      width: '34px', height: '34px',
+      borderRadius: '50%',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      cursor: 'pointer',
+      transition: 'all 0.2s',
+      boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.05)',
+    }}
+    onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)'}
+    onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}
+    title={isDark ? "Passer en mode clair" : "Passer en mode sombre"}
+  >
+    {isDark ? <Sun size={16} /> : <Moon size={16} />}
+  </button>
+</div>
+
+{/* Mobile Logo */}
+<div className="register-mobile-logo" style={{ textAlign: 'center', marginBottom: '24px' }}>
+  <Link to="/" style={{ display: 'inline-block' }}>
+    <img src={logo} alt="Para Ben Moussa" style={{ height: '48px', width: 'auto', objectFit: 'contain', filter: isDark ? 'brightness(1.1)' : 'none' }} />
+  </Link>
+</div>
+
+{/* Title */}
+<h2 style={{ fontSize: '1.75rem', fontWeight: 700, fontFamily: 'var(--font-title)', color: textMain, textAlign: 'center', marginBottom: '6px' }}>
+  Créer un compte
+</h2>
+<p style={{ color: textFaint, textAlign: 'center', fontSize: '0.9rem', marginBottom: '32px', lineHeight: 1.5 }}>
+  Inscription gratuite, livraison rapide 🇲🇦
+</p>
+
+            {/* Alerts */}
+            {message && (
+              <div style={{ marginBottom: '16px', padding: '12px 16px', borderRadius: '12px', background: 'rgba(10,168,79,0.15)', border: '1px solid rgba(10,168,79,0.25)', color: '#6ee7a8', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <UserPlus size={15} /> {message}
+              </div>
+            )}
+            {error && (
+              <div style={{ marginBottom: '16px', padding: '12px 16px', borderRadius: '12px', background: 'rgba(220,53,69,0.12)', border: '1px solid rgba(220,53,69,0.25)', color: '#ff8080', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ShieldCheck size={15} /> {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit}>
+              {/* Name + Phone */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                <div>
+                  <label style={labelStyle}>Nom</label>
+                  <div style={{ position: 'relative' }}>
+                    <User size={15} style={iconStyle} />
+                    <input type="text" required placeholder="Votre nom" value={form.name} onChange={set('name')} className="register-input" style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
+                  </div>
+                </div>
+                <div>
+                  <label style={labelStyle}>Téléphone</label>
+                  <div style={{ position: 'relative' }}>
+                    <Phone size={15} style={iconStyle} />
+                    <input type="tel" placeholder="06XXXXXXXX" value={form.phone} onChange={set('phone')} className="register-input" style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
+                  </div>
                 </div>
               </div>
-              <div>
-                <label style={labelStyle}>Téléphone</label>
+
+              {/* Email */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={labelStyle}>Email</label>
                 <div style={{ position: 'relative' }}>
-                  <Phone size={15} style={iconStyle} />
-                  <input type="tel" placeholder="06XXXXXXXX" value={form.phone} onChange={set('phone')} style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
+                  <Mail size={15} style={iconStyle} />
+                  <input type="email" required placeholder="exemple@email.com" value={form.email} onChange={set('email')} className="register-input" style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
                 </div>
               </div>
-            </div>
 
-            {/* Email */}
-            <div style={{ marginBottom: '14px' }}>
-              <label style={labelStyle}>Email</label>
-              <div style={{ position: 'relative' }}>
-                <Mail size={15} style={iconStyle} />
-                <input type="email" required placeholder="exemple@email.com" value={form.email} onChange={set('email')} style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
+              {/* Password */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={labelStyle}>Mot de passe</label>
+                <div style={{ position: 'relative' }}>
+                  <Lock size={15} style={iconStyle} />
+                  <input type={showPassword ? 'text' : 'password'} required placeholder="Min. 8 caractères" value={form.password} onChange={set('password')} className="register-input" style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
+                  <button type="button" onClick={() => setShowPassword(v => !v)} style={{ position: 'absolute', right: '13px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: textFaint, display: 'flex', zIndex: 2 }}>
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                <PasswordStrength password={form.password} isDark={isDark} />
               </div>
-            </div>
 
-            {/* Password */}
-            <div style={{ marginBottom: '14px' }}>
-              <label style={labelStyle}>Mot de passe</label>
-              <div style={{ position: 'relative' }}>
-                <Lock size={15} style={iconStyle} />
-                <input type={showPassword ? 'text' : 'password'} required placeholder="Min. 8 caractères" value={form.password} onChange={set('password')} style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
-                <button type="button" onClick={() => setShowPassword(v => !v)} style={{ position: 'absolute', right: '13px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', display: 'flex', zIndex: 2 }}>
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
+              {/* Confirm */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={labelStyle}>Confirmer le mot de passe</label>
+                <div style={{ position: 'relative' }}>
+                  <KeyRound size={15} style={iconStyle} />
+                  <input
+                    type={showConfirm ? 'text' : 'password'}
+                    required
+                    placeholder="Répétez votre mot de passe"
+                    value={form.confirm}
+                    onChange={set('confirm')}
+                    className="register-input"
+                    style={{
+                      ...fieldStyle,
+                      borderColor: form.confirm
+                        ? form.confirm === form.password ? 'rgba(10,168,79,0.6)' : 'rgba(220,53,69,0.5)'
+                        : inputBorder
+                    }}
+                    onFocus={onFocus}
+                    onBlur={onBlur}
+                  />
+                  <button type="button" onClick={() => setShowConfirm(v => !v)} style={{ position: 'absolute', right: '13px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: textFaint, display: 'flex', zIndex: 2 }}>
+                    {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
-              <PasswordStrength password={form.password} />
-            </div>
 
-            {/* Confirm */}
-            <div style={{ marginBottom: '18px' }}>
-              <label style={labelStyle}>Confirmer le mot de passe</label>
-              <div style={{ position: 'relative' }}>
-                <KeyRound size={15} style={iconStyle} />
-                <input
-                  type={showConfirm ? 'text' : 'password'}
-                  required
-                  placeholder="Répétez votre mot de passe"
-                  value={form.confirm}
-                  onChange={set('confirm')}
-                  style={{
-                    ...fieldStyle,
-                    borderColor: form.confirm
-                      ? form.confirm === form.password ? 'rgba(10,168,79,0.6)' : 'rgba(220,53,69,0.5)'
-                      : 'rgba(255,255,255,0.15)'
-                  }}
-                  onFocus={onFocus}
-                  onBlur={onBlur}
-                />
-                <button type="button" onClick={() => setShowConfirm(v => !v)} style={{ position: 'absolute', right: '13px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', display: 'flex', zIndex: 2 }}>
-                  {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
+              {/* Referral code (optional) */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={labelStyle}>Code de parrainage <span style={{ opacity: 0.5, fontWeight: 400, textTransform: 'none' }}>(facultatif)</span></label>
+                <div style={{ position: 'relative' }}>
+                  <Gift size={15} style={iconStyle} />
+                  <input
+                    type="text"
+                    placeholder="Ex : ABCD1234"
+                    value={form.referral_code}
+                    onChange={set('referral_code')}
+                    maxLength={8}
+                    className="register-input"
+                    style={{ ...fieldStyle, textTransform: 'uppercase' }}
+                    onFocus={onFocus}
+                    onBlur={onBlur}
+                  />
+                </div>
+                <p style={{ margin: '5px 0 0', fontSize: '0.75rem', color: textFaint }}>
+                  Entrez le code d'un ami et obtenez <strong style={{ color: '#6ee7a8' }}>15 MAD de réduction</strong> sur votre 1ère commande.
+                </p>
               </div>
-            </div>
 
-            {/* Referral code (optional) */}
-            <div style={{ marginBottom: '18px' }}>
-              <label style={labelStyle}>Code de parrainage <span style={{ opacity: 0.5, fontWeight: 400, textTransform: 'none' }}>(facultatif)</span></label>
-              <div style={{ position: 'relative' }}>
-                <Gift size={15} style={iconStyle} />
-                <input
-                  type="text"
-                  placeholder="Ex : ABCD1234"
-                  value={form.referral_code}
-                  onChange={set('referral_code')}
-                  maxLength={8}
-                  style={{ ...fieldStyle, textTransform: 'uppercase' }}
-                  onFocus={onFocus}
-                  onBlur={onBlur}
-                />
-              </div>
-              <p style={{ margin: '5px 0 0', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
-                Entrez le code d'un ami et obtenez <strong style={{ color: '#6ee7a8' }}>15 MAD de réduction</strong> sur votre 1ère commande.
+              {/* Terms — Custom checkbox */}
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer', marginBottom: '24px' }}>
+                <div style={{
+                  width: '18px', height: '18px', borderRadius: '6px', marginTop: '2px', flexShrink: 0,
+                  border: `1.5px solid ${agreed ? '#0AA84F' : inputBorder}`,
+                  background: agreed ? '#0AA84F' : 'rgba(255,255,255,0.03)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.2s'
+                }}>
+                  {agreed && <Check size={12} color="white" strokeWidth={3} />}
+                </div>
+                <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ display: 'none' }} />
+                <span style={{ fontSize: '0.8rem', color: textFaint, lineHeight: 1.55 }}>
+                  J'accepte les{' '}
+                  <Link to="/cgv" style={{ color: '#0AA84F', fontWeight: 600, textDecoration: 'none' }}>CGV</Link>
+                  {' '}et la{' '}
+                  <Link to="/politique-confidentialite" style={{ color: '#0AA84F', fontWeight: 600, textDecoration: 'none' }}>politique de confidentialité</Link>
+                </span>
+              </label>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: '15px',
+                  borderRadius: '14px',
+                  background: loading ? 'rgba(10,168,79,0.3)' : 'linear-gradient(135deg, #0AA84F, #088C41)',
+                  color: 'white',
+                  border: 'none',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontWeight: 700,
+                  fontSize: '0.95rem',
+                  fontFamily: 'var(--font-title)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  transition: 'all 0.3s ease',
+                  boxShadow: loading ? 'none' : '0 4px 24px rgba(10,168,79,0.4)',
+                  marginBottom: '24px',
+                }}
+                onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(10,168,79,0.5)'; } }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(10,168,79,0.4)'; }}
+              >
+                {loading
+                  ? <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Création du compte...</>
+                  : <><UserPlus size={18} /> Créer mon compte</>}
+              </button>
+            </form>
+
+            {/* Login link */}
+            <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
+              <p style={{ textAlign: 'center', fontSize: '0.88rem', color: textFaint, margin: 0 }}>
+                Déjà inscrit ?{' '}
+                <Link to={`/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`}
+                  style={{ color: '#0AA84F', fontWeight: 700, textDecoration: 'none' }}
+                  onMouseEnter={e => e.target.style.textDecoration = 'underline'}
+                  onMouseLeave={e => e.target.style.textDecoration = 'none'}
+                >
+                  Se connecter
+                </Link>
               </p>
             </div>
 
-            {/* Terms */}
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '9px', cursor: 'pointer', marginBottom: '20px' }}>
-              <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ width: '15px', height: '15px', marginTop: '2px', accentColor: '#0AA84F', cursor: 'pointer', flexShrink: 0 }} />
-              <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.55 }}>
-                J'accepte les{' '}
-                <Link to="/cgv" style={{ color: '#0AA84F', fontWeight: 600 }}>CGV</Link>
-                {' '}et la{' '}
-                <Link to="/politique-confidentialite" style={{ color: '#0AA84F', fontWeight: 600 }}>politique de confidentialité</Link>
-              </span>
-            </label>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: '100%',
-                padding: '15px',
-                borderRadius: '14px',
-                background: loading ? 'rgba(10,168,79,0.3)' : 'linear-gradient(135deg, #0AA84F, #088C41)',
-                color: 'white',
-                border: 'none',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                fontWeight: 700,
-                fontSize: '0.95rem',
-                fontFamily: 'var(--font-title)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '10px',
-                transition: 'all 0.3s ease',
-                boxShadow: loading ? 'none' : '0 4px 24px rgba(10,168,79,0.4)',
-                marginBottom: '20px',
-              }}
-              onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(10,168,79,0.5)'; } }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(10,168,79,0.4)'; }}
-            >
-              {loading
-                ? <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Création du compte...</>
-                : <><UserPlus size={18} /> Créer mon compte</>}
-            </button>
-          </form>
-
-          <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
-            <p style={{ textAlign: 'center', fontSize: '0.87rem', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
-              Déjà inscrit ?{' '}
-              <Link to={`/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`}
-                style={{ color: '#0AA84F', fontWeight: 700, textDecoration: 'none' }}
-                onMouseEnter={e => e.target.style.textDecoration = 'underline'}
-                onMouseLeave={e => e.target.style.textDecoration = 'none'}
-              >
-                Se connecter
-              </Link>
-            </p>
           </div>
         </div>
       </div>
 
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .register-input::placeholder {
+          color: ${isDark ? 'rgba(255,255,255,0.32)' : 'rgba(0,0,0,0.32)'};
+          font-weight: 400;
+        }
+
+        .register-container {
+          display: flex;
+          min-height: 100vh;
+          width: 100vw;
+          background: var(--bg-gradient);
+          overflow-y: auto;
+        }
+
+        .register-left-panel {
+          flex: 1.2;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 60px 8%;
+          position: relative;
+          overflow: hidden;
+          background: linear-gradient(135deg, #062a18 0%, #0f2a3a 45%, #17213C 100%);
+        }
+
+        .register-right-panel {
+          flex: 1;
+          min-width: 460px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--card-bg);
+          backdrop-filter: blur(32px);
+          -webkit-backdrop-filter: blur(32px);
+          border-left: 1px solid var(--card-border);
+          box-shadow: -20px 0 80px rgba(0,0,0,0.15);
+          padding: 40px;
+          position: relative;
+          z-index: 10;
+        }
+
+        .register-form-container {
+          width: 100%;
+          max-width: 420px;
+          margin: 0 auto;
+        }
+
+        .register-mobile-logo {
+          display: none;
+        }
+
+        @media (max-width: 900px) {
+          .register-left-panel {
+            display: none;
+          }
+          .register-right-panel {
+            min-width: 100%;
+            background: transparent;
+            border-left: none;
+            box-shadow: none;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            padding: 20px;
+          }
+          .register-form-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1.5px solid var(--card-border);
+            border-radius: 28px;
+            padding: 40px 32px;
+            box-shadow: var(--card-shadow);
+          }
+          .register-mobile-logo {
+            display: block;
+          }
+        }
+
+        @media (max-height: 750px) {
+          .register-right-panel { padding-top: 20px; padding-bottom: 20px; }
+          .register-form-container { padding: 24px 28px !important; }
+        }
+      `}</style>
     </>
   );
 }
