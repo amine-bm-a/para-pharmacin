@@ -32,7 +32,7 @@ WORKDIR /var/www/html
 COPY backend/composer.json backend/composer.lock* ./
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-ARG BUILD_ID=1
+RUN echo "Cache bust v3" > /tmp/cache_bust
 COPY backend/ .
 
 RUN composer dump-autoload --optimize \
