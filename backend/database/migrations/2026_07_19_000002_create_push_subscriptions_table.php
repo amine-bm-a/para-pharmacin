@@ -13,7 +13,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             // The unique push endpoint URL from the browser
-            $table->string('endpoint', 2048);
+            $table->string('endpoint', 191);
             // VAPID encryption keys
             $table->string('p256dh', 512)->nullable();
             $table->string('auth', 255)->nullable();
