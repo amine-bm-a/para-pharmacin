@@ -8,11 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::dropIfExists('push_subscriptions');
         Schema::create('push_subscriptions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             // The unique push endpoint URL from the browser
-            $table->text('endpoint');
+            $table->string('endpoint', 2048);
             // VAPID encryption keys
             $table->string('p256dh', 512)->nullable();
             $table->string('auth', 255)->nullable();
