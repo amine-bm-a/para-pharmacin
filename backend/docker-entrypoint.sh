@@ -22,4 +22,13 @@ echo "Starting php-fpm..."
 php-fpm -D
 
 echo "Starting nginx..."
+nginx
+sleep 2
+
+echo "INTERNAL TESTS ---"
+curl -s -o /dev/null -w "GET /up => %{http_code}\n" http://127.0.0.1/up
+curl -s -o /dev/null -w "GET /api/products => %{http_code}\n" http://127.0.0.1/api/products
+curl -s -o /dev/null -w "GET /index.php => %{http_code}\n" http://127.0.0.1/index.php
+echo "END INTERNAL TESTS ---"
+
 exec nginx -g 'daemon off;'
