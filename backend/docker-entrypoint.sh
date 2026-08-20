@@ -10,9 +10,6 @@ try { Illuminate\Support\Facades\DB::statement('DROP TABLE IF EXISTS push_subscr
 echo "Running migrations..."
 php artisan migrate --force
 
-echo "Setting nginx port to ${PORT:-80}..."
-sed -i "s/listen 80 default_server;/listen ${PORT:-80} default_server;/" /etc/nginx/sites-enabled/default
-
 echo "Starting php-fpm..."
 php-fpm -D
 
