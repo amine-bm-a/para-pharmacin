@@ -17,8 +17,8 @@ RUN apt-get update --fix-missing && apt-get install -y --no-install-recommends \
     && docker-php-ext-install pdo pdo_mysql gd bcmath mbstring exif zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN sed -i 's/LoadModule mpm_event_module/#LoadModule mpm_event_module/' /etc/apache2/mods-available/mpm_event.conf \
-    && sed -i 's/LoadModule mpm_worker_module/#LoadModule mpm_worker_module/' /etc/apache2/mods-available/mpm_worker.conf \
+RUN rm -f /etc/apache2/mods-enabled/mpm_event.load /etc/apache2/mods-enabled/mpm_event.conf \
+    && rm -f /etc/apache2/mods-enabled/mpm_worker.load /etc/apache2/mods-enabled/mpm_worker.conf \
     && a2enmod mpm_prefork rewrite
 
 ENV APACHE_DOCUMENT_ROOT /var/www/html
