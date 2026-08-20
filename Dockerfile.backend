@@ -17,7 +17,9 @@ RUN apt-get update --fix-missing && apt-get install -y --no-install-recommends \
     && docker-php-ext-install pdo pdo_mysql gd bcmath mbstring exif zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN a2enmod rewrite
+RUN sed -i 's/LoadModule mpm_event_module/#LoadModule mpm_event_module/' /etc/apache2/mods-available/mpm_event.conf \
+    && sed -i 's/LoadModule mpm_worker_module/#LoadModule mpm_worker_module/' /etc/apache2/mods-available/mpm_worker.conf \
+    && a2enmod mpm_prefork rewrite
 
 ENV APACHE_DOCUMENT_ROOT /var/www/html
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
@@ -32,7 +34,6 @@ WORKDIR /var/www/html
 COPY backend/composer.json backend/composer.lock* ./
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-RUN echo "Cache bust v3" > /tmp/cache_bust
 COPY backend/ .
 
 RUN composer dump-autoload --optimize \
