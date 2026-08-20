@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM php:8.2-fpm
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -8,6 +8,7 @@ RUN apt-get update --fix-missing && apt-get install -y --no-install-recommends \
     libfreetype-dev \
     libonig-dev \
     libzip-dev \
+    nginx \
     zip \
     unzip \
     git \
@@ -16,14 +17,6 @@ RUN apt-get update --fix-missing && apt-get install -y --no-install-recommends \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo pdo_mysql gd bcmath mbstring exif zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-RUN a2enmod rewrite \
-    && a2dismod mpm_event mpm_worker 2>/dev/null || true \
-    && a2enmod mpm_prefork
-
-ENV APACHE_DOCUMENT_ROOT /var/www/html
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/conf-available/*.conf
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
@@ -43,6 +36,9 @@ RUN mkdir -p storage framework/cache framework/sessions framework/views bootstra
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
+COPY backend/nginx.conf /etc/nginx/sites-enabled/default
+RUN sed -i 's/^user .*/user www-data;/' /etc/nginx/nginx.conf
+
 COPY backend/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
@@ -50,4 +46,4 @@ ENV PORT=80
 EXPOSE ${PORT}
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["apache2-foreground"]
+CMD ["php-fpm"]
