@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Outlet, NavLink, useNavigate, useLocation, Link } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 import { useUserNotif } from '../../context/UserNotifContext';
-import { LayoutDashboard, ScanBarcode, Package, ClipboardCheck, CreditCard, Pill, Gift, Settings, Bell, LogOut, HeartPulse, ExternalLink, FileText, UserCog, ChevronDown, Search, ChevronRight, X, Check, Store } from 'lucide-react';
+import { LayoutDashboard, ScanBarcode, Package, ClipboardCheck, Bell, LogOut, HeartPulse, ExternalLink, FileText, UserCog, ChevronDown, Search, ChevronRight, X, Check, Store } from 'lucide-react';
 import ThemeToggleButton from '../ui/ThemeToggleButton';
 import { timeAgo } from '../../utils/textUtils';
 
@@ -75,7 +74,6 @@ function notifIcon(type) {
 
 function PharmacienTopbar() {
   const { user, logout } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
   const { unreadCount, notifications, loading: notifLoading, fetchNotifications, markAsRead, markAllAsRead, deleteNotif } = useUserNotif();
   const navigate = useNavigate();
   const location = useLocation();
@@ -389,7 +387,6 @@ function PharmacienTopbar() {
 }
 export default function PharmacienLayout() {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState({});
   const [pendingPrescriptionsCount, setPendingPrescriptionsCount] = useState(0);
 

@@ -23,11 +23,8 @@ export default function Footer() {
   const bg = isDark ? '#0d0d1a' : '#ffffff';
   const textMain = isDark ? '#ffffff' : '#2E3A4B';
   const textMuted = isDark ? 'rgba(255,255,255,0.65)' : '#5D6A85';
-  const border = isDark ? 'rgba(255,255,255,0.08)' : '#f3f4f6';
   const borderDarker = isDark ? 'rgba(255,255,255,0.15)' : '#e5e7eb';
-  const trustBg = isDark ? 'rgba(255,255,255,0.02)' : '#f9fafb';
   const green = '#166534'; // Pro green
-  const greenLight = isDark ? 'rgba(22,101,52,0.2)' : '#e8f5ed';
 
   const socialIconStyle = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',

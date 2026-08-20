@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProductCard from '../ProductCard';
 import { useLang } from '../../context/LangContext';
-import useScrollAnimation from '../../hooks/useScrollAnimation';
 
 export default function NewArrivals() {
   const { t } = useLang();

@@ -111,19 +111,16 @@ const NotificationsCenter = () => {
 
   const unreadCount = notifications.filter(n => n.unread).length;
 
-  const markAsRead = (id) => {
+  const markAsRead = () => {
     // Implement mark as read logic
-    console.log('Mark as read:', id);
   };
 
   const markAllAsRead = () => {
     // Implement mark all as read logic
-    console.log('Mark all as read');
   };
 
-  const deleteNotification = (id) => {
+  const deleteNotification = () => {
     // Implement delete logic
-    console.log('Delete notification:', id);
   };
 
   return (

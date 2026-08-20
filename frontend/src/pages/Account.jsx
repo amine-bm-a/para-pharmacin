@@ -13,11 +13,10 @@ import {
   Menu, X, Upload,
   ExternalLink, MessageSquare, Phone, ChevronDown, ChevronUp, Copy,
   Check, Key, Eye, EyeOff, Sparkles, Plus, Trash, Sun, Moon,
-  Star, MessageCircle, Send, RefreshCw, Hand
+  Star, MessageCircle, Send, RefreshCw, Hand, Loader2
 } from 'lucide-react';
 import Loyalty from './account/Loyalty';
 import Subscriptions from './account/Subscriptions';
-import AccountReferrals from './account/AccountReferrals';
 import PWANotifications from '../components/account/PWANotifications';
 
 // Fallback recommendations if empty

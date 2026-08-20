@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Copy, Check, Share2, Users, Gift, Sparkles, Award } from 'lucide-react';
+import { Copy, Check, Share2, Users, Gift, Sparkles } from 'lucide-react';
 
 export default function AccountReferrals() {
   const [data, setData] = useState(null);

@@ -4,7 +4,7 @@ import logo from '../assets/logo.png';
 import { useTheme } from '../context/ThemeContext';
 import {
   MapPin, Phone, Mail, Clock, Facebook, Instagram,
-  Truck, ShieldCheck, User, ShoppingBag, HelpCircle, Lock
+  Truck, User, ShoppingBag, HelpCircle, Lock
 } from 'lucide-react';
 
 export default function Footer() {

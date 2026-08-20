@@ -47,7 +47,7 @@ const updateSW = registerSW({
     document.getElementById('pwa-dismiss-btn')?.addEventListener('click', () => toast.remove())
   },
   onOfflineReady() {
-    console.log('[PWA] App ready for offline use.')
+    // App is ready for offline use.
   },
 })
 

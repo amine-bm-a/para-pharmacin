@@ -60,7 +60,7 @@ export function useScrollReveal(deps = [], options = {}) {
       observer.disconnect();
       mutationObserver.disconnect();
     };
-  }, [threshold, rootMargin, ...deps]);
+  }, [threshold, rootMargin, ...deps]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 export default useScrollReveal;

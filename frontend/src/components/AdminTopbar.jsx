@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { useUserNotif } from '../context/UserNotifContext';
-import { Bell, ExternalLink, LogOut, Search, ChevronDown, X, Check, Store } from 'lucide-react';
+import { Bell, LogOut, Search, ChevronDown, X, Check, Store } from 'lucide-react';
 import ThemeToggleButton from './ui/ThemeToggleButton';
 import { timeAgo } from '../utils/textUtils';
 const PAGE_TITLES = {
@@ -33,7 +32,6 @@ function notifIcon(type) {
 
 export default function AdminTopbar() {
   const { user, logout } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
   const { unreadCount, notifications, loading: notifLoading, fetchNotifications, markAsRead, markAllAsRead, deleteNotif } = useUserNotif();
   const navigate = useNavigate();
   const location = useLocation();
@@ -61,15 +59,10 @@ export default function AdminTopbar() {
   }, []);
 
   const handleBellClick = () => {
-    console.log('Bell clicked, current showNotifPanel:', showNotifPanel);
     if (!showNotifPanel) {
-      console.log('Fetching notifications...');
       fetchNotifications();
     }
-    setShowNotifPanel(v => {
-      console.log('Setting showNotifPanel to:', !v);
-      return !v;
-    });
+    setShowNotifPanel(v => !v);
     setShowUserMenu(false);
   };
 

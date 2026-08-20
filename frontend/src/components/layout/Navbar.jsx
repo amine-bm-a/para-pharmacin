@@ -8,7 +8,7 @@ import { useUserNotif } from '../../context/UserNotifContext';
 import logo from '../../assets/logo.png';
 import axios from 'axios';
 import { createPortal } from 'react-dom';
-import { Heart, ShoppingCart, User, Search, Bell, Sun, Moon } from 'lucide-react';
+import { Heart, ShoppingCart, User, Search, Bell } from 'lucide-react';
 import ThemeToggleButton from '../ui/ThemeToggleButton';
 
 const Navbar = () => {
@@ -21,7 +21,7 @@ const Navbar = () => {
   const [userDropdownPosition, setUserDropdownPosition] = useState({ top: 0, right: 0 });
   const { user, logout, isAdmin, isPharmacien } = useAuth();
   const { getCartCount } = useCart();
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark } = useTheme();
   const { unreadCount } = useUserNotif() || { unreadCount: 0 };
   const navigate = useNavigate();
   const dropdownRef = useRef(null);

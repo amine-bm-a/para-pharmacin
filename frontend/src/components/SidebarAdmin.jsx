@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate, Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import {
@@ -69,7 +69,6 @@ const navGroups = [
 
 export default function SidebarAdmin({ isCollapsed, onToggleCollapse }) {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState({});
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -82,7 +81,7 @@ export default function SidebarAdmin({ isCollapsed, onToggleCollapse }) {
           setUnreadCount(res.data.count);
         }
       } catch (err) {
-        console.log('Error fetching unread count:', err);
+        // silently ignore polling errors
       }
     };
 

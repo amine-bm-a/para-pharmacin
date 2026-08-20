@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Package, Loader2, Clock, CheckCircle2, Truck, XCircle } from 'lucide-react';
+import { Package, Loader2 } from 'lucide-react';
 
 export default function AccountOrders() {
   const [orders, setOrders] = useState([]);

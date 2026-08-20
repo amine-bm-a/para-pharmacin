@@ -8,8 +8,7 @@ import {
   Clock, 
   CheckCircle, 
   XCircle, 
-  AlertCircle,
-  Plus
+  AlertCircle
 } from 'lucide-react';
 
 const PrescriptionCenter = () => {

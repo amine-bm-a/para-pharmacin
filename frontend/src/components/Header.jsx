@@ -15,7 +15,6 @@ import {
   ChevronDown,
   ChevronRight,
   Flame,
-  Sparkles,
 } from 'lucide-react';
 import Button from '../ui/Button';
 import { useAuth } from '../context/AuthContext';
@@ -343,7 +342,7 @@ export default function Header() {
     setActiveChild(null);
   };
 
-  const handleCategoryClick = (idx, slug, e) => {
+  const handleCategoryClick = (idx, slug) => {
     // Touch/click toggle support
     if (openMenu === idx) {
       navigateAndClose(`/products?category=${slug}`);

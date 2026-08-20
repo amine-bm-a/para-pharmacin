@@ -82,10 +82,6 @@ const Home = () => {
     return <HomeLoadingSkeleton />;
   }
 
-  // Zebra pattern: alternate section background
-  // Sections that use section-alt (bg-subtle): categories, best_sellers, blog, newsletter
-  const altSections = new Set(['categories', 'best_sellers', 'blog', 'newsletter']);
-
   const renderSection = (id) => {
     switch (id) {
       case 'hero':

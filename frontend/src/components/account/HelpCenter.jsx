@@ -78,7 +78,6 @@ const HelpCenter = () => {
 
   const handleSendMessage = () => {
     if (message.trim()) {
-      console.log('Sending message:', message);
       setMessage('');
     }
   };

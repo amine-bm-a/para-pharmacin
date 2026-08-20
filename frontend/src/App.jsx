@@ -124,7 +124,7 @@ const PharmacienRoute = ({ children }) => {
 };
 
 // Layout conditionnel (header/footer masqués sur dashboards)
-const LayoutWrapper = React.memo(({ children }) => {
+const LayoutWrapper = React.memo(function LayoutWrapper({ children }) {
   const location = useLocation();
   const isDashboardRoute =
     location.pathname.startsWith('/admin') ||

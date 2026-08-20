@@ -3,11 +3,9 @@ import { useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import ProductCard from '../components/ProductCard';
 import { ProductCardSkeleton } from '../components/LoadingSkeleton';
-import { useLang } from '../context/LangContext';
 import { Search, ShoppingBag, ArrowRight } from 'lucide-react';
 
 export default function SearchResults() {
-  const { t } = useLang();
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || searchParams.get('search') || '';
   const [products, setProducts] = useState([]);
