@@ -10,9 +10,6 @@ try { Illuminate\Support\Facades\DB::statement('DROP TABLE IF EXISTS push_subscr
 echo "Running migrations..."
 php artisan migrate --force
 
-echo "Moving php-fpm to internal port 9001 (9000 is the public nginx port)..."
-sed -i 's/^listen = .*/listen = 127.0.0.1:9001/' /usr/local/etc/php-fpm.d/www.conf
-
 echo "Starting php-fpm..."
 php-fpm -D
 

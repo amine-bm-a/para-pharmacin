@@ -24,6 +24,7 @@ class Product extends Model
         'price',
         'discount_price',
         'stock',
+        'barcode',
         'image_url',
         'is_featured',
         'requires_prescription',
@@ -60,6 +61,7 @@ class Product extends Model
             'price' => (float) $this->price,
             'discount_price' => $this->discount_price ? (float) $this->discount_price : null,
             'stock' => $this->stock,
+            'barcode' => $this->barcode ?? '',
             'image_url' => $this->image_url ?? '',
             'is_featured' => $this->is_featured,
         ];
