@@ -7,7 +7,7 @@ RUN npm ci
 
 COPY frontend/ .
 
-ARG VITE_API_URL=https://3fiv1wts.up.railway.app/api
+ARG VITE_API_URL=https://backend-production-7b917.up.railway.app/api
 ENV VITE_API_URL=$VITE_API_URL
 
 ARG VITE_VAPID_PUBLIC_KEY
