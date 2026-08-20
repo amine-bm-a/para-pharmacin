@@ -6,7 +6,8 @@ import {
   LayoutDashboard, ShoppingBag, Pill, FolderOpen, Tag,
   Package, Percent, Image, Users, ShieldCheck, Star, LogOut, HeartPulse,
   Truck, CreditCard, Settings, ChevronDown, ChevronRight,
-  Bell, ExternalLink, Grid3X3, Store, BookOpen, Handshake, PanelLeftClose, PanelLeft
+  Bell, ExternalLink, Grid3X3, Store, BookOpen, Handshake, PanelLeftClose, PanelLeft,
+  ScanBarcode
 } from 'lucide-react';
 
 const navGroups = [
@@ -32,6 +33,7 @@ const navGroups = [
       { path: '/admin/subcategories', label: 'Sous-Catégories', icon: FolderOpen },
       { path: '/admin/brands', label: 'Marques', icon: Tag },
       { path: '/admin/stocks', label: 'Stock', icon: Package },
+      { path: '/admin/scan-stock', label: 'Scanner Produit', icon: ScanBarcode },
     ]
   },
   {

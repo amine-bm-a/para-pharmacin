@@ -103,6 +103,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // Stocks
         Route::get('/stocks', [AdminStockController::class, 'index']);
         Route::put('/stocks/{id}', [AdminStockController::class, 'updateStock']);
+        Route::post('/stocks/scan', [AdminStockController::class, 'scanByBarcode']);
+        Route::post('/stocks/{id}/add', [AdminStockController::class, 'addStock']);
 
         // Promotions
         Route::get('/promotions', [AdminPromotionController::class, 'index']);

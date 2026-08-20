@@ -15,6 +15,7 @@ export default function AdminProducts() {
   const [prodBrand, setProdBrand] = useState('');
   const [prodPrice, setProdPrice] = useState('');
   const [prodStock, setProdStock] = useState('');
+  const [prodBarcode, setProdBarcode] = useState('');
   const [prodDesc, setProdDesc] = useState('');
   const [prodIngredients, setProdIngredients] = useState('');
   const [prodUsage, setProdUsage] = useState('');
@@ -58,6 +59,7 @@ export default function AdminProducts() {
     setProdBrand('');
     setProdPrice('');
     setProdStock('');
+    setProdBarcode('');
     setProdDesc('');
     setProdIngredients('');
     setProdUsage('');
@@ -79,6 +81,7 @@ export default function AdminProducts() {
     setProdBrand(product.brand);
     setProdPrice(product.price);
     setProdStock(product.stock);
+    setProdBarcode(product.barcode || '');
     setProdDesc(product.description);
     setProdIngredients(product.ingredients || '');
     setProdUsage(product.usage_instructions || '');
@@ -139,6 +142,7 @@ export default function AdminProducts() {
     formData.append('brand', prodBrand);
     formData.append('price', prodPrice);
     formData.append('stock', prodStock);
+    if (prodBarcode.trim()) formData.append('barcode', prodBarcode.trim());
     formData.append('description', prodDesc);
     if (prodIngredients) formData.append('ingredients', prodIngredients);
     if (prodUsage) formData.append('usage_instructions', prodUsage);
@@ -304,6 +308,15 @@ export default function AdminProducts() {
                 color: 'var(--primary)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px'
+              }}>Code-barres</th>
+              <th style={{ 
+                padding: '16px 20px', 
+                textAlign: 'left', 
+                fontWeight: 700, 
+                fontSize: '0.85rem',
+                color: 'var(--primary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
               }}>Prix</th>
               <th style={{ 
                 padding: '16px 20px', 
@@ -355,6 +368,21 @@ export default function AdminProducts() {
                   </td>
                   <td style={{ padding: '16px 20px', fontSize: '0.85rem' }}>{p.category?.name}</td>
                   <td style={{ padding: '16px 20px', fontSize: '0.85rem' }}>{p.brand}</td>
+                  <td style={{ padding: '16px 20px' }}>
+                    {p.barcode ? (
+                      <span style={{
+                        fontFamily: 'monospace',
+                        fontSize: '0.82rem',
+                        background: 'var(--bg-subtle)',
+                        border: '1px solid var(--border-light)',
+                        borderRadius: '6px',
+                        padding: '3px 10px',
+                        fontWeight: 600
+                      }}>{p.barcode}</span>
+                    ) : (
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>—</span>
+                    )}
+                  </td>
                   <td style={{ padding: '16px 20px' }}>
                     {p.discount_price ? (
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -427,7 +455,7 @@ export default function AdminProducts() {
               ))
             ) : (
               <tr>
-                <td colSpan="6" style={{ 
+                <td colSpan="7" style={{ 
                   padding: '80px 40px',
                   textAlign: 'center',
                   color: 'var(--text-muted)',
@@ -561,6 +589,14 @@ export default function AdminProducts() {
                     <span className="input-icon">📦</span>
                     <input type="number" required className="form-control" value={prodStock} onChange={(e) => setProdStock(e.target.value)} />
                   </div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Code-barres <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: '0.8rem' }}>— optionnel, requis pour le scan</span></label>
+                <div className="form-wrapper">
+                  <span className="input-icon">📷</span>
+                  <input type="text" placeholder="Ex: 6111147652202" className="form-control" value={prodBarcode} onChange={(e) => setProdBarcode(e.target.value)} />
                 </div>
               </div>
 

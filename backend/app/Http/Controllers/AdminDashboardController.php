@@ -346,6 +346,7 @@ class AdminDashboardController extends Controller
             'price' => $request->price,
             'discount_price' => $request->has('discount_price') ? ($request->discount_price ?: null) : $product->discount_price,
             'stock' => $request->stock,
+            'barcode' => $request->has('barcode') ? ($request->barcode ?: null) : $product->barcode,
             'description' => $request->description,
             'ingredients' => $request->ingredients,
             'usage_instructions' => $request->usage_instructions,
