@@ -25,8 +25,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Create Users
-        $adminPassword = env('ADMIN_INITIAL_PASSWORD', 'admin123');
-        User::create([
+        $adminPassword = config('app.admin_initial_password', 'admin123');
+        $admin = User::create([
             'name' => 'Admin Pharmacie',
             'email' => 'amine2005benm@gmail.com',
             'phone' => '0522123456',
@@ -34,7 +34,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt($adminPassword),
         ]);
 
-        User::create([
+        $client = User::create([
             'name' => 'Ahmed El Amrani',
             'email' => 'client@example.com',
             'phone' => '0522123456',
@@ -42,7 +42,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('password123'),
         ]);
 
-        User::create([
+        $employe = User::create([
             'name' => 'Youssef Bennani',
             'email' => 'mohamedaminebenmoussa24@gmail.com',
             'phone' => '0661987654',
@@ -119,6 +119,7 @@ class DatabaseSeeder extends Seeder
         }
 
         // 3. Create Products
+        $productModels = [];
         $products = [
             [
                 'category_id' => $categoryModels['soins-du-visage']->id,
@@ -259,18 +260,19 @@ class DatabaseSeeder extends Seeder
         foreach ($products as $prod) {
             $prod['brand_id'] = $brandModels[$prod['brand']]->id ?? null;
             $createdProd = Product::create($prod);
+            $productModels[$prod['slug']] = $createdProd;
 
             // 4. Create some reviews for each product
             Review::create([
                 'product_id' => $createdProd->id,
-                'user_id' => 2, // Ahmed El Amrani
+                'user_id' => $client->id, // Ahmed El Amrani
                 'rating' => 5,
                 'comment' => 'Excellent produit, je le recommande vivement ! Très efficace et doux.',
             ]);
 
             Review::create([
                 'product_id' => $createdProd->id,
-                'user_id' => 2,
+                'user_id' => $client->id,
                 'rating' => 4,
                 'comment' => 'Très satisfait du résultat après 2 semaines d\'utilisation.',
             ]);
@@ -278,7 +280,7 @@ class DatabaseSeeder extends Seeder
 
         // 5. Create some Orders
         $order1 = Order::create([
-            'user_id' => 2,
+            'user_id' => $client->id,
             'order_number' => 'CMD'.date('Ymd').'0001',
             'status' => 'completed',
             'total_amount' => 367.00,
@@ -293,27 +295,27 @@ class DatabaseSeeder extends Seeder
 
         OrderItem::create([
             'order_id' => $order1->id,
-            'product_id' => 1, // Bioderma Créaline H2O
+            'product_id' => $productModels['bioderma-crealine-h2o']->id, // Bioderma Créaline H2O
             'quantity' => 1,
             'price' => 129.00,
         ]);
 
         OrderItem::create([
             'order_id' => $order1->id,
-            'product_id' => 2, // La Roche-Posay Effaclar
+            'product_id' => $productModels['la-roche-posay-effaclar-gel-moussant']->id, // La Roche-Posay Effaclar
             'quantity' => 1,
             'price' => 149.00,
         ]);
 
         OrderItem::create([
             'order_id' => $order1->id,
-            'product_id' => 3, // Avène Eau Thermale
+            'product_id' => $productModels['avene-eau-thermale-spray']->id, // Avène Eau Thermale
             'quantity' => 1,
             'price' => 89.00,
         ]);
 
         $order2 = Order::create([
-            'user_id' => 2,
+            'user_id' => $client->id,
             'order_number' => 'CMD'.date('Ymd').'0002',
             'status' => 'pending',
             'total_amount' => 298.00,
@@ -328,7 +330,7 @@ class DatabaseSeeder extends Seeder
 
         OrderItem::create([
             'order_id' => $order2->id,
-            'product_id' => 2, // La Roche-Posay Effaclar
+            'product_id' => $productModels['la-roche-posay-effaclar-gel-moussant']->id, // La Roche-Posay Effaclar
             'quantity' => 2,
             'price' => 149.00,
         ]);

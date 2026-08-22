@@ -474,9 +474,9 @@ export default function AdminOverview() {
             <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>🏆 Meilleurs produits</h3>
           </div>
           <div style={{ padding: '24px' }}>
-          {stats.recent_orders && stats.recent_orders.length > 0 ? (
+          {stats.top_products && stats.top_products.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-              {(stats.top_products || stats.low_stock_products || []).slice(0, 5).map((p, idx) => (
+              {stats.top_products.slice(0, 5).map((p, idx) => (
                 <div key={p.id || idx} style={{
                   display: 'flex', alignItems: 'center', gap: 12,
                   padding: '10px 0', borderBottom: '1px solid var(--border-light)',
@@ -502,18 +502,75 @@ export default function AdminOverview() {
                       objectFit: 'cover', flexShrink: 0
                     }} />
                   )}
-                  <span style={{
-                    fontSize: '0.84rem', fontWeight: 500,
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                    flex: 1
-                  }}>{p.name}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontSize: '0.84rem', fontWeight: 500,
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+                    }}>{p.name}</div>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                      {p.total_quantity} vendu(s)
+                    </div>
+                  </div>
+                  <strong style={{ fontSize: '0.8rem', color: 'var(--primary)', flexShrink: 0 }}>
+                    {parseFloat(p.total_revenue || 0).toLocaleString('fr-FR')} MAD
+                  </strong>
                 </div>
               ))}
             </div>
           ) : (
             <div style={{ color: 'var(--text-muted)', fontSize: '0.88rem', textAlign: 'center', padding: 40 }}>
               <div style={{ fontSize: '3rem', marginBottom: '12px', animation: 'float 3s ease-in-out infinite' }}>🏆</div>
-              Aucune donnée.
+              Aucune vente enregistrée.
+            </div>
+          )}
+          </div>
+        </div>
+
+        {/* Monthly Revenue (last 6 months) */}
+        <div style={{
+          background: 'var(--bg-card)',
+          borderRadius: 'var(--radius-lg)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            padding: '20px 28px',
+            borderBottom: '2px solid var(--primary)',
+            background: 'var(--bg-subtle)'
+          }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>💰 CA mensuel</h3>
+          </div>
+          <div style={{ padding: '24px' }}>
+          {stats.monthly_sales && stats.monthly_sales.some(m => parseFloat(m.total) > 0) ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {(() => {
+                const maxVal = Math.max(...stats.monthly_sales.map(m => parseFloat(m.total) || 0), 1);
+                return stats.monthly_sales.map((m) => (
+                  <div key={m.month} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{
+                      fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)',
+                      width: 76, flexShrink: 0
+                    }}>{m.label}</span>
+                    <div style={{ flex: 1, height: 14, background: 'var(--bg-subtle)', borderRadius: 7, overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${Math.max((parseFloat(m.total) / maxVal) * 100, m.total > 0 ? 4 : 0)}%`,
+                        height: '100%',
+                        background: 'linear-gradient(135deg, var(--primary), #45a049)',
+                        borderRadius: 7,
+                        transition: 'width 0.4s ease'
+                      }} />
+                    </div>
+                    <strong style={{ fontSize: '0.78rem', width: 90, textAlign: 'right', flexShrink: 0 }}>
+                      {parseFloat(m.total).toLocaleString('fr-FR')} MAD
+                    </strong>
+                  </div>
+                ));
+              })()}
+            </div>
+          ) : (
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.88rem', textAlign: 'center', padding: 40 }}>
+              <div style={{ fontSize: '3rem', marginBottom: '12px', animation: 'float 3s ease-in-out infinite' }}>💰</div>
+              Aucun chiffre d'affaires sur les 6 derniers mois.
             </div>
           )}
           </div>

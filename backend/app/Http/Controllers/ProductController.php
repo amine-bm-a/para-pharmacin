@@ -28,14 +28,22 @@ class ProductController extends Controller
         $inStock = $request->boolean('in_stock');
         $promos = $request->has('promotions');
         $featured = $request->has('featured');
+        $noPrescription = $request->boolean('no_prescription');
+        $limit = max(0, (int) $request->get('limit', 0));
 
         // ── Scout full-text search (database driver in dev, meilisearch in prod) ──
         if ($search !== '') {
             $productQuery = Product::search($search)->query(function ($q) use (
-                $category, $brand, $minPrice, $maxPrice, $inStock, $promos, $featured, $sort
+                $category, $brand, $minPrice, $maxPrice, $inStock, $promos, $featured, $sort, $noPrescription, $limit
             ) {
                 $q->with('category')->withAvg('reviews', 'rating');
                 $this->applyProductFilters($q, $category, $brand, $minPrice, $maxPrice, $inStock, $promos, $featured, $sort);
+                if ($noPrescription) {
+                    $q->where('requires_prescription', false);
+                }
+                if ($limit > 0) {
+                    $q->limit($limit);
+                }
             });
 
             $products = $productQuery->get()->map(fn ($p) => tap($p, fn ($p) => $p->average_rating));
@@ -45,14 +53,20 @@ class ProductController extends Controller
             // and the current "products" cache version (bumped whenever an
             // admin creates/edits/deletes a product, see AdminDashboardController).
             $cacheKey = CacheKeyService::key('products', md5(json_encode([
-                $category, $brand, $minPrice, $maxPrice, $sort, $inStock, $promos, $featured,
+                $category, $brand, $minPrice, $maxPrice, $sort, $inStock, $promos, $featured, $noPrescription, $limit,
             ])));
 
             $products = Cache::remember($cacheKey, CacheKeyService::ttl(), function () use (
-                $category, $brand, $minPrice, $maxPrice, $inStock, $promos, $featured, $sort
+                $category, $brand, $minPrice, $maxPrice, $inStock, $promos, $featured, $sort, $noPrescription, $limit
             ) {
                 $query = Product::with('category')->withAvg('reviews', 'rating');
                 $this->applyProductFilters($query, $category, $brand, $minPrice, $maxPrice, $inStock, $promos, $featured, $sort);
+                if ($noPrescription) {
+                    $query->where('requires_prescription', false);
+                }
+                if ($limit > 0) {
+                    $query->limit($limit);
+                }
 
                 return $query->get()->map(fn ($p) => tap($p, fn ($p) => $p->average_rating));
             });
@@ -222,6 +236,20 @@ class ProductController extends Controller
         return response()->json([
             'success' => true,
             'testimonials' => $testimonials,
+        ]);
+    }
+
+    // Reviews written by the authenticated client (account "Mes avis" tab).
+    public function myReviews(Request $request)
+    {
+        $reviews = Review::with('product:id,name,image_url,slug')
+            ->where('user_id', $request->user()->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'reviews' => $reviews,
         ]);
     }
 }

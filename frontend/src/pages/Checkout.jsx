@@ -121,6 +121,37 @@ export default function Checkout() {
   const [pointsToSpend, setPointsToSpend] = useState(0);
   const [useLoyaltyPoints, setUseLoyaltyPoints] = useState(false);
 
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponMsg, setCouponMsg] = useState('');
+
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim();
+    if (!code || couponLoading) return;
+    setCouponLoading(true);
+    setCouponMsg('');
+    try {
+      const res = await axios.post('/coupons/validate', { code, amount: subtotal });
+      if (res.data.success) {
+        setAppliedCoupon({ code: res.data.coupon.code, discount: parseFloat(res.data.discount) });
+        setCouponMsg(`✅ Code « ${res.data.coupon.code} » appliqué : -${parseFloat(res.data.discount).toFixed(2)} MAD`);
+      } else {
+        setCouponMsg(res.data.message || 'Code promo invalide.');
+      }
+    } catch (err) {
+      setCouponMsg(err.response?.data?.message || 'Code promo invalide ou expiré.');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setCouponMsg('');
+  };
+
   useEffect(() => {
     if (user) {
       axios.get('/loyalty/info').then(res => {
@@ -156,7 +187,8 @@ export default function Checkout() {
   const isMarrakech = city.trim().toLowerCase() === 'marrakech';
   const shipping = paymentMethod === 'pickup' ? 0 : (isMarrakech || subtotal >= 700 ? 0 : 40);
   const loyaltyDiscount = useLoyaltyPoints ? (Math.floor(pointsToSpend / 100) * 5) : 0;
-  const total = Math.max(0, subtotal + shipping - loyaltyDiscount);
+  const couponDiscount = appliedCoupon ? appliedCoupon.discount : 0;
+  const total = Math.max(0, subtotal + shipping - loyaltyDiscount - couponDiscount);
   const needsPrescription = cartItems.some((item) => item.product.requires_prescription);
 
   const handleSubmit = async (e) => {
@@ -243,6 +275,9 @@ export default function Checkout() {
       }
       if (useLoyaltyPoints && pointsToSpend > 0) {
         formData.append('loyalty_points_to_spend', pointsToSpend);
+      }
+      if (appliedCoupon) {
+        formData.append('coupon_code', appliedCoupon.code);
       }
 
       const activeToken = token || localStorage.getItem('token');
@@ -533,6 +568,9 @@ export default function Checkout() {
           pointsToSpend={pointsToSpend} setPointsToSpend={setPointsToSpend}
           subtotal={subtotal} shipping={shipping}
           loyaltyDiscount={loyaltyDiscount} total={total}
+          couponInput={couponInput} setCouponInput={setCouponInput}
+          appliedCoupon={appliedCoupon} couponLoading={couponLoading}
+          couponMsg={couponMsg} handleApplyCoupon={handleApplyCoupon} removeCoupon={removeCoupon}
           loading={loading} user={user}
           error={error} setError={setError}
         />

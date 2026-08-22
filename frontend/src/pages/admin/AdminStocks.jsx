@@ -268,7 +268,7 @@ export default function AdminStocks() {
                       </div>
                     </td>
                     <td style={{ padding: '16px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{p.category?.name || '—'}</td>
-                    <td style={{ padding: '16px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{p.brand}</td>
+                    <td style={{ padding: '16px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{p.brand?.name || '—'}</td>
                     <td style={{ padding: '16px' }}>
                       {editingId === p.id ? (
                         <input

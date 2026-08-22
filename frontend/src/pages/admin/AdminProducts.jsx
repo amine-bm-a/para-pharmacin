@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { ScanBarcode } from 'lucide-react';
+import ProductScanner from '../../components/ProductScanner';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [scanModalOpen, setScanModalOpen] = useState(false);
 
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -61,6 +65,31 @@ export default function AdminProducts() {
     setProdStock('');
     setProdBarcode('');
     setProdDesc('');
+    setProdIngredients('');
+    setProdUsage('');
+    setProdFeatured(false);
+    setProdImageUrl('');
+    setProdImageFile(null);
+    setProdImagePreview('');
+    setProdDiscountPrice('');
+    setProdRequiresPrescription(false);
+    if (categories.length > 0) setProdCategory(categories[0].id);
+    setFormError('');
+    setProductModalOpen(true);
+  };
+
+  const handleScanNotFoundAdd = (code, medicine) => {
+    setScanModalOpen(false);
+    setEditingProduct(null);
+    setProdName(medicine?.name ? `${medicine.name}${medicine.dosage ? ` ${medicine.dosage}` : ''}` : '');
+    setProdBrandId('');
+    setProdBrand(medicine?.epi || '');
+    setProdPrice('');
+    setProdStock('');
+    setProdBarcode(code || '');
+    setProdDesc(medicine
+      ? `Substance active : ${medicine.dci || '—'}\nForme : ${medicine.forme || '—'}\nClasse : ${medicine.classe || '—'}\nStatut AMMPS : ${medicine.statut || '—'}`
+      : '');
     setProdIngredients('');
     setProdUsage('');
     setProdFeatured(false);
@@ -255,6 +284,34 @@ export default function AdminProducts() {
         >
           + Ajouter un produit
         </button>
+        <button
+          onClick={() => setScanModalOpen(true)}
+          style={{
+            padding: '12px 24px',
+            borderRadius: 'var(--radius-md)',
+            background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+            border: 'none',
+            color: 'white',
+            fontWeight: 700,
+            fontSize: '0.9rem',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.transform = 'translateY(-2px)';
+            e.target.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.4)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.3)';
+          }}
+        >
+          <ScanBarcode size={17} /> Scanner un produit
+        </button>
       </div>
 
       <div style={{ 
@@ -356,7 +413,11 @@ export default function AdminProducts() {
                 >
                   <td style={{ padding: '16px 20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <img src={p.image_url} alt={p.name} style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)' }} />
+                      {p.image_url ? (
+                        <img src={p.image_url} alt={p.name} style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)' }} />
+                      ) : (
+                        <div style={{ width: '48px', height: '48px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)', background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>💊</div>
+                      )}
                       <div>
                         <strong style={{ fontSize: '0.95rem' }}>{p.name}</strong>
                         <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
@@ -753,6 +814,71 @@ export default function AdminProducts() {
           </div>
         </div>
       </div>
+      )}
+
+      {scanModalOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1001,
+          padding: '20px'
+        }} onClick={() => setScanModalOpen(false)}>
+          <div style={{
+            background: 'var(--bg-card)',
+            borderRadius: 'var(--radius-lg)',
+            maxWidth: '900px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+          }} onClick={(e) => e.stopPropagation()}>
+            <div style={{
+              padding: '24px 32px',
+              borderBottom: '2px solid var(--primary)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: 'var(--bg-subtle)',
+              borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0'
+            }}>
+              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <ScanBarcode size={22} color="var(--primary)" /> Scanner un produit
+              </h2>
+              <button
+                onClick={() => setScanModalOpen(false)}
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  background: 'var(--border-light)',
+                  border: 'none',
+                  fontSize: '1.2rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--text-muted)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'var(--danger)';
+                  e.target.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'var(--border-light)';
+                  e.target.style.color = 'var(--text-muted)';
+                }}
+              >✕</button>
+            </div>
+            <div style={{ padding: '28px 32px' }}>
+              <ProductScanner onProductCreated={() => setScanModalOpen(false)} onNotFoundAdd={handleScanNotFoundAdd} />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

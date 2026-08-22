@@ -67,7 +67,6 @@ const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
 const AdminCategories = lazy(() => import('./pages/admin/AdminCategories'));
 const AdminBrands = lazy(() => import('./pages/admin/AdminBrands'));
 const AdminStocks = lazy(() => import('./pages/admin/AdminStocks'));
-const AdminScanStock = lazy(() => import('./pages/admin/AdminScanStock'));
 const AdminClients = lazy(() => import('./pages/admin/AdminClients'));
 const AdminStaff = lazy(() => import('./pages/admin/AdminStaff'));
 const AdminPromotions = lazy(() => import('./pages/admin/AdminPromotions'));
@@ -220,7 +219,6 @@ export default function App() {
                             <Route path="subcategories" element={<AdminSubCategories />} />
                             <Route path="brands" element={<AdminBrands />} />
                             <Route path="stocks" element={<AdminStocks />} />
-                            <Route path="scan-stock" element={<AdminScanStock />} />
                             <Route path="clients" element={<AdminClients />} />
                             <Route path="staff" element={<AdminStaff />} />
                             <Route path="promotions" element={<AdminPromotions />} />

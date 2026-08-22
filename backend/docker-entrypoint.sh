@@ -18,6 +18,12 @@ else
     echo "Database already seeded."
 fi
 
+echo "Resetting admin password..."
+php artisan tinker --execute="
+\$user = App\Models\User::where('email', 'amine2005benm@gmail.com')->first();
+if (\$user) { \$user->update(['password' => bcrypt('admin123')]); echo 'Admin password reset\n'; }
+"
+
 echo "Starting php-fpm..."
 php-fpm -D
 

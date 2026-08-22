@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Coupon;
 use App\Models\Prescription;
 use App\Models\Product;
 use App\Notifications\OrderStatusNotification;
@@ -68,6 +69,7 @@ class OrderController extends Controller
             // (checked manually below, since that depends on DB lookups).
             'prescription_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
             'loyalty_points_to_spend' => 'nullable|integer|min:0',
+            'coupon_code' => 'nullable|string|max:50',
         ]);
 
         if ($validator->fails()) {
@@ -100,7 +102,16 @@ class OrderController extends Controller
             foreach ($request->items as $item) {
                 $product = Product::where('id', $item['product_id'])->lockForUpdate()->first();
 
-                if (! $product || $product->stock < $item['quantity']) {
+                if (! $product) {
+                    DB::rollBack();
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Le produit #{$item['product_id']} n'existe plus dans le catalogue. Merci de mettre à jour votre panier.",
+                    ], 400);
+                }
+
+                if ($product->stock < $item['quantity']) {
                     DB::rollBack();
 
                     return response()->json([
@@ -117,6 +128,7 @@ class OrderController extends Controller
                     'quantity' => $item['quantity'],
                     'price' => $price,
                     'requires_prescription' => $product->requires_prescription,
+                    'stock_before' => (int) $product->stock,
                 ];
             }
 
@@ -154,6 +166,34 @@ class OrderController extends Controller
                 }
             }
 
+            // Apply a promo coupon on the discounted amount if requested
+            $coupon = null;
+            $couponDiscount = 0.0;
+            if ($request->filled('coupon_code')) {
+                $coupon = Coupon::where('code', strtoupper(trim($request->coupon_code)))->first();
+
+                if (! $coupon || ! $coupon->isValid()) {
+                    DB::rollBack();
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Code promo invalide ou expiré.',
+                    ], 422);
+                }
+
+                if ($totalAmount < (float) $coupon->min_order) {
+                    DB::rollBack();
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Ce code promo requiert une commande d'au moins {$coupon->min_order} DH.",
+                    ], 422);
+                }
+
+                $couponDiscount = round($totalAmount - $coupon->applyTo($totalAmount), 2);
+                $totalAmount = max(0, $totalAmount - $couponDiscount);
+            }
+
             // Check card balance and bank authorization if payment_method === 'card'
             if ($request->payment_method === 'card') {
                 $cardNumber = preg_replace('/\D/', '', $request->input('card_number', ''));
@@ -189,12 +229,20 @@ class OrderController extends Controller
                 'payment_status' => 'pending',
                 'prescription_path' => $prescriptionPath,
                 'prescription_status' => $requiresPrescription ? 'pending' : null,
+                'coupon_code' => $coupon?->code,
+                'discount_amount' => $couponDiscount,
             ]);
+
+            // Consume one usage of the coupon
+            if ($coupon) {
+                $coupon->increment('used_count');
+            }
 
             // Create Order Items, create Prescription records if required, and decrease stock
             foreach ($itemsToCreate as $itemData) {
                 $itemRequiresPrescription = $itemData['requires_prescription'];
-                unset($itemData['requires_prescription']);
+                $stockBefore = $itemData['stock_before'];
+                unset($itemData['requires_prescription'], $itemData['stock_before']);
 
                 $itemData['order_id'] = $order->id;
                 OrderItem::create($itemData);
@@ -212,6 +260,9 @@ class OrderController extends Controller
                 // Decrease stock
                 $product = Product::find($itemData['product_id']);
                 $product->decrement('stock', $itemData['quantity']);
+
+                // Notify staff when the product enters low-stock territory
+                NotificationService::notifyLowStock($product, $stockBefore);
             }
 
             DB::commit();
@@ -321,8 +372,8 @@ class OrderController extends Controller
         $query = Order::where('id', $id);
 
         // Clients can only access their own order's prescription;
-        // admins can access any (checked via the route's 'admin' middleware group).
-        if ($request->user()->role !== 'admin') {
+        // staff (admin / pharmacien / employe) can access any.
+        if (! in_array($request->user()->role, ['admin', 'pharmacien', 'employe'], true)) {
             $query->where('user_id', $request->user()->id);
         }
 

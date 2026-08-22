@@ -7,6 +7,7 @@ export default function AdminOrders() {
   const [updatingOrderId, setUpdatingOrderId] = useState(null);
   const [orderStatus, setOrderStatus] = useState('');
   const [orderPaymentStatus, setOrderPaymentStatus] = useState('');
+  const [exporting, setExporting] = useState(false);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -75,6 +76,26 @@ export default function AdminOrders() {
     }
   };
 
+  const handleExportCsv = async () => {
+    setExporting(true);
+    try {
+      const res = await axios.get('/admin/orders/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `commandes-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error exporting orders', err);
+      alert("Impossible d'exporter les commandes.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (loading) return (
     <div style={{ 
       textAlign: 'center', 
@@ -98,21 +119,39 @@ export default function AdminOrders() {
         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
         borderBottom: '4px solid var(--primary)'
       }}>
-        <div>
-          <h1 style={{ 
-            fontSize: '1.8rem', 
-            fontWeight: 800, 
-            marginBottom: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-          }}>
-            <span style={{ fontSize: '2.2rem' }}>📦</span>
-            <span>Gestion des Commandes</span>
-          </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-            Suivez et traitez toutes les commandes de vos clients
-          </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
+          <div>
+            <h1 style={{ 
+              fontSize: '1.8rem', 
+              fontWeight: 800, 
+              marginBottom: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <span style={{ fontSize: '2.2rem' }}>📦</span>
+              <span>Gestion des Commandes</span>
+            </h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
+              Suivez et traitez toutes les commandes de vos clients
+            </p>
+          </div>
+          <button
+            onClick={handleExportCsv}
+            disabled={exporting}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              background: exporting ? 'var(--text-muted)' : 'linear-gradient(135deg, var(--primary), #45a049)',
+              color: 'white', border: 'none',
+              borderRadius: 'var(--radius-md)', padding: '12px 20px',
+              fontWeight: 700, fontSize: '0.88rem',
+              cursor: exporting ? 'wait' : 'pointer',
+              boxShadow: '0 4px 12px rgba(76, 175, 80, 0.25)',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {exporting ? '⏳ Export...' : '⬇️ Exporter en CSV'}
+          </button>
         </div>
       </div>
 

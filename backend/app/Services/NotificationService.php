@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\Product;
 use App\Models\User;
 use App\Models\UserNotification;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -115,6 +117,41 @@ class NotificationService
 
         if ($notifications !== []) {
             UserNotification::insert($notifications);
+        }
+    }
+
+    /**
+     * Notify admins and staff when a product crosses into low-stock territory
+     * (<= 10 units, or hits 0). Alerts are deduplicated per product per day.
+     */
+    public static function notifyLowStock(Product $product, int $stockBefore): void
+    {
+        $threshold = 10;
+        $stockAfter = (int) $product->refresh()->stock;
+
+        $enteredLowZone = $stockBefore > $threshold && $stockAfter <= $threshold;
+        $hitZero = $stockAfter === 0 && $stockBefore > 0;
+
+        if (! $enteredLowZone && ! $hitZero) {
+            return;
+        }
+
+        $cacheKey = 'stock_alert:'.$product->id.':'.now()->format('Ymd');
+        if (Cache::has($cacheKey)) {
+            return;
+        }
+        Cache::put($cacheKey, true, now()->endOfDay());
+
+        try {
+            $label = $stockAfter === 0 ? 'rupture de stock' : 'stock faible';
+            self::notifyAdminsAndStaff(
+                '⚠️ Stock faible : '.$product->name,
+                "Le produit **{$product->name}** est en {$label} ({$stockAfter} unité(s) restante(s)). Pensez à réapprovisionner.",
+                'warning',
+                '/admin/stocks'
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Low stock notification failed: '.$e->getMessage());
         }
     }
 

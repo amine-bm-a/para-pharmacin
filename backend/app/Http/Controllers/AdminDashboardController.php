@@ -72,6 +72,44 @@ class AdminDashboardController extends Controller
             ->groupBy('categories.id', 'categories.name')
             ->get();
 
+        // Top products by quantity sold (all time)
+        $topProducts = DB::table('order_items')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->select(
+                'products.id',
+                'products.name',
+                'products.image_url',
+                DB::raw('SUM(order_items.quantity) as total_quantity'),
+                DB::raw('SUM(order_items.quantity * order_items.price) as total_revenue')
+            )
+            ->groupBy('products.id', 'products.name', 'products.image_url')
+            ->orderByDesc('total_quantity')
+            ->limit(5)
+            ->get();
+
+        // Monthly revenue for the last 6 months (grouped in PHP so the query
+        // stays portable across MySQL and SQLite test databases)
+        $monthlyOrders = Order::where('created_at', '>=', now()->subMonths(5)->startOfMonth())
+            ->get(['created_at', 'total_amount']);
+
+        $monthlySales = collect();
+        for ($i = 5; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $monthlySales->push([
+                'month' => $month->format('Y-m'),
+                'label' => ucfirst($month->locale('fr')->translatedFormat('F')),
+                'total' => 0.0,
+                'count' => 0,
+            ]);
+        }
+        foreach ($monthlyOrders as $order) {
+            $entry = $monthlySales->firstWhere('month', $order->created_at->format('Y-m'));
+            if ($entry) {
+                $entry['total'] += (float) $order->total_amount;
+                $entry['count']++;
+            }
+        }
+
         return response()->json([
             'success' => true,
             'stats' => [
@@ -84,6 +122,8 @@ class AdminDashboardController extends Controller
                 'category_sales' => $categorySales,
                 'low_stock_products' => $lowStockProducts,
                 'pending_prescriptions_count' => $pendingPrescriptionsCount,
+                'top_products' => $topProducts,
+                'monthly_sales' => $monthlySales->values(),
             ],
         ]);
     }
@@ -98,6 +138,70 @@ class AdminDashboardController extends Controller
             'success' => true,
             'orders' => $orders,
         ]);
+    }
+
+    /**
+     * Export all orders as a CSV file (Excel-friendly: UTF-8 BOM, ';' separator).
+     */
+    public function exportOrdersCsv(Request $request)
+    {
+        $orders = Order::with(['user', 'items.product'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $statusLabels = [
+            'pending' => 'En attente',
+            'preparing' => 'En préparation',
+            'processing' => 'En cours',
+            'shipped' => 'Expédiée',
+            'delivered' => 'Livrée',
+            'completed' => 'Complétée',
+            'cancelled' => 'Annulée',
+        ];
+
+        $callback = function () use ($orders, $statusLabels) {
+            $handle = fopen('php://output', 'w');
+            // UTF-8 BOM so Excel displays accents correctly
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, [
+                'N° Commande', 'Date', 'Client', 'Email', 'Téléphone',
+                'Adresse', 'Ville', 'Code postal',
+                'Articles', 'Total (MAD)', 'Réduction promo (MAD)', 'Code promo',
+                'Statut', 'Mode de paiement', 'Statut paiement',
+            ], ';');
+
+            foreach ($orders as $order) {
+                $articles = $order->items
+                    ->map(fn ($i) => $i->quantity.'x '.($i->product->name ?? 'Produit supprimé'))
+                    ->implode(' | ');
+
+                fputcsv($handle, [
+                    $order->order_number,
+                    $order->created_at?->format('d/m/Y H:i'),
+                    $order->user?->name ?? '-',
+                    $order->user?->email ?? '-',
+                    $order->phone_number,
+                    $order->shipping_address,
+                    $order->shipping_city,
+                    $order->postal_code,
+                    $articles,
+                    number_format((float) $order->total_amount, 2, ',', ''),
+                    number_format((float) $order->discount_amount, 2, ',', ''),
+                    $order->coupon_code ?? '-',
+                    $statusLabels[$order->status] ?? $order->status,
+                    $order->payment_method,
+                    $order->payment_status,
+                ], ';');
+            }
+
+            fclose($handle);
+        };
+
+        return response()->streamDownload(
+            $callback,
+            'commandes-'.now()->format('Y-m-d').'.csv',
+            ['Content-Type' => 'text/csv; charset=UTF-8']
+        );
     }
 
     public function updateOrderStatus(Request $request, $id)

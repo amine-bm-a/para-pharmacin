@@ -4,8 +4,11 @@ const OrderSummary = React.memo(function OrderSummary({
   cartItems, loyaltyInfo, useLoyaltyPoints, setUseLoyaltyPoints,
   pointsToSpend, setPointsToSpend,
   subtotal, shipping, loyaltyDiscount, total,
+  couponInput, setCouponInput,
+  appliedCoupon, couponLoading, couponMsg, handleApplyCoupon, removeCoupon,
   loading, user, error, setError
 }) {
+  const couponDiscount = appliedCoupon ? appliedCoupon.discount : 0;
   return (
     <aside style={{ 
       background: 'white',
@@ -131,6 +134,88 @@ const OrderSummary = React.memo(function OrderSummary({
         </div>
       )}
 
+      {/* ── Promo coupon ── */}
+      <div style={{
+        background: appliedCoupon ? 'linear-gradient(135deg, #f0fdf4, #dcfce7)' : 'var(--bg-subtle)',
+        border: appliedCoupon ? '1.5px solid #86efac' : '1.5px dashed var(--border)',
+        borderRadius: 'var(--radius-md)',
+        padding: '16px',
+        marginBottom: '20px',
+      }}>
+        {appliedCoupon ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+            <div>
+              <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#15803d' }}>
+                🎟️ Code « {appliedCoupon.code} » appliqué
+              </span>
+              <span style={{ display: 'block', fontSize: '0.78rem', color: '#16a34a', fontWeight: 600, marginTop: '2px' }}>
+                Réduction : -{appliedCoupon.discount.toFixed(2)} MAD
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={removeCoupon}
+              style={{
+                background: 'white', border: '1.5px solid #86efac', color: '#15803d',
+                borderRadius: 'var(--radius-md)', padding: '8px 14px', fontWeight: 700,
+                fontSize: '0.8rem', cursor: 'pointer'
+              }}
+            >
+              Retirer
+            </button>
+          </div>
+        ) : (
+          <>
+            <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', color: 'var(--text)', marginBottom: '8px' }}>
+              🎟️ Code promo
+            </label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                value={couponInput}
+                onChange={e => setCouponInput(e.target.value.toUpperCase())}
+                placeholder="Ex : BIENVENUE10"
+                disabled={couponLoading}
+                style={{
+                  flex: 1, minWidth: 0,
+                  padding: '10px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1.5px solid var(--border-light)',
+                  background: 'white',
+                  color: 'var(--text)',
+                  fontSize: '0.88rem',
+                  outline: 'none',
+                  textTransform: 'uppercase'
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleApplyCoupon}
+                disabled={couponLoading || !couponInput.trim()}
+                style={{
+                  background: couponLoading || !couponInput.trim() ? 'var(--text-muted)' : 'linear-gradient(135deg, var(--primary), #45a049)',
+                  color: 'white', border: 'none', borderRadius: 'var(--radius-md)',
+                  padding: '10px 16px', fontWeight: 700, fontSize: '0.82rem',
+                  cursor: couponLoading || !couponInput.trim() ? 'not-allowed' : 'pointer',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {couponLoading ? '...' : 'Appliquer'}
+              </button>
+            </div>
+          </>
+        )}
+        {couponMsg && (
+          <div style={{
+            marginTop: appliedCoupon ? '8px' : '10px',
+            fontSize: '0.78rem', fontWeight: 600, lineHeight: 1.4,
+            color: couponMsg.startsWith('✅') ? '#15803d' : 'var(--danger)'
+          }}>
+            {couponMsg}
+          </div>
+        )}
+      </div>
+
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
@@ -166,6 +251,18 @@ const OrderSummary = React.memo(function OrderSummary({
         }}>
           <span style={{ color: '#15803d', fontWeight: 600 }}>⭐ Réduction fidélité</span>
           <span style={{ fontWeight: 700, color: '#15803d', fontSize: '1rem' }}>-{loyaltyDiscount.toFixed(2)} MAD</span>
+        </div>
+      )}
+
+      {couponDiscount > 0 && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          marginBottom: '16px',
+          fontSize: '0.95rem',
+        }}>
+          <span style={{ color: '#15803d', fontWeight: 600 }}>🎟️ Code promo {appliedCoupon?.code}</span>
+          <span style={{ fontWeight: 700, color: '#15803d', fontSize: '1rem' }}>-{couponDiscount.toFixed(2)} MAD</span>
         </div>
       )}
 

@@ -24,10 +24,13 @@ class Order extends Model
         'payment_status',
         'prescription_path',
         'prescription_status',
+        'coupon_code',
+        'discount_amount',
     ];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
     ];
 
     public function user(): BelongsTo

@@ -52,4 +52,21 @@ return [
         ],
     ],
 
+    'openfoodfacts' => [
+        'base_url' => env('OPENFOODFACTS_BASE_URL', 'https://world.openfoodfacts.org'),
+        'beauty_base_url' => env('OPENBEAUTYFACTS_BASE_URL', 'https://world.openbeautyfacts.org'),
+        'petfood_base_url' => env('OPENPETFOODFACTS_BASE_URL', 'https://world.openpetfoodfacts.org'),
+        'products_base_url' => env('OPENPRODUCTSFACTS_BASE_URL', 'https://world.openproductsfacts.org'),
+        'timeout' => env('OPENFOODFACTS_TIMEOUT', 8),
+    ],
+
+    // Official Moroccan medicines register (AMMPS) — searched by name / DCI.
+    // Note: the AMMPS site exposes no barcode (EAN) data and no API, so this
+    // is a live HTML search used to help identify a medicine after a failed scan.
+    'ammps' => [
+        'base_url' => env('AMMPS_BASE_URL', 'https://www.ammps.gov.ma'),
+        'timeout' => env('AMMPS_TIMEOUT', 15),
+        'user_agent' => env('AMMPS_USER_AGENT', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'),
+    ],
+
 ];

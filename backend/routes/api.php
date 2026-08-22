@@ -23,6 +23,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PharmacienController;
+use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\SubscriptionController;
@@ -79,11 +80,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Product Review
     Route::post('/products/{productId}/reviews', [ProductController::class, 'storeReview']);
+    Route::get('/my-reviews', [ProductController::class, 'myReviews']);
 
     // Admin Dashboard Routes — rate limited to 30 req/min per authenticated user
     Route::prefix('admin')->middleware(['admin', 'throttle:30,1'])->group(function () {
         Route::get('/stats', [AdminDashboardController::class, 'stats']);
         Route::get('/orders', [AdminDashboardController::class, 'orders']);
+        Route::get('/orders/export', [AdminDashboardController::class, 'exportOrdersCsv']);
         Route::put('/orders/{id}', [AdminDashboardController::class, 'updateOrderStatus']);
         Route::put('/orders/{id}/prescription', [AdminDashboardController::class, 'updatePrescriptionStatus']);
         Route::get('/products', [AdminDashboardController::class, 'products']);
@@ -105,6 +108,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/stocks/{id}', [AdminStockController::class, 'updateStock']);
         Route::post('/stocks/scan', [AdminStockController::class, 'scanByBarcode']);
         Route::post('/stocks/{id}/add', [AdminStockController::class, 'addStock']);
+
+        // Moroccan medicines register (AMMPS) — searched after a failed scan
+        Route::get('/ammps-search', [AdminStockController::class, 'ammpsSearch']);
+        Route::post('/ammps/add', [AdminStockController::class, 'ammpsCreate']);
 
         // Promotions
         Route::get('/promotions', [AdminPromotionController::class, 'index']);
