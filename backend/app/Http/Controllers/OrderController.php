@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Coupon;
 use App\Models\Prescription;
 use App\Models\Product;
 use App\Notifications\OrderStatusNotification;

@@ -488,7 +488,7 @@ class AdminStockController extends Controller
             return $medicines;
         }
 
-        $dom = new \DOMDocument();
+        $dom = new \DOMDocument;
         libxml_use_internal_errors(true);
         $dom->loadHTML('<?xml encoding="UTF-8">'.$html);
         libxml_clear_errors();
