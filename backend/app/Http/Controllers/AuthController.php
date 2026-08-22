@@ -125,14 +125,16 @@ class AuthController extends Controller
                 'two_factor_expires_at' => now()->addMinutes($expiry),
             ]);
 
-            try {
-                Mail::raw(
-                    "Bonjour {$user->name},\n\nVotre code de vérification (2FA) est : {$code}\n\nIl expirera dans {$expiry} minutes.\n\n— Para Ben Moussa",
-                    fn ($m) => $m->to($user->email)->subject('Code de vérification — Para Ben Moussa')
-                );
-            } catch (\Exception $e) {
-                Log::warning('2FA mail failed: '.$e->getMessage());
-            }
+            dispatch(function () use ($user, $code, $expiry) {
+                try {
+                    Mail::raw(
+                        "Bonjour {$user->name},\n\nVotre code de vérification (2FA) est : {$code}\n\nIl expirera dans {$expiry} minutes.\n\n— Para Ben Moussa",
+                        fn ($m) => $m->to($user->email)->subject('Code de vérification — Para Ben Moussa')
+                    );
+                } catch (\Exception $e) {
+                    Log::warning('2FA mail failed: '.$e->getMessage());
+                }
+            });
 
             $response = [
                 'success' => true,
