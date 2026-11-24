@@ -1,27 +1,26 @@
 import axios from 'axios';
 
-// Create a custom axios instance with cancellation support
+// Create a custom axios instance with cancellation support (AbortController)
 const axiosWithCancel = () => {
-  const CancelToken = axios.CancelToken;
-  let cancel;
+  let controller;
 
   const request = async (config) => {
-    if (cancel) {
-      cancel('Request canceled due to new request');
+    if (controller) {
+      controller.abort();
     }
+
+    controller = new AbortController();
 
     return axios({
       ...config,
-      cancelToken: new CancelToken((c) => {
-        cancel = c;
-      })
+      signal: controller.signal,
     });
   };
 
   const cancelRequest = () => {
-    if (cancel) {
-      cancel('Request canceled');
-      cancel = null;
+    if (controller) {
+      controller.abort();
+      controller = null;
     }
   };
 

@@ -143,11 +143,6 @@ class AuthController extends Controller
                 'email' => $user->email,
             ];
 
-            if (config('app.debug')) {
-                $response['dev_2fa_code'] = $code;
-                $response['dev_note'] = 'Code visible uniquement en APP_DEBUG=true.';
-            }
-
             return response()->json($response);
         }
 

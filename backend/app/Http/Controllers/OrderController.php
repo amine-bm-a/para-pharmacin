@@ -265,30 +265,22 @@ class OrderController extends Controller
                 NotificationService::notifyLowStock($product, $stockBefore);
             }
 
+            // ── Loyalty: spend points if requested (inside transaction) ──────
+            if ($pointsSpent > 0) {
+                LoyaltyService::spendPoints($user, $pointsSpent, $order);
+            }
+
+            // ── Loyalty: apply referral bonus on first ever order (inside transaction) ──
+            $isFirstOrder = Order::where('user_id', $user->id)->count() === 1;
+            if ($isFirstOrder && $user->referred_by && ! $user->referral_bonus_granted) {
+                LoyaltyService::applyReferralBonus($user, $order);
+            }
+
             DB::commit();
 
             // Stock levels changed for every ordered product — invalidate the
             // cached product listings so "in stock" / low-stock badges stay accurate.
             CacheKeyService::bump('products');
-
-            // ── Loyalty: spend points if requested ───────────────────────────
-            if ($pointsSpent > 0) {
-                try {
-                    LoyaltyService::spendPoints($user, $pointsSpent, $order);
-                } catch (\Exception $e) {
-                    Log::warning('OrderController: Failed to deduct loyalty points.', ['error' => $e->getMessage()]);
-                }
-            }
-
-            // ── Loyalty: apply referral bonus on first ever order ────────────
-            $isFirstOrder = Order::where('user_id', $user->id)->count() === 1;
-            if ($isFirstOrder && $user->referred_by && ! $user->referral_bonus_granted) {
-                try {
-                    LoyaltyService::applyReferralBonus($user, $order);
-                } catch (\Exception $e) {
-                    Log::warning('OrderController: Failed to apply referral bonus.', ['error' => $e->getMessage()]);
-                }
-            }
 
             // Notify all admins and staff about the new order
             $clientName = $request->user()->name ?? 'Client';
