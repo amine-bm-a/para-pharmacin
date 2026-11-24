@@ -1,4 +1,4 @@
-﻿# 🏥 Para Ben Moussa - Pharmacie en ligne
+# 🏥 Para Ben Moussa - Pharmacie en ligne
 
 Plateforme e-commerce dédiée à la pharmacie et au para-pharmaceutique, construite avec **Laravel 12** (backend) et **React 18 + Vite** (frontend).
 
