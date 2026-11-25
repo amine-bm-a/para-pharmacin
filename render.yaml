@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: pharmacie-benmoussa-api
+    env: php
+    plan: free
+    region: eu-west-1
+    buildCommand: "cd backend && composer install --no-dev --optimize-autoloader && php artisan config:cache && php artisan route:cache && php artisan view:cache"
+    startCommand: "cd backend && php artisan serve --host=0.0.0.0 --port=$PORT"
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: LOG_CHANNEL
+        value: stack
+      - key: DB_CONNECTION
+        value: mysql
+      - key: CACHE_DRIVER
+        value: file
+      - key: SESSION_DRIVER
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: MAIL_MAILER
+        value: log
+      - key: SCOUT_DRIVER
+        value: database
+# Les variables suivantes doivent être ajoutées manuellement dans le dashboard Render:
+# APP_KEY, APP_URL, DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+# SANCTUM_STATEFUL_DOMAINS, CMI_CLIENT_ID, CMI_STORE_KEY
+# TWILIO_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM, TWILIO_WHATSAPP_FROM
+# SENTRY_LARAVEL_DSN
